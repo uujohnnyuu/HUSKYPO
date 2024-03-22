@@ -3,6 +3,7 @@ from huskypo.example.test_my_test import TestMyTest
 
 if __name__ == '__main__':
 
+    # Default set log file under huskypo
     logconfig.basic()
 
     # Modify default timeout from 30 to 60
