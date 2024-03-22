@@ -1,23 +1,16 @@
-from huskypo import By, Page, Element, Elements
-from huskypo.decorator import dynamic
+from huskypo import Page, Element, Elements
+from huskypo import By
+from huskypo import dynamic
 
 
 class MyPage(Page):
 
-    # Skip checking driver type.
+    # There is no need to include the init function in your pages.
+    # This is used to bypass driver type verification in example.
     def __init__(self, driver):
         self._driver = driver
 
-    # dynamic decorator
-    @dynamic
-    def d_element(self, par: str):
-        return Element(By.ID, f'ID_{par}', 10, 99, 'this is dynamic element by decorator')
-
-    @dynamic
-    def d_elements(self, par: str):
-        return Elements(By.ACCESSIBILITY_ID, f'ACCID_{par}', 199, 'this is dynamic elements by decorator')
-
-    # static Element
+    # Static Element.
     element_by_value = Element(By.ID, 'value')
     element_by_value_index = Element(By.ID, 'value', 0)
     element_by_value_remark = Element(By.ID, 'value', 'this is remark')
@@ -25,70 +18,32 @@ class MyPage(Page):
     element_by_value_index_remark = Element(By.ID, 'value', -1, 'this is remark')
     element_by_value_index_timeout_remark = Element(By.ID, 'value', -1, 99, 'this is remark')
 
-    # dynamic Element
-    static_element_by_value = Element()
+    # Static Elements.
+    element_by_value = Elements(By.ID, 'value')
+    element_by_value_timeout = Elements(By.ID, 'value', 10)
+    element_by_value_remark = Elements(By.ID, 'value', 'this is remark')
+    element_by_value_timeout_remark = Elements(By.ID, 'value', 30, 'this is remark')
 
-    def dynamic_element_by_value(self, par) -> Element:
-        self.static_element_by_value = (By.ID, f'value_{par}')
-        return self.static_element_by_value
+    # Dynamic Element(s) by "dynamic" decorator.
+    # This is recommended simplified approach.
+    @dynamic
+    def d_element(self, par: str):
+        return Element(By.ID, f'ID_{par}', None, 99, 'this is dynamic element by decorator')
 
-    static_element_by_value_index = Element()
+    @dynamic
+    def d_elements(self, par: str):
+        return Elements(By.ACCESSIBILITY_ID, f'ACCID_{par}', 99, 'this is dynamic elements by decorator')
 
-    def dynamic_element_by_value_index(self, par) -> Element:
-        self.static_element_by_value_index = (By.ID, f'value_{par}', 0)
-        return self.static_element_by_value_index
+    # Dynamic Element(s) by descriptor
+    # This is the standard notation for descriptor assignment.
+    static_element = Element()
 
-    static_element_by_value_remark = Element()
+    def dynamic_element(self, par: str) -> Element:
+        self.static_element = (By.ID, f'value_{par}')  # call __set__
+        return self.static_element
 
-    def dynamic_element_by_value_remark(self, par) -> Element:
-        self.static_element_by_value_remark = (By.ID, f'value_{par}', 'this is remark')
-        return self.static_element_by_value_remark
+    static_elements = Elements()
 
-    static_element_by_value_index_timeout = Element()
-
-    def dynamic_element_by_value_index_timeout(self, par) -> Element:
-        self.static_element_by_value_index_timeout = (By.ID, f'value_{par}', -1, 99)
-        return self.static_element_by_value_index_timeout
-
-    static_element_by_value_index_remark = Element()
-
-    def dynamic_element_by_value_index_remark(self, par) -> Element:
-        self.static_element_by_value_index_remark = (By.ID, f'value_{par}', -1, 'this is remark')
-        return self.static_element_by_value_index_remark
-
-    static_element_by_value_index_timeout_remark = Element()
-
-    def dynamic_element_by_value_index_timeout_remark(self, par) -> Element:
-        self.static_element_by_value_index_timeout_remark = (By.ID, f'value_{par}', -1, 99, 'this is remark')
-        return self.static_element_by_value_index_timeout_remark
-
-    # static Elements
-    elements_by_value = Elements(By.ID, 'value')
-    elements_by_value_timeout = Elements(By.ID, 'value', 99)
-    elements_by_value_remark = Elements(By.ID, 'value', 'this is remark')
-    elements_by_value_timeout_remark = Elements(By.ID, 'value', 99, 'this is remark')
-
-    # dynamic Element
-    static_elements_by_value = Elements()
-
-    def dynamic_elements_by_value(self, par) -> Elements:
-        self.static_elements_by_value = (By.ID, f'value_{par}')
-        return self.static_elements_by_value
-
-    static_elements_by_value_timeout = Elements()
-
-    def dynamic_elements_by_value_timeout(self, par) -> Elements:
-        self.static_elements_by_value_timeout = (By.ID, f'value_{par}', 99)
-        return self.static_elements_by_value_timeout
-
-    static_elements_by_value_remark = Elements()
-
-    def dynamic_elements_by_value_remark(self, par) -> Elements:
-        self.static_elements_by_value_remark = (By.ID, f'value_{par}', 'this is remark')
-        return self.static_elements_by_value_remark
-
-    static_elements_by_value_timeout_remark = Elements()
-
-    def dynamic_elements_by_value_timeout_remark(self, par) -> Elements:
-        self.static_elements_by_value_timeout_remark = (By.ID, f'value_{par}', 99, 'this is remark')
-        return self.static_elements_by_value_timeout_remark
+    def dynamic_elements(self, par: str) -> Elements:
+        self.static_elements = (By.ACCESSIBILITY_ID, f'value_{par}')  # call __set__
+        return self.static_elements

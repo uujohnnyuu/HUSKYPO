@@ -5,9 +5,12 @@ class Timeout:
     DEFAULT = 30
     RERAISE = True
 
+    @classmethod
+    def reraise(cls, switch: bool | None = None):
+        return cls.RERAISE if switch is None else switch
+
 
 class Appium:
-    CONNECTION_4723 = 'http://127.0.0.1:4723'
-    CONNECTION_4724 = 'http://127.0.0.1:4724'
-    CONNECTION_4725 = 'http://127.0.0.1:4725'
-    CONNECTION1 = 'http://localhost:4723/wd/hub'
+    LOCALHOST = 'http://127.0.0.1'
+    PORT_4723 = ':4723'
+    WDHUB = '/wd/hub'  # appium 1.0

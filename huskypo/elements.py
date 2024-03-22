@@ -173,7 +173,7 @@ class Elements:
         - WebElement: Element by list index of elements when index is int.
         - False: No any element is present.
         """
-        elements = self.wait_for_all_elements_to_be_present(timeout, reraise)
+        elements = self.wait_all_present(timeout, reraise)
         if index is not None:
             try:
                 return elements[index]
@@ -187,7 +187,7 @@ class Elements:
                 raise
         return elements
 
-    def wait_for_all_elements_to_be_present(
+    def wait_all_present(
             self,
             timeout: int | float = None,
             reraise: bool | None = None
@@ -209,12 +209,11 @@ class Elements:
                 ec.presence_of_all_elements_located(self.locator),
                 f'Wait for all elements {self.remark} to be present timed out after {self._wait_timeout} seconds.')
         except TimeoutException:
-            reraise = Timeout.RERAISE if reraise is None else reraise
-            if reraise:
+            if Timeout.reraise(reraise):
                 raise
             return False
 
-    def wait_for_all_elements_to_be_not_present(
+    def wait_all_not_present(
             self,
             timeout: int | float = None,
             reraise: bool | None = None
@@ -237,12 +236,11 @@ class Elements:
                 f'Wait for all elements {self.remark} to be not present timed out after {self._wait_timeout} seconds.')
             return True
         except TimeoutException:
-            reraise = Timeout.RERAISE if reraise is None else reraise
-            if reraise:
+            if Timeout.reraise(reraise):
                 raise
             return False
 
-    def wait_for_any_elements_to_be_visible(
+    def wait_any_visible(
             self,
             timeout: int | float = None,
             reraise: bool | None = None
@@ -264,12 +262,11 @@ class Elements:
                 ec.visibility_of_any_elements_located(self.locator),
                 f'Wait for any elements {self.remark} to be visible timed out after {self._wait_timeout} seconds.')
         except TimeoutException:
-            reraise = Timeout.RERAISE if reraise is None else reraise
-            if reraise:
+            if Timeout.reraise(reraise):
                 raise
             return False
 
-    def wait_for_all_elements_to_be_not_visible(
+    def wait_all_not_visible(
             self,
             timeout: int | float = None,
             reraise: bool | None = None
@@ -298,12 +295,11 @@ class Elements:
                 f'Wait for all elements {self.remark} to be not visible timed out after {self._wait_timeout} seconds.')
             return True
         except TimeoutException:
-            reraise = Timeout.RERAISE if reraise is None else reraise
-            if reraise:
+            if Timeout.reraise(reraise):
                 raise
             return False
 
-    def wait_for_all_elements_are_visible(
+    def wait_all_visible(
             self,
             timeout: int | float = None,
             reraise: bool | None = None
@@ -325,12 +321,11 @@ class Elements:
                 ec.visibility_of_all_elements_located(self.locator),
                 f'Wait for all elements {self.remark} to be visible timed out after {self._wait_timeout} seconds.')
         except TimeoutException:
-            reraise = Timeout.RERAISE if reraise is None else reraise
-            if reraise:
+            if Timeout.reraise(reraise):
                 raise
             return False
 
-    def wait_for_any_elements_are_not_visible(
+    def wait_any_not_visible(
             self,
             timeout: int | float = None,
             present: bool = True,
@@ -361,123 +356,9 @@ class Elements:
                 return None
             return True
         except TimeoutException:
-            reraise = Timeout.RERAISE if reraise is None else reraise
-            if reraise:
+            if Timeout.reraise(reraise):
                 raise
             return False
-
-    def wait_all_present(
-            self,
-            timeout: int | float = None,
-            reraise: bool | None = None
-    ) -> list[WebElement] | Literal[False]:
-        """
-        Selenium and Appium API.
-        Wait for `at least one element` to be `present`.
-
-        Args:
-        - timeout: Maximum time in seconds to wait for at least one element to become present.
-        - reraise: True means reraising TimeoutException; vice versa.
-
-        Returns:
-        - list[WebElement]: At least one element is present before timeout.
-        - False: No any element is present after timeout.
-        """
-        return self.wait_for_all_elements_to_be_present(timeout, reraise)
-
-    def wait_all_not_present(
-            self,
-            timeout: int | float = None,
-            reraise: bool | None = None
-    ) -> bool:
-        """
-        Selenium and Appium API.
-        Wait for `all elements` to be `NOT present`.
-
-        Args:
-        - timeout: Maximum time in seconds to wait for all elements to become not present.
-        - reraise: True means reraising TimeoutException; vice versa.
-
-        Returns:
-        - True: All elements are not present before timeout.
-        - False: At least one element is still present after timeout.
-        """
-        return self.wait_for_all_elements_to_be_not_present(timeout, reraise)
-
-    def wait_any_visible(
-            self,
-            timeout: int | float = None,
-            reraise: bool | None = None
-    ) -> list[WebElement] | Literal[False]:
-        """
-        Selenium and Appium API.
-        Wait for `at least one element` to be `visible`.
-
-        Args:
-        - timeout: Maximum time in seconds to wait for at least one element to become visible.
-        - reraise: True means reraising TimeoutException; vice versa.
-
-        Returns:
-        - list[WebElement]: At least one element is visible before timeout.
-        - False: No any element is visible after timeout.
-        """
-        return self.wait_for_any_elements_to_be_visible(timeout, reraise)
-
-    def wait_all_not_visible(
-            self,
-            timeout: int | float = None,
-            reraise: bool | None = None
-    ) -> bool:
-        """
-        Selenium and Appium API.
-        Wait for `all elements` to be `not visible`.
-
-        Args:
-        - timeout: Maximum time in seconds to wait for all elements to become not visible.
-        - reraise: True means reraising TimeoutException; vice versa.
-
-        Returns:
-        - True: All elements are not visible before timeout.
-        - False: At least one element is visible after timeout.
-        """
-        return self.wait_for_all_elements_to_be_not_visible(timeout, reraise)
-
-    def wait_all_visible(
-            self,
-            timeout: int | float = None,
-            reraise: bool | None = None
-    ) -> list[WebElement] | Literal[False]:
-        """
-        Selenium and Appium API.
-        Wait for `all elements` to be `visible`.
-
-        Args:
-        - timeout: Maximum time in seconds to wait for all elements to become visible.
-        - reraise: True means reraising TimeoutException; vice versa.
-
-        Returns:
-        - list[WebElement]: All elements are visible before timeout.
-        - False: At least one element is not visible after timeout.
-        """
-        return self.wait_for_all_elements_are_visible(timeout, reraise)
-
-    def wait_any_not_visible(
-            self,
-            timeout: int | float = None,
-            reraise: bool | None = None
-    ) -> bool:
-        """
-        Selenium and Appium API.
-        Wait for `at least one element` to be `not visible`.
-
-        Args:
-        - timeout: Maximum time in seconds to wait for at least one element to become not visible.
-
-        Returns:
-        - True: At least one element is not visible before timeout.
-        - False: All elements are visible after timeout.
-        """
-        return self.wait_for_any_elements_are_not_visible(timeout, reraise)
 
     @property
     def quantity(self):
@@ -496,7 +377,7 @@ class Elements:
         Selenium and Appium API.
         Gets texts of all present elements.
         """
-        elements = self.wait_for_all_elements_to_be_present()
+        elements = self.wait_all_present()
         return [element.text for element in elements]
 
     @property
@@ -505,7 +386,7 @@ class Elements:
         Selenium and Appium API.
         Gets texts of all visible elements.
         """
-        elements = self.wait_for_all_elements_are_visible()
+        elements = self.wait_all_visible()
         return [element.text for element in elements]
 
     @property
@@ -515,7 +396,7 @@ class Elements:
         WebElements: find_elements(by, value)
         Gets texts of `at least one` visible element.
         """
-        elements = self.wait_for_any_elements_to_be_visible()
+        elements = self.wait_any_visible()
         return [element.text for element in elements]
 
     @property
@@ -524,7 +405,7 @@ class Elements:
         Selenium and Appium API.
         Gets locations relative to the view and size of all elements.\n
         """
-        elements = self.wait_for_all_elements_to_be_present()
+        elements = self.wait_all_present()
         result = [{'x': rect['x'], 'y': rect['y'], 'width': rect['width'], 'height': rect['height']}
                   for element in elements
                   for rect in [element.rect]]
@@ -536,7 +417,7 @@ class Elements:
         Selenium and Appium API.
         Gets locations of all elements.
         """
-        elements = self.wait_for_all_elements_to_be_present()
+        elements = self.wait_all_present()
         return [element.location for element in elements]
 
     @property
@@ -546,7 +427,7 @@ class Elements:
         Gets sizes of all elements.
         Note that it will rearrange size to {'width': width, 'height': height}
         """
-        elements = self.wait_for_all_elements_to_be_present()
+        elements = self.wait_all_present()
         result = [{'width': size['width'], 'height': size['height']}
                   for element in elements
                   for size in [element.size]]
@@ -558,7 +439,7 @@ class Elements:
         Selenium and Appium API.
         Gets center locations relative to the view of all elements.
         """
-        elements = self.wait_for_all_elements_to_be_present()
+        elements = self.wait_all_present()
         result = [{'x': int(rect['x'] + rect['width'] / 2),
                    'y': int(rect['y'] + rect['height'] / 2)}
                   for element in elements
@@ -570,7 +451,7 @@ class Elements:
         Selenium and Appium API.
         Gets specific attributes or properties of all elements.
         """
-        elements = self.wait_for_all_elements_to_be_present()
+        elements = self.wait_all_present()
         return [element.get_attribute(name) for element in elements]
 
     def get_properties(self, name: str) -> list[WebElement | bool | dict | str]:
@@ -578,7 +459,7 @@ class Elements:
         Selenium API.
         Gets specific properties of all elements.
         """
-        elements = self.wait_for_all_elements_to_be_present()
+        elements = self.wait_all_present()
         return [element.get_property(name) for element in elements]
 
     @property
@@ -587,5 +468,5 @@ class Elements:
         Appium API.
         Gets locations relative to the view of all elements.
         """
-        elements = self.wait_for_all_elements_to_be_present()
+        elements = self.wait_all_present()
         return [element.location_in_view for element in elements]

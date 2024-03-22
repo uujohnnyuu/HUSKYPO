@@ -217,8 +217,7 @@ class Element:
                 ecex.presence_of_element_located(self.locator, self.index),
                 f'Wait for element {self.remark} to be present timed out after {self._wait_timeout} seconds.')
         except TimeoutException:
-            reraise = Timeout.RERAISE if reraise is None else reraise
-            if reraise:
+            if Timeout.reraise(reraise):
                 raise
             return False
 
@@ -245,8 +244,7 @@ class Element:
                 f'Wait for element {self.remark} to be not present timed out after {self._wait_timeout} seconds.')
             return True
         except TimeoutException:
-            reraise = Timeout.RERAISE if reraise is None else reraise
-            if reraise:
+            if Timeout.reraise(reraise):
                 raise
             return False
 
@@ -272,8 +270,7 @@ class Element:
                 ecex.visibility_of_element_located(self.locator, self.index),
                 f'Wait for element {self.remark} to be visible timed out after {self._wait_timeout} seconds.')
         except TimeoutException:
-            reraise = Timeout.RERAISE if reraise is None else reraise
-            if reraise:
+            if Timeout.reraise(reraise):
                 raise
             return False
 
@@ -307,8 +304,7 @@ class Element:
                 return None
             return True
         except TimeoutException:
-            reraise = Timeout.RERAISE if reraise is None else reraise
-            if reraise:
+            if Timeout.reraise(reraise):
                 raise
             return False
 
@@ -334,8 +330,7 @@ class Element:
                 ecex.element_located_to_be_clickable(self.locator, self.index),
                 f'Wait for element {self.remark} to be clickable timed out after {self._wait_timeout} seconds.')
         except TimeoutException:
-            reraise = Timeout.RERAISE if reraise is None else reraise
-            if reraise:
+            if Timeout.reraise(reraise):
                 raise
             return False
 
@@ -369,8 +364,7 @@ class Element:
                 return None
             return True
         except TimeoutException:
-            reraise = Timeout.RERAISE if reraise is None else reraise
-            if reraise:
+            if Timeout.reraise(reraise):
                 raise
             return False
 
@@ -396,8 +390,7 @@ class Element:
                 ecex.element_located_to_be_selected(self.locator, self.index),
                 f'Wait for element {self.remark} to be selected timed out after {self._wait_timeout} seconds.')
         except TimeoutException:
-            reraise = Timeout.RERAISE if reraise is None else reraise
-            if reraise:
+            if Timeout.reraise(reraise):
                 raise
             return False
 
@@ -431,8 +424,7 @@ class Element:
                 return None
             return True
         except TimeoutException:
-            reraise = Timeout.RERAISE if reraise is None else reraise
-            if reraise:
+            if Timeout.reraise(reraise):
                 raise
             return False
 
