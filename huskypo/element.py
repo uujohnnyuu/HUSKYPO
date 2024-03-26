@@ -178,7 +178,7 @@ class Element:
 
     def find(
             self,
-            timeout: int | float = None,
+            timeout: int | float | None = None,
             reraise: bool | None = None,
     ) -> WebElement | Literal[False]:
         """
@@ -197,7 +197,7 @@ class Element:
 
     def wait_present(
             self,
-            timeout: int | float = None,
+            timeout: int | float | None = None,
             reraise: bool | None = None
     ) -> WebElement | Literal[False]:
         """
@@ -223,7 +223,7 @@ class Element:
 
     def wait_not_present(
             self,
-            timeout: int | float = None,
+            timeout: int | float | None = None,
             reraise: bool | None = None
     ) -> bool:
         """
@@ -250,7 +250,7 @@ class Element:
 
     def wait_visible(
             self,
-            timeout: int | float = None,
+            timeout: int | float | None = None,
             reraise: bool | None = None
     ) -> WebElement | Literal[False]:
         """
@@ -276,7 +276,7 @@ class Element:
 
     def wait_not_visible(
             self,
-            timeout: int | float = None,
+            timeout: int | float | None = None,
             present: bool = True,
             reraise: bool | None = None
     ) -> bool:
@@ -310,7 +310,7 @@ class Element:
 
     def wait_clickable(
             self,
-            timeout: int | float = None,
+            timeout: int | float | None = None,
             reraise: bool | None = None
     ) -> WebElement | Literal[False]:
         """
@@ -336,7 +336,7 @@ class Element:
 
     def wait_not_clickable(
             self,
-            timeout: int | float = None,
+            timeout: int | float | None = None,
             present: bool = True,
             reraise: bool | None = None
     ) -> bool:
@@ -370,7 +370,7 @@ class Element:
 
     def wait_selected(
             self,
-            timeout: int | float = None,
+            timeout: int | float | None = None,
             reraise: bool | None = None
     ) -> bool:
         """
@@ -396,7 +396,7 @@ class Element:
 
     def wait_not_selected(
             self,
-            timeout: int | float = None,
+            timeout: int | float | None = None,
             present: bool = True,
             reraise: bool | None = None
     ) -> bool:
@@ -461,7 +461,7 @@ class Element:
         Selenium and Appium API.
         Whether the element is clickable.
         """
-        element = self.wait_present()
+        element = self.wait_present(reraise=True)
         return element.is_displayed() and element.is_enabled()
 
     def is_selected(self) -> bool:
@@ -485,7 +485,7 @@ class Element:
         Selenium and Appium API.
         The text of the element when it is visible.
         """
-        return self.wait_visible().text
+        return self.wait_visible(reraise=True).text
 
     @property
     def rect(self) -> dict[str, int]:
@@ -554,7 +554,7 @@ class Element:
         Selenium and Appium API.
         Click the element when it is clickable.
         """
-        self.wait_clickable().click()
+        self.wait_clickable(reraise=True).click()
 
     def tap(self) -> None:
         """
@@ -846,7 +846,7 @@ class Element:
         - None: Selenium
         - WebElement: Appium
         """
-        element = self.wait_present()
+        element = self.wait_present(reraise=True)
         if click:
             element.click()
         if clear:
@@ -919,14 +919,22 @@ class Element:
         """
         return self.wait_present(reraise=True).value_of_css_property(property_name)
 
-    def switch_to_frame(self) -> bool:
+    def switch_to_frame(
+            self,
+            timeout: int | float | None = None,
+            reraise: bool | None = None
+    ) -> bool:
         """
         Selenium API.
         Switches focus to the specified frame by webelement.
         """
         try:
-            return self.wait().until(ec.frame_to_be_available_and_switch_to_it(self.locator))
+            return self.wait(timeout).until(
+                ec.frame_to_be_available_and_switch_to_it(self.locator),
+                f'Wait for frame by element {self.remark} to be available timed out after {self._wait_timeout} seconds.')
         except TimeoutException:
+            if Timeout.reraise(reraise):
+                raise
             return False
 
     def move_to_element(self, perform: bool = True) -> ActionChains | None:
@@ -943,7 +951,7 @@ class Element:
         - ActionChains: parameter perform is False.
         - None: parameter perform is True.
         """
-        element = self.wait_present()
+        element = self.wait_present(reraise=True)
         action = ActionChains(self.driver).move_to_element(element)
         if not perform:
             return action
@@ -963,7 +971,7 @@ class Element:
         - ActionChains: parameter perform is False.
         - None: parameter perform is True.
         """
-        element = self.wait_present()
+        element = self.wait_present(reraise=True)
         action = ActionChains(self.driver).scroll_to_element(element)
         if not perform:
             return action
@@ -983,7 +991,7 @@ class Element:
         - ActionChains: parameter perform is False.
         - None: parameter perform is True.
         """
-        element = self.wait_present()
+        element = self.wait_present(reraise=True)
         action = ActionChains(self.driver).click_and_hold(element)
         if not perform:
             return action
@@ -1003,7 +1011,7 @@ class Element:
         - ActionChains: parameter perform is False.
         - None: parameter perform is True.
         """
-        element = self.wait_present()
+        element = self.wait_present(reraise=True)
         action = ActionChains(self.driver).double_click(element)
         if not perform:
             return action
@@ -1023,7 +1031,7 @@ class Element:
         - ActionChains: parameter perform is False.
         - None: parameter perform is True.
         """
-        element = self.wait_present()
+        element = self.wait_present(reraise=True)
         action = ActionChains(self.driver).context_click(element)
         if not perform:
             return action
@@ -1044,7 +1052,7 @@ class Element:
         - ActionChains: parameter perform is False.
         - None: parameter perform is True.
         """
-        element = self.wait_present()
+        element = self.wait_present(reraise=True)
         action = ActionChains(self.driver).drag_and_drop_by_offset(element, xoffset, yoffset)
         if not perform:
             return action
@@ -1062,7 +1070,7 @@ class Element:
         value - The value to match against
         throws NoSuchElementException If there is no option with specified value in SELECT
         """
-        element = self.wait_present()
+        element = self.wait_present(reraise=True)
         Select(element).select_by_value(value)
 
     def select_by_index(self, index: int) -> None:
@@ -1076,7 +1084,7 @@ class Element:
         index - The option at this index will be selected
         throws NoSuchElementException If there is no option with specified index in SELECT
         """
-        element = self.wait_present()
+        element = self.wait_present(reraise=True)
         Select(element).select_by_index(index)
 
     def select_by_visible_text(self, text: str) -> None:
@@ -1091,7 +1099,7 @@ class Element:
         text - The visible text to match against
         throws NoSuchElementException If there is no option with specified text in SELECT
         """
-        element = self.wait_present()
+        element = self.wait_present(reraise=True)
         Select(element).select_by_visible_text(text)
 
     @property

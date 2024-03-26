@@ -1,5 +1,6 @@
 # TODO selenium 4.0 and appium 2.0 methods.
 # TODO Need to confirm the functional difference between 'driver' and 'page'.
+# TODO using Timeout.DEFAULT ?
 from __future__ import annotations
 
 import warnings
@@ -60,7 +61,7 @@ class Page:
             self,
             url: str,
             timeout: int | float = 30,
-            reraise: bool = True
+            reraise: bool | None = None
     ) -> bool:
         """
         An expectation for checking the current url,
@@ -83,7 +84,7 @@ class Page:
             self,
             url: str,
             timeout: int | float = 30,
-            reraise: bool = True
+            reraise: bool | None = None
     ) -> bool:
         """
         An expectation for checking that the current url contains a case-sensitive substring,
@@ -106,7 +107,7 @@ class Page:
             self,
             pattern: str,
             timeout: int | float = 30,
-            reraise: bool = True
+            reraise: bool | None = None
     ) -> bool:
         """
         An expectation for checking the current url,
@@ -130,7 +131,7 @@ class Page:
             self,
             url: str,
             timeout: int | float = 30,
-            reraise: bool = True
+            reraise: bool | None = None
     ) -> bool:
         """
         An expectation for checking the current url,
@@ -160,7 +161,7 @@ class Page:
             self,
             title: str,
             timeout: int | float = 30,
-            reraise: bool = True
+            reraise: bool | None = None
     ) -> bool:
         """
         An expectation for checking the title of a page.
@@ -183,7 +184,7 @@ class Page:
             self,
             title: str,
             timeout: int | float = 30,
-            reraise: bool = True
+            reraise: bool | None = None
     ) -> bool:
         """
         An expectation for checking that the title contains a case-sensitive substring.
@@ -371,7 +372,7 @@ class Page:
             self,
             num_windows: int,
             timeout: int | float = 10,
-            reraise: bool = True
+            reraise: bool | None = None
     ) -> bool:
         """
         An expectation for the number of windows to be a certain value.
@@ -390,7 +391,7 @@ class Page:
             self,
             current_handles: list[str],
             timeout: int | float = 10,
-            reraise: bool = True
+            reraise: bool | None = None
     ) -> bool:
         """
         An expectation for the number of windows to be a certain value.
@@ -639,7 +640,7 @@ class Page:
     def switch_to_alert(
             self,
             timeout: int | float = 10,
-            reraise: bool = True
+            reraise: bool | None = None
     ) -> Alert | Literal[False]:
         """
         Switch to alert.
@@ -729,7 +730,7 @@ class Page:
             switch: bool = True,
             index: int = -1,
             timeout: int | float = 30,
-            reraise: bool = True
+            reraise: bool | None = None
     ) -> list[str] | Literal[False]:
         """
         Wait for the webview is present and determine whether switch to it.
