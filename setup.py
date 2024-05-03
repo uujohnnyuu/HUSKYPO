@@ -13,7 +13,7 @@ setup(
     long_description_content_type='text/markdown',
     author='Johnny',
     author_email='johnny071531@gmail.com',
-    url='https://github.com/uujohnnyuu/HUSKYPO',
+    url='https://github.com/uujohnnyuu/huskyPO',
     license='Apache 2.0',
     keywords=['huskypo', 'page object', 'selenium', 'appium', 'automation'],
     packages=find_packages(),
