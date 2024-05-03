@@ -4,8 +4,6 @@ __pycache__/
 log.log
 try.py
 
-UIAUTOMATION/reports/
-UIAUTOMATION/screenshot/
-UIAUTOMATION/log/
-
 trying/
+run.py
+pytest.ini
