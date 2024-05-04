@@ -7,3 +7,7 @@ try.py
 trying/
 run.py
 pytest.ini
+
+build/
+dist/
+huskypo.egg-info/
