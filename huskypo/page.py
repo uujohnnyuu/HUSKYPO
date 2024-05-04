@@ -584,30 +584,6 @@ class Page:
         # TODO checking
         self.driver.execute_script('mobile: scroll', {'element': element.id, 'toVisible': True})
 
-    def draw_gesture_v1(self, dots: list, gesture: str, duration: int = 1000):
-        """
-        Appium 1.0 method, it will be deprecated after Appium 2.0
-        Nine-box Gesture Drawing.
-
-        Args:
-        - dots: List of center coordinates of nine dots,
-            e.g. [{'x1': x1, 'y1': y1}, {'x2': x2, 'y2': y2}, ...]
-        - gesture: A string containing the actual positions of the nine dots,
-            such as '1235789' for drawing a Z shape.
-        """
-        warn_message = ('This uses Appium 1.0 actions, which will be deprecated after Appium 2.0.\n'
-                        'Please use draw_gesture instead.')
-        warnings.warn(warn_message, DeprecationWarning)
-
-        actions = TouchAction(self.driver)
-        indexes = [(int(i) - 1) for i in gesture]
-        press = indexes[0]
-
-        actions.press(x=dots[press]['x'], y=dots[press]['y']).wait(duration)
-        for draw in indexes[1:]:
-            actions.move_to(x=dots[draw]['x'], y=dots[draw]['y']).wait(duration)
-        actions.release().perform()
-
     def draw_gesture(self, dots: list, gesture: str, duration: int = 1000) -> None:
         """
         Appium 2.0 API.
