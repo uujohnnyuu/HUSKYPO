@@ -569,6 +569,13 @@ class Element:
         center = tuple(self.center.values())
         self.driver.tap([center], duration)
 
+    # TODO ActionHelper
+    def drag_and_drop(self):
+        pass
+
+    def scroll(self):
+        pass
+
     def is_viewable(self, timeout: int | float | None = None) -> bool:
         """
         Appium API.

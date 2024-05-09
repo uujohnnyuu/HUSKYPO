@@ -510,7 +510,7 @@ class Page:
             fix: int = None,
             ratio: bool = False,
             duration: int = 1000
-    ) -> None:
+    ) -> AppiumWebDriver:
         """
         Swipe by window ratio vertically or horizontally.
 
@@ -559,7 +559,23 @@ class Page:
                     sy = ey = fix
         else:
             raise ValueError('Only accept dirtype: "v", "h"')
-        self.driver.swipe(sx, sy, ex, ey, duration)
+        return self.driver.swipe(sx, sy, ex, ey, duration)
+    
+    def flick(self, start_x: int, start_y: int, end_x: int, end_y: int) -> AppiumWebDriver:
+        """
+        Appium API.
+        Flick from one point to another point.
+
+        Args:
+            start_x: x-coordinate at which to start
+            start_y: y-coordinate at which to start
+            end_x: x-coordinate at which to stop
+            end_y: y-coordinate at which to stop
+
+        Usage:
+            page.flick(100, 100, 100, 400)
+        """
+        return self.driver.flick(start_x, start_y, end_x, end_y)
 
     def js_mobile_scroll_direction(self, direction: str = 'down'):
         """
@@ -569,20 +585,7 @@ class Page:
             driver.execute_script('mobile: scroll', {'direction': direction})
 
         """
-        self.driver.execute_script('mobile: scroll', {'direction': direction})
-
-    def js_ios_scroll_element_to_visible(self, element: AppiumWebElement):
-        """
-        This is for iOS XCUITest.
-
-        java script::
-
-
-            driver.execute_script('mobile:scroll', {'element': element.id, 'toVisible': True})
-
-        """
-        # TODO checking
-        self.driver.execute_script('mobile: scroll', {'element': element.id, 'toVisible': True})
+        return self.driver.execute_script('mobile: scroll', {'direction': direction})
 
     def draw_gesture(self, dots: list, gesture: str, duration: int = 1000) -> None:
         """
