@@ -17,7 +17,7 @@ from huskypo.config import Log, Timeout
 from huskypo.by import ByAttribute
 from huskypo.by import SwipeAction as SA
 from huskypo.page import Page
-from huskypo.typing import WebDriver, WebElement
+from huskypo.typing import WebDriver, WebElement, AppiumWebElement, AppiumWebDriver
 
 
 class Element:
@@ -570,11 +570,33 @@ class Element:
         self.driver.tap([center], duration)
 
     # TODO ActionHelper
-    def drag_and_drop(self):
-        pass
+    def app_drag_and_drop(self, target: Element | AppiumWebElement) -> AppiumWebDriver:
+        """
+        Appium API.
+        Drag the origin element to the destination element
 
-    def scroll(self):
-        pass
+        Args:
+            target: the element to drag to
+        """
+        source = self.wait_present()
+        if isinstance(target, Element):
+            target = target.wait_present()
+        return self.driver.drag_and_drop(source, target)
+
+    def app_scroll(self, target: Element | AppiumWebElement, duration: int | None = None) -> AppiumWebDriver:
+        """
+        Appium API.
+        Scrolls from one element to another
+
+        Args:
+            target: the element to scroll to (center of element)
+            duration: defines speed of scroll action when moving to target.
+                Default is 600 ms for W3C spec.
+        """
+        source = self.wait_present()
+        if isinstance(target, Element):
+            target = target.wait_present()
+        return self.driver.scroll(source, target, duration)
 
     def is_viewable(self, timeout: int | float | None = None) -> bool:
         """
@@ -954,46 +976,16 @@ class Element:
             if Timeout.reraise(reraise):
                 raise
             return False
+        
+    # TODO ActionChain
+    def perform(self):
+        pass
 
-    def move_to_element(self, perform: bool = True) -> ActionChains | None:
-        """
-        Selenium API.
-        Moving the mouse to the middle of an element.
+    def reset_actions(self):
+        pass
 
-        Args:
-        - perform:
-            - True: Execute perform().
-            - False: Return ActionChains instance.
-
-        Returns:
-        - ActionChains: parameter perform is False.
-        - None: parameter perform is True.
-        """
-        element = self.wait_present(reraise=True)
-        action = ActionChains(self.driver).move_to_element(element)
-        if not perform:
-            return action
-        action.perform()
-
-    def scroll_to_element(self, perform: bool = True) -> ActionChains | None:
-        """
-        Selenium API.
-        If the element is outside the viewport, scrolls the bottom of the element to the bottom of the viewport.
-
-        Args:
-        - perform:
-            - True: Execute perform().
-            - False: Return ActionChains instance.
-
-        Returns:
-        - ActionChains: parameter perform is False.
-        - None: parameter perform is True.
-        """
-        element = self.wait_present(reraise=True)
-        action = ActionChains(self.driver).scroll_to_element(element)
-        if not perform:
-            return action
-        action.perform()
+    def click_(self):
+        pass
 
     def click_and_hold(self, perform: bool = True) -> ActionChains | None:
         """
@@ -1014,6 +1006,26 @@ class Element:
         if not perform:
             return action
         return action.perform()
+    
+    def context_click(self, perform: bool = True) -> ActionChains | None:
+        """
+        Selenium API.
+        Performs a context-click (right click) on an element.
+
+        Args:
+        - perform:
+            - True: Execute perform().
+            - False: Return ActionChains instance.
+
+        Returns:
+        - ActionChains: parameter perform is False.
+        - None: parameter perform is True.
+        """
+        element = self.wait_present(reraise=True)
+        action = ActionChains(self.driver).context_click(element)
+        if not perform:
+            return action
+        action.perform()
 
     def double_click(self, perform: bool = True) -> ActionChains | None:
         """
@@ -1035,25 +1047,8 @@ class Element:
             return action
         action.perform()
 
-    def context_click(self, perform: bool = True) -> ActionChains | None:
-        """
-        Selenium API.
-        Performs a context-click (right click) on an element.
-
-        Args:
-        - perform:
-            - True: Execute perform().
-            - False: Return ActionChains instance.
-
-        Returns:
-        - ActionChains: parameter perform is False.
-        - None: parameter perform is True.
-        """
-        element = self.wait_present(reraise=True)
-        action = ActionChains(self.driver).context_click(element)
-        if not perform:
-            return action
-        action.perform()
+    def drag_and_drop(self):
+        pass
 
     def drag_and_drop_by_offset(self, xoffset: int, yoffset: int, perform: bool = True) -> ActionChains | None:
         """
@@ -1075,6 +1070,89 @@ class Element:
         if not perform:
             return action
         action.perform()
+
+    def key_down(self):
+        pass
+
+    def key_up(self):
+        pass
+
+    def move_by_offset(self):
+        pass
+
+    def move_to_element(self, perform: bool = True) -> ActionChains | None:
+        """
+        Selenium API.
+        Moving the mouse to the middle of an element.
+
+        Args:
+        - perform:
+            - True: Execute perform().
+            - False: Return ActionChains instance.
+
+        Returns:
+        - ActionChains: parameter perform is False.
+        - None: parameter perform is True.
+        """
+        element = self.wait_present(reraise=True)
+        action = ActionChains(self.driver).move_to_element(element)
+        if not perform:
+            return action
+        action.perform()
+
+    def move_to_element_with_offset(self):
+        pass
+
+    def pause(self):
+        pass
+
+    def release(self):
+        pass
+
+    def send_keys_(self):
+        pass
+
+    def send_keys_to_element(self):
+        pass
+
+    def scroll_to_element(self, perform: bool = True) -> ActionChains | None:
+        """
+        Selenium API.
+        If the element is outside the viewport, scrolls the bottom of the element to the bottom of the viewport.
+
+        Args:
+        - perform:
+            - True: Execute perform().
+            - False: Return ActionChains instance.
+
+        Returns:
+        - ActionChains: parameter perform is False.
+        - None: parameter perform is True.
+        """
+        element = self.wait_present(reraise=True)
+        action = ActionChains(self.driver).scroll_to_element(element)
+        if not perform:
+            return action
+        action.perform()
+
+    def scroll_by_amount(self):
+        pass
+
+    def scroll_from_origin(self):
+        pass
+
+    # TODO Select
+    @property
+    def selectable_options(self):
+        pass
+    
+    @property
+    def all_selected_options(self):
+        pass
+
+    @property
+    def first_selected_option(self):
+        pass
 
     def select_by_value(self, value: str) -> None:
         """
@@ -1119,6 +1197,18 @@ class Element:
         """
         element = self.wait_present(reraise=True)
         Select(element).select_by_visible_text(text)
+
+    def deselect_all(self):
+        pass
+
+    def deselect_by_value(self):
+        pass
+
+    def deselect_by_index(self):
+        pass
+
+    def deselect_by_visible_text(self):
+        pass
 
     @property
     def location_in_view(self) -> dict[str, int]:
