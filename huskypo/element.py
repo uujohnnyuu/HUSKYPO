@@ -17,7 +17,7 @@ from huskypo.config import Log, Timeout
 from huskypo.by import ByAttribute
 from huskypo.by import SwipeAction as SA
 from huskypo.page import Page
-from huskypo.typing import WebDriver, WebElement, AppiumWebElement, AppiumWebDriver
+from huskypo.typing import WebDriver, WebElement, SeleniumWebElement, AppiumWebElement, AppiumWebDriver
 
 
 class Element:
@@ -578,9 +578,9 @@ class Element:
         Args:
             target: the element to drag to
         """
-        source = self.wait_present()
+        source = self.wait_present(reraise=True)
         if isinstance(target, Element):
-            target = target.wait_present()
+            target = target.wait_present(reraise=True)
         return self.driver.drag_and_drop(source, target)
 
     def app_scroll(self, target: Element | AppiumWebElement, duration: int | None = None) -> AppiumWebDriver:
@@ -593,9 +593,9 @@ class Element:
             duration: defines speed of scroll action when moving to target.
                 Default is 600 ms for W3C spec.
         """
-        source = self.wait_present()
+        source = self.wait_present(reraise=True)
         if isinstance(target, Element):
-            target = target.wait_present()
+            target = target.wait_present(reraise=True)
         return self.driver.scroll(source, target, duration)
 
     def is_viewable(self, timeout: int | float | None = None) -> bool:
@@ -978,14 +978,25 @@ class Element:
             return False
         
     # TODO ActionChain
-    def perform(self):
-        pass
+    def action_click(self, perform: bool = True) -> ActionChains | None:
+        """
+        Selenium API.
+        Clicks an element by ActionChains click method.
 
-    def reset_actions(self):
-        pass
+        Args:
+        - perform:
+            - True: Execute perform().
+            - False: Return ActionChains instance.
 
-    def click_(self):
-        pass
+        Returns:
+        - ActionChains: parameter perform is False.
+        - None: parameter perform is True.
+        """
+        element = self.wait_present(reraise=True)
+        action = ActionChains(self.driver).click(element)
+        if not perform:
+            return action
+        action.perform()
 
     def click_and_hold(self, perform: bool = True) -> ActionChains | None:
         """
@@ -1005,7 +1016,7 @@ class Element:
         action = ActionChains(self.driver).click_and_hold(element)
         if not perform:
             return action
-        return action.perform()
+        action.perform()
     
     def context_click(self, perform: bool = True) -> ActionChains | None:
         """
@@ -1047,16 +1058,48 @@ class Element:
             return action
         action.perform()
 
-    def drag_and_drop(self):
-        pass
+    def drag_and_drop(
+            self, 
+            target: Element | SeleniumWebElement, 
+            perform: bool = True
+    ) -> ActionChains | None:
+        """
+        Selenium API.
+        Holds down the left mouse button on the source element, then moves
+        to the target element and releases the mouse button.
 
-    def drag_and_drop_by_offset(self, xoffset: int, yoffset: int, perform: bool = True) -> ActionChains | None:
+        Args:
+        - target: The element to mouse up. 
+        - perform:
+            - True: Execute perform().
+            - False: Return ActionChains instance.
+
+        Returns:
+        - ActionChains: parameter perform is False.
+        - None: parameter perform is True.
+        """
+        source = self.wait_present(reraise=True)
+        if isinstance(target, Element):
+            target = target.wait_present(reraise=True)
+        action = ActionChains(self.driver).drag_and_drop(source, target)
+        if not perform:
+            return action
+        action.perform()
+
+    def drag_and_drop_by_offset(
+            self, 
+            xoffset: int, 
+            yoffset: int, 
+            perform: bool = True
+    ) -> ActionChains | None:
         """
         Selenium API.
         Holds down the left mouse button on the source element,
         then moves to the target offset and releases the mouse button.
 
         Args:
+        - xoffset: X offset to move to.
+        - yoffset: Y offset to move to.
         - perform:
             - True: Execute perform().
             - False: Return ActionChains instance.
@@ -1071,11 +1114,46 @@ class Element:
             return action
         action.perform()
 
-    def key_down(self):
-        pass
+    def key_down(self, value: str, perform: bool = True):
+        """
+        Selenium API.
+        Sends a key press only, without releasing it. Should only be used
+        with modifier keys (Control, Alt and Shift).
+
+        Args:
+        - value: The modifier key to send. Values are defined in `Keys` class.
+        - perform:
+            - True: Execute perform().
+            - False: Return ActionChains instance.
+
+        Returns:
+        - ActionChains: parameter perform is False.
+        - None: parameter perform is True.
+        """
+        # TODO check behavior
+        element = self.wait_present(reraise=True)
+        action = ActionChains(self.driver).key_down(value, element)
+        if not perform:
+            return action
+        action.perform()
 
     def key_up(self):
-        pass
+        """
+        Selenium API.
+        Sends a key press only, without releasing it. Should only be used
+        with modifier keys (Control, Alt and Shift).
+
+        Args:
+        - value: The modifier key to send. Values are defined in `Keys` class.
+        - perform:
+            - True: Execute perform().
+            - False: Return ActionChains instance.
+
+        Returns:
+        - ActionChains: parameter perform is False.
+        - None: parameter perform is True.
+        """
+        # TODO check behavior.
 
     def move_by_offset(self):
         pass
