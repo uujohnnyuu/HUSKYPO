@@ -977,272 +977,205 @@ class Element:
                 raise
             return False
         
-    # TODO ActionChain
-    def action_click(self, perform: bool = True) -> ActionChains | None:
+    # TODO ActionChains
+    def action_click(self) -> None:
         """
-        Selenium API.
-        Clicks an element by ActionChains click method.
+        Selenium ActionChains API.
+        Clicks an element.
 
-        Args:
-        - perform:
-            - True: Execute perform().
-            - False: Return ActionChains instance.
-
-        Returns:
-        - ActionChains: parameter perform is False.
-        - None: parameter perform is True.
+        If you want to execute sequential ActionChains operations,
+        you can call `page.action` or `your_page.action`, 
+        which is an instance of ActionChains, 
+        and then chain it with the original ActionChains methods.
         """
         element = self.wait_present(reraise=True)
-        action = ActionChains(self.driver).click(element)
-        if not perform:
-            return action
-        action.perform()
+        ActionChains(self.driver).click(element).perform()
 
-    def click_and_hold(self, perform: bool = True) -> ActionChains | None:
+    def click_and_hold(self) -> None:
         """
-        Selenium API.
+        Selenium ActionChains API.
         Holds down the left mouse button on an element.
 
-        Args:
-        - perform:
-            - True: Execute perform().
-            - False: Return ActionChains instance.
-
-        Returns:
-        - ActionChains: parameter perform is False.
-        - None: parameter perform is True.
+        If you want to execute sequential ActionChains operations,
+        you can call `page.action` or `your_page.action`, 
+        which is an instance of ActionChains, 
+        and then chain it with the original ActionChains methods.
         """
         element = self.wait_present(reraise=True)
-        action = ActionChains(self.driver).click_and_hold(element)
-        if not perform:
-            return action
-        action.perform()
+        ActionChains(self.driver).click_and_hold(element).perform()
     
-    def context_click(self, perform: bool = True) -> ActionChains | None:
+    def context_click(self) -> None:
         """
-        Selenium API.
+        Selenium ActionChains API.
         Performs a context-click (right click) on an element.
 
-        Args:
-        - perform:
-            - True: Execute perform().
-            - False: Return ActionChains instance.
-
-        Returns:
-        - ActionChains: parameter perform is False.
-        - None: parameter perform is True.
+        If you want to execute sequential ActionChains operations,
+        you can call `page.action` or `your_page.action`, 
+        which is an instance of ActionChains, 
+        and then chain it with the original ActionChains methods.
         """
         element = self.wait_present(reraise=True)
-        action = ActionChains(self.driver).context_click(element)
-        if not perform:
-            return action
-        action.perform()
+        ActionChains(self.driver).context_click(element).perform()
 
-    def double_click(self, perform: bool = True) -> ActionChains | None:
+    def double_click(self) -> None:
         """
-        Selenium API.
+        Selenium ActionChains API.
         Double-clicks an element.
 
-        Args:
-        - perform:
-            - True: Execute perform().
-            - False: Return ActionChains instance.
-
-        Returns:
-        - ActionChains: parameter perform is False.
-        - None: parameter perform is True.
+        If you want to execute sequential ActionChains operations,
+        you can call `page.action` or `your_page.action`, 
+        which is an instance of ActionChains, 
+        and then chain it with the original ActionChains methods.
         """
         element = self.wait_present(reraise=True)
-        action = ActionChains(self.driver).double_click(element)
-        if not perform:
-            return action
-        action.perform()
+        ActionChains(self.driver).double_click(element).perform()
 
-    def drag_and_drop(
-            self, 
-            target: Element | SeleniumWebElement, 
-            perform: bool = True
-    ) -> ActionChains | None:
+    def drag_and_drop(self, target: Element | SeleniumWebElement) -> None:
         """
-        Selenium API.
+        Selenium ActionChains API.
         Holds down the left mouse button on the source element, then moves
         to the target element and releases the mouse button.
 
-        Args:
-        - target: The element to mouse up. 
-        - perform:
-            - True: Execute perform().
-            - False: Return ActionChains instance.
-
-        Returns:
-        - ActionChains: parameter perform is False.
-        - None: parameter perform is True.
+        If you want to execute sequential ActionChains operations,
+        you can call `page.action` or `your_page.action`, 
+        which is an instance of ActionChains, 
+        and then chain it with the original ActionChains methods.
         """
         source = self.wait_present(reraise=True)
         if isinstance(target, Element):
             target = target.wait_present(reraise=True)
-        action = ActionChains(self.driver).drag_and_drop(source, target)
-        if not perform:
-            return action
-        action.perform()
+        ActionChains(self.driver).drag_and_drop(source, target).perform()
 
-    def drag_and_drop_by_offset(
-            self, 
-            xoffset: int, 
-            yoffset: int, 
-            perform: bool = True
-    ) -> ActionChains | None:
+    def drag_and_drop_by_offset(self, xoffset: int, yoffset: int) -> None:
         """
-        Selenium API.
+        Selenium ActionChains API.
         Holds down the left mouse button on the source element,
         then moves to the target offset and releases the mouse button.
 
         Args:
         - xoffset: X offset to move to.
         - yoffset: Y offset to move to.
-        - perform:
-            - True: Execute perform().
-            - False: Return ActionChains instance.
 
-        Returns:
-        - ActionChains: parameter perform is False.
-        - None: parameter perform is True.
+        If you want to execute sequential ActionChains operations,
+        you can call `page.action` or `your_page.action`, 
+        which is an instance of ActionChains, 
+        and then chain it with the original ActionChains methods.
         """
         element = self.wait_present(reraise=True)
-        action = ActionChains(self.driver).drag_and_drop_by_offset(element, xoffset, yoffset)
-        if not perform:
-            return action
-        action.perform()
+        ActionChains(self.driver).drag_and_drop_by_offset(element, xoffset, yoffset).perform()
 
-    def key_down(self, value: str, perform: bool = True):
+    def move_to_element(self) -> None:
         """
-        Selenium API.
-        Sends a key press only, without releasing it. Should only be used
-        with modifier keys (Control, Alt and Shift).
-
-        Args:
-        - value: The modifier key to send. Values are defined in `Keys` class.
-        - perform:
-            - True: Execute perform().
-            - False: Return ActionChains instance.
-
-        Returns:
-        - ActionChains: parameter perform is False.
-        - None: parameter perform is True.
-        """
-        # TODO check behavior
-        element = self.wait_present(reraise=True)
-        action = ActionChains(self.driver).key_down(value, element)
-        if not perform:
-            return action
-        action.perform()
-
-    def key_up(self):
-        """
-        Selenium API.
-        Sends a key press only, without releasing it. Should only be used
-        with modifier keys (Control, Alt and Shift).
-
-        Args:
-        - value: The modifier key to send. Values are defined in `Keys` class.
-        - perform:
-            - True: Execute perform().
-            - False: Return ActionChains instance.
-
-        Returns:
-        - ActionChains: parameter perform is False.
-        - None: parameter perform is True.
-        """
-        # TODO check behavior.
-
-    def move_by_offset(self):
-        pass
-
-    def move_to_element(self, perform: bool = True) -> ActionChains | None:
-        """
-        Selenium API.
+        Selenium ActionChains API.
         Moving the mouse to the middle of an element.
 
-        Args:
-        - perform:
-            - True: Execute perform().
-            - False: Return ActionChains instance.
-
-        Returns:
-        - ActionChains: parameter perform is False.
-        - None: parameter perform is True.
+        If you want to execute sequential ActionChains operations,
+        you can call `page.action` or `your_page.action`, 
+        which is an instance of ActionChains, 
+        and then chain it with the original ActionChains methods.
         """
         element = self.wait_present(reraise=True)
-        action = ActionChains(self.driver).move_to_element(element)
-        if not perform:
-            return action
-        action.perform()
+        ActionChains(self.driver).move_to_element(element).perform()
 
-    def move_to_element_with_offset(self):
-        pass
+    def move_to_element_with_offset(self, xoffset: int, yoffset: int) -> None:
+        """
+        Selenium ActionChains API.
+        Move the mouse by an offset of the specified element.
+        Offsets are relative to the in-view center point of the element.
 
-    def pause(self):
-        pass
+        Args:
+        - xoffset: X offset to move to, as a positive or negative integer.
+        - yoffset: Y offset to move to, as a positive or negative integer.
 
-    def release(self):
-        pass
+        If you want to execute sequential ActionChains operations,
+        you can call `page.action` or `your_page.action`, 
+        which is an instance of ActionChains, 
+        and then chain it with the original ActionChains methods.
+        """
+        element = self.wait_present(reraise=True)
+        ActionChains(self.driver).move_to_element_with_offset(element, xoffset, yoffset).perform()
 
-    def send_keys_(self):
-        pass
+    def release(self) -> None:
+        """
+        Selenium ActionChains API.
+        Releasing a held mouse button on an element.
 
-    def send_keys_to_element(self):
-        pass
+        If you want to execute sequential ActionChains operations,
+        you can call `page.action` or `your_page.action`, 
+        which is an instance of ActionChains, 
+        and then chain it with the original ActionChains methods.
+        """
+        element = self.wait_present(reraise=True)
+        ActionChains(self.driver).release(element).perform()
 
-    def scroll_to_element(self, perform: bool = True) -> ActionChains | None:
+    def send_keys_to_element(self, *keys_to_send: str) -> None:
+        """
+        Selenium ActionChains API.
+        Sends keys to an element.
+
+        Args:
+        - keys_to_send: The keys to send. Modifier keys constants can be found in the 'Keys' class.
+
+        If you want to execute sequential ActionChains operations,
+        you can call `page.action` or `your_page.action`, 
+        which is an instance of ActionChains, 
+        and then chain it with the original ActionChains methods.
+        """
+        element = self.wait_present(reraise=True)
+        ActionChains(self.driver).send_keys_to_element(element, *keys_to_send).perform()
+
+    def scroll_to_element(self) -> None:
         """
         Selenium API.
-        If the element is outside the viewport, scrolls the bottom of the element to the bottom of the viewport.
+        If the element is outside the viewport,
+        scrolls the bottom of the element to the bottom of the viewport.
 
-        Args:
-        - perform:
-            - True: Execute perform().
-            - False: Return ActionChains instance.
-
-        Returns:
-        - ActionChains: parameter perform is False.
-        - None: parameter perform is True.
+        If you want to execute sequential ActionChains operations,
+        you can call `page.action` or `your_page.action`, 
+        which is an instance of ActionChains, 
+        and then chain it with the original ActionChains methods.
         """
         element = self.wait_present(reraise=True)
-        action = ActionChains(self.driver).scroll_to_element(element)
-        if not perform:
-            return action
-        action.perform()
-
-    def scroll_by_amount(self):
-        pass
-
-    def scroll_from_origin(self):
-        pass
+        ActionChains(self.driver).scroll_to_element(element).perform()
 
     # TODO Select
     @property
-    def selectable_options(self):
-        pass
+    def options(self) -> list[SeleniumWebElement]:
+        """
+        Selenium Select API.
+        Returns a list of all options belonging to this select tag.
+        """
+        element = self.wait_present(reraise=True)
+        return Select(element).options
     
     @property
-    def all_selected_options(self):
-        pass
+    def all_selected_options(self) -> list[SeleniumWebElement]:
+        """
+        Selenium Select API.
+        Returns a list of all selected options belonging to this select tag.
+        """
+        element = self.wait_present(reraise=True)
+        return Select(element).all_selected_options
 
     @property
-    def first_selected_option(self):
-        pass
+    def first_selected_option(self) -> SeleniumWebElement:
+        """
+        Selenium Select API.
+        The first selected option in this select tag (or the currently selected option in a normal select)
+        """
+        element = self.wait_present(reraise=True)
+        return Select(element).first_selected_option
 
     def select_by_value(self, value: str) -> None:
         """
-        Selenium API.
+        Selenium Select API.
         Select all options that have a value matching the argument.
 
         That is, when given "foo" this would select an option like:
         <option value="foo">Bar</option>
 
-        :Args:
-        value - The value to match against
-        throws NoSuchElementException If there is no option with specified value in SELECT
+        Args:
+        - value: The value to match against
         """
         element = self.wait_present(reraise=True)
         Select(element).select_by_value(value)
@@ -1276,17 +1209,52 @@ class Element:
         element = self.wait_present(reraise=True)
         Select(element).select_by_visible_text(text)
 
-    def deselect_all(self):
-        pass
+    def deselect_all(self) -> None:
+        """
+        Selenium Select API.
+        Clear all selected entries.
+        This is only valid when the SELECT supports multiple selections.
+        """
+        element = self.wait_present(reraise=True)
+        Select(element).deselect_all()
 
-    def deselect_by_value(self):
-        pass
+    def deselect_by_value(self, value: str) -> None:
+        """
+        Selenium Select API.
+        Deselect all options that have a value matching the argument. That is, when given "foo" this would deselect an option like:
+        <option value="foo">Bar</option>
 
-    def deselect_by_index(self):
-        pass
+        Args:
+        - value: The value to match against
+        """
+        element = self.wait_present(reraise=True)
+        Select(element).deselect_by_value(value)
 
-    def deselect_by_visible_text(self):
-        pass
+    def deselect_by_index(self, index: int) -> None:
+        """
+        Selenium Select API.
+        Deselect the option at the given index. 
+        This is done by examining the "index" attribute of an element, 
+        and not merely by counting.
+
+        Args:
+        - index: The option at this index will be deselected
+        """
+        element = self.wait_present(reraise=True)
+        Select(element).deselect_by_index(index)
+
+    def deselect_by_visible_text(self, text: str) -> None:
+        """
+        Selenium Select API.
+        Deselect all options that display text matching the argument. 
+        That is, when given "Bar" this would deselect an option like:
+        <option value="foo">Bar</option>
+
+        Args:
+        - text: The visible text to match against
+        """
+        element = self.wait_present(reraise=True)
+        Select(element).deselect_by_visible_text(text)
 
     @property
     def location_in_view(self) -> dict[str, int]:

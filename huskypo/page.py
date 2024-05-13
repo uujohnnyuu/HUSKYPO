@@ -18,7 +18,7 @@ from selenium.webdriver.common.print_page_options import PrintOptions
 from huskypo import ec_extension as ecex
 from huskypo.config import Timeout
 from huskypo.by import SwipeAction as SA
-from huskypo.typing import AppiumWebDriver, AppiumWebElement
+from huskypo.typing import AppiumWebDriver
 from huskypo.typing import WebDriver, WebElement, WebDriverTuple
 
 
@@ -29,6 +29,7 @@ class Page:
             raise TypeError(f'The driver type should be "WebDriver", not {type(driver).__name__}.')
         self._driver: WebDriver = driver
         self._wait_timeout: int | float | None = None
+        self._action = ActionChains(driver)
 
     @property
     def driver(self) -> WebDriver:
@@ -44,6 +45,18 @@ class Page:
         """
         self._wait_timeout = Timeout.DEFAULT if timeout is None else timeout
         return WebDriverWait(self.driver, self._wait_timeout)
+    
+    @property
+    def action(self):
+        """
+        Calling instance of ActionChains.
+        You can use it to perform an ActionChains method.
+
+        Usage::
+            
+            page.action.scroll_to_element(element).click(element)
+        """
+        return self._action
 
     def get(self, url: str) -> None:
         """
