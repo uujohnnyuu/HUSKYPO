@@ -528,15 +528,15 @@ class Page:
 
         Args:
         - dirtype:
-            - vertical: 'vertical', 'v'
-            - horizontal: 'horizontal', 'h'
+            - vertical: SA.V
+            - horizontal: SA.H
         - start: Ratio of full screen size to start swiping.
         - end: Ratio of full screen size to stop swiping.
         - fix:
             - int: Fixed x or y coordinate or its proportion to the full screen
                 when scrolling vertically or horizontally.
             - None: Fixed x or y coordinate default set to half of full screen.
-        - fix_is_ratio: True, fixed coordination is proportion to the full screen, vice versa.
+        - ratio: True, fixed coordination is proportion to the full screen, vice versa.
         - duration: defines the swipe speed as time taken to swipe from point a to point b, in ms.
 
         Usage::
@@ -588,6 +588,63 @@ class Page:
             page.flick(100, 100, 100, 400)
         """
         return self.driver.flick(start_x, start_y, end_x, end_y)
+    
+    def flick_ratio(
+            self,
+            direction: str = SA.V,
+            start: int = 75,
+            end: int = 25,
+            fix: int = None,
+            ratio: bool = False
+    ) -> AppiumWebDriver:
+        """
+        Flick by window ratio vertically or horizontally.
+
+        Args:
+        - dirtype:
+            - vertical: 'vertical', 'v'
+            - horizontal: 'horizontal', 'h'
+        - start: Ratio of full screen size to start swiping.
+        - end: Ratio of full screen size to stop swiping.
+        - fix:
+            - int: Fixed x or y coordinate or its proportion to the full screen
+                when scrolling vertically or horizontally.
+            - None: Fixed x or y coordinate default set to half of full screen.
+        - ratio: True, fixed coordination is proportion to the full screen, vice versa.
+
+        Usage::
+
+            page.flick_ratio('v', 80, 20)
+            page.flick_ratio('h', 80, 20)
+            page.flick_ratio('h', 80, 20, 100)
+            page.flick_ratio('h', 80, 20, 40, True)
+
+        """
+        vertical = 'v'
+        horizontal = 'h'
+
+        width, height = self.get_window_size().values()
+        if direction.lower() in vertical:
+            sx = ex = int(width / 2)
+            sy = int(height * start / 100)
+            ey = int(height * end / 100)
+            if fix:
+                if ratio:
+                    sx = ex = int(width * fix / 100)
+                else:
+                    sx = ex = fix
+        elif direction.lower() in horizontal:
+            sy = ey = int(height / 2)
+            sx = int(width * start / 100)
+            ex = int(width * end / 100)
+            if fix:
+                if ratio:
+                    sy = ey = int(height * fix / 100)
+                else:
+                    sy = ey = fix
+        else:
+            raise ValueError('Only accept dirtype: "v", "h"')
+        return self.driver.flick(sx, sy, ex, ey)
 
     def js_mobile_scroll_direction(self, direction: str = 'down'):
         """
