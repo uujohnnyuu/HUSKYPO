@@ -22,6 +22,8 @@ class SwipeAction:
 
 class _SwipeAction:
 
+    ACTION = {'border': '', 'direction': '', 'fix': ''}
+
     UNDERLINE = '_'
 
     # main action

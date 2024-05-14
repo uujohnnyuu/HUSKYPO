@@ -527,15 +527,29 @@ class Page:
     ) -> AppiumWebDriver:
         """
         Args:
-        - action: {'direction': '', 'fix': ''}
-        - start: Ratio of full screen size to start swiping.
-        - end: Ratio of full screen size to stop swiping.
+        - action: {'direction': '', 'fix': ''}, allowing:
+            - direction: 
+                - VERTICAL_ABSOLUTE, VERTICAL_RATIO, 
+                - HORIZONTAL_ABSOLUTE, HORIZONTAL_RATIO
+            - fix:
+                - '', null.
+                - FIX_ABSOLUTE, FIX_RATIO 
+        - start: Absolute coordinate or ratio of full screen size to start swiping.
+        - end: Absolute coordinate or ratio of full screen size to stop swiping.
         - fix:
             - int: Fixed x or y coordinate or its proportion to the full screen
                 when scrolling vertically or horizontally.
             - None: Fixed x or y coordinate default set to half of full screen.
-        - ratio: True, fixed coordination is proportion to the full screen, vice versa.
         - duration: defines the swipe speed as time taken to swipe from point a to point b, in ms.
+        - times: Swipe times. 
+
+        Usage::
+            # Default is vertical ratio swiping.
+            page.swipe_by()
+
+            # Using VERTICAL_RATIO
+            action = VERTICAL_RATIO
+            page.swipe_by()
         """
         # Check action.
         action_direction, action_fix = tuple(_SA.get_action(action).values())[1:]
