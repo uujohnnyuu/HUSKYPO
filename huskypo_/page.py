@@ -15,11 +15,12 @@ from selenium.webdriver.common.actions.action_builder import ActionBuilder
 from selenium.webdriver.common.actions.pointer_input import PointerInput
 from selenium.webdriver.common.print_page_options import PrintOptions
 
-from huskypo import ec_extension as ecex
-from huskypo.config import Timeout
-from huskypo.by import SwipeAction as SA
-from huskypo.typing import AppiumWebDriver
-from huskypo.typing import WebDriver, WebElement, WebDriverTuple
+from huskypo_ import ec_extension as ecex
+from huskypo_.config import Timeout
+from huskypo_.by import SwipeAction as SA
+from huskypo_.by import _SwipeAction as _SA
+from huskypo_.typing import AppiumWebDriver
+from huskypo_.typing import WebDriver, WebElement, WebDriverTuple
 
 
 class Page:
@@ -513,14 +514,69 @@ class Page:
 
         """
         return self.driver.swipe(start_x, start_y, end_x, end_y, duration)
+    
+    # TODO reconstruct swipe function
+    def swipe_by(
+            self,
+            action: dict[str, str] = {'direction': _SA.VERTICAL_RATIO},
+            start: int = 75,
+            end: int = 25,
+            fix: int | None = None,
+            duration: int = 1000,
+            times: int = 1
+    ) -> AppiumWebDriver:
+        """
+        Args:
+        - action: {'direction': '', 'fix': ''}
+        - start: Ratio of full screen size to start swiping.
+        - end: Ratio of full screen size to stop swiping.
+        - fix:
+            - int: Fixed x or y coordinate or its proportion to the full screen
+                when scrolling vertically or horizontally.
+            - None: Fixed x or y coordinate default set to half of full screen.
+        - ratio: True, fixed coordination is proportion to the full screen, vice versa.
+        - duration: defines the swipe speed as time taken to swipe from point a to point b, in ms.
+        """
+        # Check action.
+        action_direction, action_fix = tuple(_SA.get_action(action).values())[1:]
 
+        # Setting swipe range.
+        width, height = self.get_window_size().values()
+        if _SA.VERTICAL in action_direction:
+            sy = start
+            ey = end 
+            sx = ex = int(width / 2)
+            if _SA.RATIO in action_direction:
+                sy = int(height * start / 100)
+                ey = int(height * end / 100)    
+            if fix:
+                sx = ex = fix
+                if _SA.RATIO in action_fix:
+                    sx = ex = int(width * fix / 100)
+        if _SA.HORIZONTAL in action_direction:
+            sx = start
+            ex = end
+            sy = ey = int(height / 2)
+            if _SA.RATIO in action_direction:
+                sx = int(width * start / 100)
+                ex = int(width * end / 100)
+            if fix:
+                sy = ey = fix
+                if _SA.RATIO in action_fix:
+                    sy = ey = int(height * fix / 100)
+
+        for _ in range(times):
+            result = self.driver.swipe(sx, sy, ex, ey, duration)
+        return result
+
+    # TODO update SA. 
     def swipe_ratio(
             self,
             direction: str = SA.V,
             start: int = 75,
             end: int = 25,
             fix: int = None,
-            ratio: bool = False,
+            fix_is_ratio: bool = False,
             duration: int = 1000
     ) -> AppiumWebDriver:
         """
@@ -541,36 +597,31 @@ class Page:
 
         Usage::
 
-            page.swipe_ratio('v', 80, 20)
-            page.swipe_ratio('h', 80, 20)
-            page.swipe_ratio('h', 80, 20, 100)
-            page.swipe_ratio('h', 80, 20, 40, True)
+            page.swipe_ratio(SA.V, 80, 20)
+            page.swipe_ratio(SA.H, 80, 20)
+            page.swipe_ratio(SA.H, 80, 20, 100)
+            page.swipe_ratio(SA.H, 80, 20, 40, True)
 
         """
-        vertical = 'v'
-        horizontal = 'h'
-
         width, height = self.get_window_size().values()
-        if direction.lower() in vertical:
+        if direction == SA.V:
             sx = ex = int(width / 2)
             sy = int(height * start / 100)
             ey = int(height * end / 100)
             if fix:
-                if ratio:
+                sx = ex = fix
+                if fix_is_ratio:
                     sx = ex = int(width * fix / 100)
-                else:
-                    sx = ex = fix
-        elif direction.lower() in horizontal:
+        elif direction == SA.H:
             sy = ey = int(height / 2)
             sx = int(width * start / 100)
             ex = int(width * end / 100)
             if fix:
-                if ratio:
+                sy = ey = fix
+                if fix_is_ratio:
                     sy = ey = int(height * fix / 100)
-                else:
-                    sy = ey = fix
         else:
-            raise ValueError('Only accept dirtype: "v", "h"')
+            raise ValueError('Only accept dirtype: "SA.V", "SA.H"')
         return self.driver.swipe(sx, sy, ex, ey, duration)
     
     def flick(self, start_x: int, start_y: int, end_x: int, end_y: int) -> AppiumWebDriver:
@@ -620,6 +671,11 @@ class Page:
             page.flick_ratio('h', 80, 20, 40, True)
 
         """
+
+        # 方向 V, H
+        # 數值 R, A
+        # 座標 S, E, F
+
         vertical = 'v'
         horizontal = 'h'
 

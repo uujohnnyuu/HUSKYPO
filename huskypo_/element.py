@@ -11,13 +11,13 @@ from selenium.webdriver.support import expected_conditions as ec
 from selenium.webdriver.support.select import Select
 from selenium.webdriver.support.ui import WebDriverWait
 
-from huskypo import logstack
-from huskypo import ec_extension as ecex
-from huskypo.config import Log, Timeout
-from huskypo.by import ByAttribute
-from huskypo.by import SwipeAction as SA
-from huskypo.page import Page
-from huskypo.typing import WebDriver, WebElement, SeleniumWebElement, AppiumWebElement, AppiumWebDriver
+from huskypo_ import logstack
+from huskypo_ import ec_extension as ecex
+from huskypo_.config import Log, Timeout
+from huskypo_.by import ByAttribute
+from huskypo_.by import SwipeAction as SA
+from huskypo_.page import Page
+from huskypo_.typing import WebDriver, WebElement, SeleniumWebElement, AppiumWebElement, AppiumWebDriver
 
 
 class Element:

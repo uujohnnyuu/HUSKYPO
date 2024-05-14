@@ -1,4 +1,4 @@
-from huskypo.example.my_page import MyPage
+from huskypo_.example.my_page import MyPage
 
 
 class TestMyTest:

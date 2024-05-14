@@ -4,7 +4,7 @@ from typing import Callable, Literal
 from selenium.common.exceptions import NoSuchElementException
 from selenium.common.exceptions import StaleElementReferenceException
 
-from huskypo.typing import AppiumWebDriver, WebDriver, WebElement
+from huskypo_.typing import AppiumWebDriver, WebDriver, WebElement
 
 
 def presence_of_element_located(
