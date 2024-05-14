@@ -18,7 +18,6 @@ from selenium.webdriver.common.print_page_options import PrintOptions
 from huskypo_ import ec_extension as ecex
 from huskypo_.config import Timeout
 from huskypo_.by import SwipeAction as SA
-from huskypo_.by import _SwipeAction as _SA
 from huskypo_.typing import AppiumWebDriver
 from huskypo_.typing import WebDriver, WebElement, WebDriverTuple
 
@@ -518,7 +517,7 @@ class Page:
     # TODO reconstruct swipe function
     def swipe_by(
             self,
-            action: dict[str, str] = {'direction': _SA.VERTICAL_RATIO},
+            action: dict[str, str] = {'direction': SA.VERTICAL_RATIO},
             start: int = 75,
             end: int = 25,
             fix: int | None = None,
@@ -527,13 +526,20 @@ class Page:
     ) -> AppiumWebDriver:
         """
         Args:
-        - action: {'direction': '', 'fix': ''}, allowing:
+        - action: {'direction': '', 'fix': ''}, using SA attributes:
             - direction: 
-                - VERTICAL_ABSOLUTE, VERTICAL_RATIO, 
-                - HORIZONTAL_ABSOLUTE, HORIZONTAL_RATIO
-            - fix:
-                - '', null.
-                - FIX_ABSOLUTE, FIX_RATIO 
+                - SA.VERTICAL_ABSOLUTE: "start" and "end" will be absolute y coordinate. 
+                - SA.VERTICAL_RATIO: "start" and "end" will be ratio of screen height.
+                - SA.HORIZONTAL_ABSOLUTE: "start" and "end" will be absolute x coordinate. 
+                - SA.HORIZONTAL_RATIO: "start" and "end" will be ratio of screen width.
+            - fix: It is to customize the fixed x position or screen ratio when swiping vertically, 
+                or the fixed y position or screen ratio when swiping horizontally. 
+                If not needed, it will be centered on the screen, 
+                and you don't need to set this action.
+                - No key: Fix by center of screen.
+                - '': Fix by center of screen.
+                - FIX_ABSOLUTE: "fix" will be absolute x or y coordinate.
+                - FIX_RATIO: "fix" will be ratio of screen width or height. 
         - start: Absolute coordinate or ratio of full screen size to start swiping.
         - end: Absolute coordinate or ratio of full screen size to stop swiping.
         - fix:
@@ -552,31 +558,31 @@ class Page:
             page.swipe_by()
         """
         # Check action.
-        action_direction, action_fix = tuple(_SA.get_action(action).values())[1:]
+        action_direction, action_fix = tuple(SA.get_action(action).values())[1:]
 
         # Setting swipe range.
         width, height = self.get_window_size().values()
-        if _SA.VERTICAL in action_direction:
+        if SA.VERTICAL in action_direction:
             sy = start
             ey = end 
             sx = ex = int(width / 2)
-            if _SA.RATIO in action_direction:
+            if SA.RATIO in action_direction:
                 sy = int(height * start / 100)
                 ey = int(height * end / 100)    
             if fix:
                 sx = ex = fix
-                if _SA.RATIO in action_fix:
+                if SA.RATIO in action_fix:
                     sx = ex = int(width * fix / 100)
-        if _SA.HORIZONTAL in action_direction:
+        if SA.HORIZONTAL in action_direction:
             sx = start
             ex = end
             sy = ey = int(height / 2)
-            if _SA.RATIO in action_direction:
+            if SA.RATIO in action_direction:
                 sx = int(width * start / 100)
                 ex = int(width * end / 100)
             if fix:
                 sy = ey = fix
-                if _SA.RATIO in action_fix:
+                if SA.RATIO in action_fix:
                     sy = ey = int(height * fix / 100)
 
         for _ in range(times):

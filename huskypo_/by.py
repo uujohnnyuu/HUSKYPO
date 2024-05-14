@@ -12,17 +12,13 @@ class ByAttribute:
     VALUES = [getattr(By, attr) for attr in NAMES]
     VALUES_WITH_NONE = VALUES + [None]
 
-
 class SwipeAction:
+
+    # 暫時保留舊有
     V = 'v'
     VA = 'va'
     H = 'h'
     HA = 'ha'
-
-
-class _SwipeAction:
-
-    ACTION = {'border': '', 'direction': '', 'fix': ''}
 
     UNDERLINE = '_'
 
@@ -36,23 +32,22 @@ class _SwipeAction:
     ABSOLUTE = 'absolute'
     RATIO = 'ratio'
 
-    # border
+    # border: The border value should be absolute coordination or screen protion.
     BORDER_ABSOLUTE = BORDER + UNDERLINE + ABSOLUTE
     BORDER_RATIO = BORDER + UNDERLINE + RATIO
 
-    # vertical
+    # vertical: The start and end value should be absolute coordibation or screen protion.
     VERTICAL_ABSOLUTE = VERTICAL + UNDERLINE + ABSOLUTE
     VERTICAL_RATIO = VERTICAL + UNDERLINE + RATIO
     
-    # horizontal
+    # horizontal: The start and end value should be absolute coordibation or screen protion.
     HORIZONTAL_ABSOLUTE = HORIZONTAL + UNDERLINE + ABSOLUTE
     HORIZONTAL_RATIO = HORIZONTAL + UNDERLINE + RATIO
 
-    # fix
+    # fix: The fix value should be absolute coordibation or screen protion.
     FIX_ABSOLUTE = FIX + UNDERLINE + ABSOLUTE
     FIX_RATIO = FIX + UNDERLINE + RATIO
 
-    # action checker
     @classmethod
     def get_action(cls, action: dict[str, str]):
 
@@ -60,7 +55,6 @@ class _SwipeAction:
         ACTION_KEYS = set(ACTION.keys())
         action_keys = set(action.keys())
 
-        # 檢查更新的Keys是否包含在ACTION當中，並更新ACTION
         if action_keys.issubset(ACTION_KEYS):
             ACTION.update(action)
         else:
@@ -68,7 +62,6 @@ class _SwipeAction:
             raise KeyError(f'''The following keys are not expected: {difference_keys},
                 the expected keys are {ACTION_KEYS}.''')
         
-        # 賦值檢查
         border, direction, fix = tuple(ACTION.values())
         if border and border not in [cls.BORDER_ABSOLUTE, cls.BORDER_RATIO]:
             raise ValueError(f'Border should be in [BORDER_ABSOLUTE, BORDER_RATIO].')
@@ -78,3 +71,39 @@ class _SwipeAction:
             raise ValueError(f'Fix should be in [FIX_ABSOLUTE, FIX_RATIO].')
         
         return ACTION
+
+    # __ACTION = {'border': '', 'direction': '', 'fix': ''}
+
+    # @classmethod
+    # def set_action(cls, border: str, direction: str, fix: str):
+    #     """
+    #     Setting swipe action by SwipeAction.
+
+    #     Args:
+    #     - border: BORDER_ABSOLUTE, BORDER_VALUE.
+    #     - direction:
+    #         - vertical: VERTICAL_ABSOLUTE, VERTICAL_VALUE
+    #         - horizontal: HORIZONTAL_ABSOLUTE, HORIZONTAL_RATIO
+    #     - fix: FIX_ABSOLUTE, FIX_VALUE
+    #     """
+    #     if border:
+    #         cls.__ACTION['border'] = border
+    #     if direction:
+    #         cls.__ACTION['direction'] = direction
+    #     if fix:
+    #         cls.__ACTION['fix'] = fix
+
+    # @classmethod
+    # def verify_action(cls):
+    #     border, direction, fix = tuple(cls.__ACTION.values())
+    #     if border and border not in [cls.BORDER_ABSOLUTE, cls.BORDER_RATIO]:
+    #         raise ValueError(f'Border should be in [BORDER_ABSOLUTE, BORDER_RATIO].')
+    #     if direction and direction not in [cls.VERTICAL_ABSOLUTE, cls.VERTICAL_RATIO, cls.HORIZONTAL_ABSOLUTE, cls.HORIZONTAL_RATIO]:
+    #         raise ValueError(f'Direction should be in [VERTICAL_ABSOLUTE, VERTICAL_RATIO, HORIZONTAL_ABSOLUTE, HORIZONTAL_RATIO].')
+    #     if fix and fix not in [cls.FIX_ABSOLUTE, cls.FIX_RATIO]:
+    #         raise ValueError(f'Fix should be in [FIX_ABSOLUTE, FIX_RATIO].')
+    #     return cls.__ACTION
+
+    # @classmethod
+    # def get_action(cls):
+    #     return cls.verify_action()
