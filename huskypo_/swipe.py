@@ -51,3 +51,14 @@ class SwipeAction:
     @property
     def action(self):
         return self.border, self.direction, self.fix
+    
+
+class SwipeSupport:
+
+    # Border: 2
+    # Direction: 2 x 2 = 4
+    # Fix: 2
+    # Total: 2 x 4 x 2 = 16
+
+    # TODO Define 16 SwipeAction objects.
+    pass
