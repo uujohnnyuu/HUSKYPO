@@ -1,4 +1,4 @@
-from huskypo_ import Element, Elements
+from . import Element, Elements
 
 
 def dynamic(func):

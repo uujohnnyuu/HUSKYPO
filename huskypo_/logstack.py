@@ -6,6 +6,8 @@ import os
 
 from typing import Mapping
 
+from .config import Log
+
 
 def debug(
         message: object,
@@ -155,3 +157,12 @@ def get_stack_infos(
         return f'|{filename}:{lineno}|{funcname}|'
     finally:
         del frames
+
+def _logging(message: str = 'NULL'):
+        """
+        To print or record inner log.
+        """
+        if Log.PRINT:
+            print(message)
+        if Log.RECORD:
+            info(message)

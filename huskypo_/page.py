@@ -15,11 +15,12 @@ from selenium.webdriver.common.actions.action_builder import ActionBuilder
 from selenium.webdriver.common.actions.pointer_input import PointerInput
 from selenium.webdriver.common.print_page_options import PrintOptions
 
-from huskypo_ import ec_extension as ecex
-from huskypo_.config import Timeout
-from huskypo_.by import SwipeAction as SA
-from huskypo_.typing import AppiumWebDriver
-from huskypo_.typing import WebDriver, WebElement, WebDriverTuple
+from . import logstack
+from . import ec_extension as ecex
+from .config import Timeout
+from .swipe import SwipeBy, SwipeAction
+from .typing import AppiumWebDriver
+from .typing import WebDriver, WebElement, WebDriverTuple
 
 
 class Page:
@@ -514,10 +515,32 @@ class Page:
         """
         return self.driver.swipe(start_x, start_y, end_x, end_y, duration)
     
+    def __get_border(
+            self,
+            action: SwipeAction,
+            border: dict[str, int] | tuple[int, int, int, int]
+    ):
+        if isinstance(border, dict):
+            left, right, top, bottom = border.values()
+        elif isinstance(border, tuple):
+            left, right, top, bottom = border
+        else:
+            raise TypeError('Parameter "border" should be dict or tuple.')
+        
+        if action.border and (SwipeBy.RATIO in action.border):
+            window_left, window_top, window_width, window_height = self.get_window_rect().values()
+            left, right = [int(window_left + window_width * x / 100) for x in (left, right)]
+            top, bottom = [int(window_top + window_height * y / 100) for y in (top, bottom)]
+
+        border = (left, right, top, bottom)
+        logstack._logging(f'✅ border: {border}')
+        return border
+    
     # TODO reconstruct swipe function
     def swipe_by(
             self,
-            action: dict[str, str] = {'direction': SA.VERTICAL_RATIO},
+            action: SwipeAction | None = None,
+            border: dict | tuple = {'left': 0, 'right': 100, 'top': 0, 'bottom': 100},
             start: int = 75,
             end: int = 25,
             fix: int | None = None,
@@ -557,42 +580,50 @@ class Page:
             action = VERTICAL_RATIO
             page.swipe_by()
         """
-        # Check action.
-        action_direction, action_fix = tuple(SA.get_action(action).values())[1:]
+        # action
+        if action is None:
+            action = SwipeAction(SwipeBy.BORDER_RATIO, SwipeBy.VERTICAL_RATIO)
+
+        # border
+        left, right, top, bottom = self.__get_border(action, border)
+        width = right - left
+        height = bottom - top
 
         # Setting swipe range.
-        width, height = self.get_window_size().values()
-        if SA.VERTICAL in action_direction:
+        if SwipeBy.VERTICAL in action.direction:
             sy = start
             ey = end 
             sx = ex = int(width / 2)
-            if SA.RATIO in action_direction:
-                sy = int(height * start / 100)
-                ey = int(height * end / 100)    
+            if SwipeBy.RATIO in action.direction:
+                sy = top + int(height * start / 100)
+                ey = top + int(height * end / 100)    
             if fix:
                 sx = ex = fix
-                if SA.RATIO in action_fix:
-                    sx = ex = int(width * fix / 100)
-        if SA.HORIZONTAL in action_direction:
+                if action.fix and (SwipeBy.RATIO in action.fix):
+                    sx = ex = left + int(width * fix / 100)
+        if SwipeBy.HORIZONTAL in action.direction:
             sx = start
             ex = end
             sy = ey = int(height / 2)
-            if SA.RATIO in action_direction:
-                sx = int(width * start / 100)
-                ex = int(width * end / 100)
+            if SwipeBy.RATIO in action.direction:
+                sx = left + int(width * start / 100)
+                ex = left + int(width * end / 100)
             if fix:
                 sy = ey = fix
-                if SA.RATIO in action_fix:
-                    sy = ey = int(height * fix / 100)
-
+                if action.fix and (SwipeBy.RATIO in action.fix):
+                    sy = ey = top + int(height * fix / 100)
+        
+        # start swiping.
+        logstack._logging(f'✅ Swipe range: {(sx, sy, ex, ey)}')
         for _ in range(times):
-            result = self.driver.swipe(sx, sy, ex, ey, duration)
-        return result
+            driver = self.driver.swipe(sx, sy, ex, ey, duration)
+
+        return driver
 
     # TODO update SA. 
     def swipe_ratio(
             self,
-            direction: str = SA.V,
+            direction: str = SwipeBy.V,
             start: int = 75,
             end: int = 25,
             fix: int = None,
@@ -624,7 +655,7 @@ class Page:
 
         """
         width, height = self.get_window_size().values()
-        if direction == SA.V:
+        if direction == SwipeBy.V:
             sx = ex = int(width / 2)
             sy = int(height * start / 100)
             ey = int(height * end / 100)
@@ -632,7 +663,7 @@ class Page:
                 sx = ex = fix
                 if fix_is_ratio:
                     sx = ex = int(width * fix / 100)
-        elif direction == SA.H:
+        elif direction == SwipeBy.H:
             sy = ey = int(height / 2)
             sx = int(width * start / 100)
             ex = int(width * end / 100)
@@ -641,7 +672,7 @@ class Page:
                 if fix_is_ratio:
                     sy = ey = int(height * fix / 100)
         else:
-            raise ValueError('Only accept dirtype: "SA.V", "SA.H"')
+            raise ValueError('Only accept dirtype: "SwipeBy.V", "SwipeBy.H"')
         return self.driver.swipe(sx, sy, ex, ey, duration)
     
     def flick(self, start_x: int, start_y: int, end_x: int, end_y: int) -> AppiumWebDriver:
@@ -662,7 +693,7 @@ class Page:
     
     def flick_ratio(
             self,
-            direction: str = SA.V,
+            direction: str = SwipeBy.V,
             start: int = 75,
             end: int = 25,
             fix: int = None,

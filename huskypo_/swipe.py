@@ -1,20 +1,6 @@
-from __future__ import annotations
-
-from appium.webdriver.common.appiumby import AppiumBy
-
-
-class By(AppiumBy):
-    pass
-
-
-class ByAttribute:
-    NAMES = [attr for attr in dir(By) if not attr.startswith('__')]
-    VALUES = [getattr(By, attr) for attr in NAMES]
-    VALUES_WITH_NONE = VALUES + [None]
-
-class SwipeAction:
-
-    # 暫時保留舊有
+class SwipeBy:
+    
+    # TODO deprecate.
     V = 'v'
     VA = 'va'
     H = 'h'
@@ -48,13 +34,15 @@ class SwipeAction:
     FIX_ABSOLUTE = FIX + UNDERLINE + ABSOLUTE
     FIX_RATIO = FIX + UNDERLINE + RATIO
 
-    def __init__(self, border: SwipeAction | None, direction: SwipeAction | None, fix: SwipeAction | None):
-        if border and border not in [self.BORDER_ABSOLUTE, self.BORDER_RATIO]:
+class SwipeAction:
+
+    def __init__(self, border: str | None = None, direction: str | None = None, fix: str | None = None):
+        if border and border not in [SwipeBy.BORDER_ABSOLUTE, SwipeBy.BORDER_RATIO]:
             raise ValueError(f'Border should be in [BORDER_ABSOLUTE, BORDER_RATIO].')
         if direction and direction not in [
-            self.VERTICAL_ABSOLUTE, self.VERTICAL_RATIO, self.HORIZONTAL_ABSOLUTE, self.HORIZONTAL_RATIO]:
+            SwipeBy.VERTICAL_ABSOLUTE, SwipeBy.VERTICAL_RATIO, SwipeBy.HORIZONTAL_ABSOLUTE, SwipeBy.HORIZONTAL_RATIO]:
             raise ValueError(f'Direction should be in [VERTICAL_ABSOLUTE, VERTICAL_RATIO, HORIZONTAL_ABSOLUTE, HORIZONTAL_RATIO].')
-        if fix and fix not in [self.FIX_ABSOLUTE, self.FIX_RATIO]:
+        if fix and fix not in [SwipeBy.FIX_ABSOLUTE, SwipeBy.FIX_RATIO]:
             raise ValueError(f'Fix should be in [FIX_ABSOLUTE, FIX_RATIO].')
         self.border = border
         self.direction = direction
@@ -63,5 +51,3 @@ class SwipeAction:
     @property
     def action(self):
         return self.border, self.direction, self.fix
-
-    

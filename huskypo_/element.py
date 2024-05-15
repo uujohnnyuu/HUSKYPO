@@ -11,13 +11,13 @@ from selenium.webdriver.support import expected_conditions as ec
 from selenium.webdriver.support.select import Select
 from selenium.webdriver.support.ui import WebDriverWait
 
-from huskypo_ import logstack
-from huskypo_ import ec_extension as ecex
-from huskypo_.config import Log, Timeout
-from huskypo_.by import ByAttribute
-from huskypo_.by import SwipeAction as SA
-from huskypo_.page import Page
-from huskypo_.typing import WebDriver, WebElement, SeleniumWebElement, AppiumWebElement, AppiumWebDriver
+from . import logstack
+from . import ec_extension as ecex
+from .config import Log, Timeout
+from .by import ByAttribute
+from .by import SwipeAction as SA
+from .page import Page
+from .typing import WebDriver, WebElement, SeleniumWebElement, AppiumWebElement, AppiumWebDriver
 
 
 class Element:
@@ -725,7 +725,7 @@ class Element:
             top, bottom = [int(window_top + window_height * y / 100) for y in (top, bottom)]
 
         border = (left, right, top, bottom)
-        self.__logging(f'✅ border: {border}')
+        logstack._logging(f'✅ border: {border}')
         return border
 
     def __get_coordinate(
@@ -780,7 +780,7 @@ class Element:
             raise ValueError(f'Parameter "dirtype" should be {SA.V}, {SA.VA}, {SA.H} or {SA.HA}.')
 
         coordinate = (sx, sy, ex, ey)
-        self.__logging(f'✅ coordinate: {coordinate}')
+        logstack._logging(f'✅ coordinate: {coordinate}')
         return coordinate
 
     def __start_swiping(
@@ -796,14 +796,14 @@ class Element:
         """
         Return viewable or not.
         """
-        self.__logging(f'🟢 Start swiping to element {self.remark}.')
+        logstack._logging(f'🟢 Start swiping to element {self.remark}.')
         count = 0
         while not self.is_viewable(timeout):
             if count == max_swipe:
                 raise ValueError(f'Stop swiping to element {self.remark} as the maximum swipe count of {max_swipe} has been reached.')
             self.driver.swipe(sx, sy, ex, ey, duration)
             count += 1
-        self.__logging(f'✅ End swiping as the element {self.remark} is now viewable.')
+        logstack._logging(f'✅ End swiping as the element {self.remark} is now viewable.')
         return True
 
     def __start_adjusting(
@@ -823,7 +823,7 @@ class Element:
         """
         Start adjusting.
         """
-        self.__logging(f'🟢 Start adjusting to element {self.remark}')
+        logstack._logging(f'🟢 Start adjusting to element {self.remark}')
         for i in range(1, max_adjust + 2):
             element_left, element_right, element_top, element_bottom = self.border.values()
             delta_left = left - element_left
@@ -831,26 +831,26 @@ class Element:
             delta_top = top - element_top
             delta_bottom = element_bottom - bottom
             if delta_left > 0:
-                self.__logging(f'🟢 Adjust {i}: swipe right.')
+                logstack._logging(f'🟢 Adjust {i}: swipe right.')
                 adjust_distance = delta_left if delta_left > min_distance else min_distance
                 ex = sx + int(adjust_distance)
             elif delta_right > 0:
-                self.__logging(f'🟢 Adjust {i}: swipe left.')
+                logstack._logging(f'🟢 Adjust {i}: swipe left.')
                 adjust_distance = delta_right if delta_right > min_distance else min_distance
                 ex = sx - int(adjust_distance)
             elif delta_top > 0:
-                self.__logging(f'🟢 Adjust {i}: swipe down.')
+                logstack._logging(f'🟢 Adjust {i}: swipe down.')
                 adjust_distance = delta_top if delta_top > min_distance else min_distance
                 ey = sy + int(adjust_distance)
             elif delta_bottom > 0:
-                self.__logging(f'🟢 Adjust {i}: swipe up.')
+                logstack._logging(f'🟢 Adjust {i}: swipe up.')
                 adjust_distance = delta_bottom if delta_bottom > min_distance else min_distance
                 ey = sy - int(adjust_distance)
             else:
-                self.__logging(f'✅ End adjusting as the element {self.remark} border is in view border.')
+                logstack._logging(f'✅ End adjusting as the element {self.remark} border is in view border.')
                 return True
             if i == max_adjust + 1:
-                self.__logging(f'🟡 End adjusting to the element {self.remark} as the maximum adjust count of {max_adjust} has been reached.')
+                logstack._logging(f'🟡 End adjusting to the element {self.remark} as the maximum adjust count of {max_adjust} has been reached.')
                 return True
             self.driver.swipe(sx, sy, ex, ey, duration)
             
@@ -1331,12 +1331,3 @@ class Element:
         Send keys SPACE to the element.
         """
         self.wait_present(reraise=True).send_keys(Keys.SPACE)
-
-    def __logging(self, message: str = 'NULL'):
-        """
-        To print or record inner log.
-        """
-        if Log.PRINT:
-            print(message)
-        if Log.RECORD:
-            logstack.info(message)

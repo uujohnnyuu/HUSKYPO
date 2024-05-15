@@ -7,12 +7,12 @@ from selenium.common.exceptions import TimeoutException
 from selenium.webdriver.support import expected_conditions as ec
 from selenium.webdriver.support.ui import WebDriverWait
 
-from huskypo_ import logstack
-from huskypo_ import ec_extension as ecex
-from huskypo_.config import Timeout
-from huskypo_.by import ByAttribute
-from huskypo_.page import Page
-from huskypo_.typing import WebDriver, WebElement
+from . import logstack
+from . import ec_extension as ecex
+from .config import Timeout
+from .by import ByAttribute
+from .page import Page
+from .typing import WebDriver, WebElement
 
 
 class Elements:
