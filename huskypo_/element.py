@@ -13,9 +13,11 @@ from selenium.webdriver.support.ui import WebDriverWait
 
 from . import logstack
 from . import ec_extension as ecex
-from .config import Log, Timeout
+from .config import Timeout
 from .by import ByAttribute
 from .by import SwipeAction as SA
+from .swipe import SwipeBy, SwipeAction
+from .swipe import SwipeActionSupport as SAS
 from .page import Page
 from .typing import WebDriver, WebElement, SeleniumWebElement, AppiumWebElement, AppiumWebDriver
 
@@ -170,8 +172,6 @@ class Element:
         # self.wait_timeout is used to record the final timeout value.
         # If the function sets a timeout, it takes precedence;
         # otherwise, it defaults to the timeout set for the element.
-
-        # TODO tracking
         self._wait_timeout = self.element_timeout if timeout is None else timeout
         return WebDriverWait(self.driver, self._wait_timeout)
 
@@ -569,7 +569,6 @@ class Element:
         center = tuple(self.center.values())
         self.driver.tap([center], duration)
 
-    # TODO ActionHelper
     def app_drag_and_drop(self, target: Element | AppiumWebElement) -> AppiumWebDriver:
         """
         Appium API.
@@ -609,10 +608,10 @@ class Element:
         """
         element = self.wait_present(timeout, False)
         return element.is_displayed() if element else False
-
+    
     def swipe_into_view(
             self,
-            direction: str = SA.V,
+            action: SwipeAction = SAS.BR_VR,
             border: dict | tuple = {'left': 0, 'right': 100, 'top': 0, 'bottom': 100},
             start: int = 75,
             end: int = 25,
@@ -683,34 +682,130 @@ class Element:
         which has been found to be stable.
         It is advisable not to alter these unless specific conditions necessitate changes.
         """
-        # TODO keep optimizing.
+        # Action
+        swipe_action = self.__get_action(action)
 
         # Get border.
-        border = self.__get_border(direction, border)
+        swipe_border = self.__get_border(swipe_action, border)
 
         # Determine v or h, and actual swiping range.
-        coordinate = self.__get_coordinate(direction, *border, start, end, fix)
+        swipe_range = self.__get_range(swipe_action, *swipe_border, start, end, fix)
 
         # Start swiping and check whether it is viewable in max count of swiping.
-        self.__start_swiping(*coordinate, duration, timeout, max_swipe)
+        self.__start_swiping(*swipe_range, duration, timeout, max_swipe)
 
         # Start adjusting when element is viewable.
-        self.__start_adjusting(*border, *coordinate, max_adjust, min_distance, duration)
+        self.__start_adjusting_swipe_range(*swipe_border, *swipe_range, max_adjust, min_distance, duration)
 
         # Return self to re-trigger the element finding process, thereby avoiding staleness issues.
         return self
-
-    def __get_border(
+    
+    def flick_into_view(
             self,
-            direction: str,
-            border: dict[str, int] | tuple[int, int, int, int]
-    ):
+            action: SwipeAction = SAS.BR_VR,
+            border: dict | tuple = {'left': 0, 'right': 100, 'top': 0, 'bottom': 100},
+            start: int = 75,
+            end: int = 25,
+            fix: bool | int = False,
+            timeout: int | float = 3,
+            max_swipe: int = 10,
+            max_adjust: int = 2,
+            min_distance: int = 100
+    ) -> Element:
         """
+        Appium API.
+        For native iOS and Android apps, this function swipes the screen vertically or horizontally
+        until the element becomes present(Android) or visible(iOS) within the specified border.
+
+        Args:
+        - direction: Use `SwipeAction`, from huskypo import SwipeAction as SA.
+            - vertical: `SA.V` or `SA.VA`, where `VA` denotes `vertical and the border uses absolute pixel values`.
+            - horizontal: `SA.H` or `SA.HA`, where `HA` denotes `horizontal and the border uses absolute pixel values`.
+        - border: The actual border pixel value or a percentage from 0 to 100.
+        - start: The start ratio (0 to 100) of the border parameter.
+        - end: The end ratio (0 to 100) of the border parameter.
+        - fix:
+            - True: Uses the `target element's center x or y` as the fixed coordinate when swiping vertically or horizontally.
+            - False: Uses the `border center x or y` as the fixed coordinate when swiping vertically or horizontally.
+            - int: Assigns an `absolute x or y` as the fixed coordinate when swiping vertically or horizontally.
+        - timeout: The maximum time in seconds to wait for the element to become viewable (either present or visible).
+        - max_swipe: The maximum number of swipes allowed.
+        - max_adjust: The maximum number of adjustments to align all borders of the element with the view border.
+        - min_distance: The minimum swipe distance to avoid being mistaken for a click.
+        - duration: The duration of the swipe in milliseconds, from start to end.
+
         Usage::
 
-            return left, right, top, bottom
+            from huskypo.by import Key
+
+            # Default scroll down to find the element.
+            page.element.swipe_into_view()
+
+            # Scroll up to find the element with an absolute border.
+            border = (50, 450, 100, 700)  # You can determine the actual border by the scrollable element.
+            page.element.swipe_into_view(Key.VA, border, 20, 80)
+
+            # Scroll right to find the element with a ratio-based border.
+            page.element.swipe_into_view(Key.H)
+
+            # Scroll left to find the element with a ratio-based border.
+            border = (10, 90, 10, 90)  # (left, right, top, bottom) will be the ratio of the window size.
+            page.element.swipe_into_view(Key.H, border, 25, 75)
+
+            # Horizontal scrolling with a fixed "y" coordinate obtained from the target element.
+            # This is applicable to iOS. (Element outside the window is present but not visible.)
+            page.element.swipe_into_view(Key.HA, border, 80, 20, True)
+
+            # Horizontal scrolling with a fixed "y" coordinate assigned by an absolute pixel value.
+            # This is suitable for Android. (Element outside the window is not present.)
+            ty = page.another_present_element.center['y']  # Or you can directly assign a value.
+            page.element.swipe_into_view(Key.HA, border, 80, 20, ty)
+
+            # Vertical scrolling with a fixed "x" coordinate assigned by an absolute pixel value.
+            # This is suitable for Android. (Element outside the window is not present.)
+            tx = page.another_present_element.center['x']  # Or you can directly assign a value.
+            page.element.swipe_into_view(Key.VA, border, 80, 20, tx)
+
+        Note:
+        `min_distance` and `duration` are interdependent;
+        the default settings are based on sliding at a rate of 100 pixels per second,
+        which has been found to be stable.
+        It is advisable not to alter these unless specific conditions necessitate changes.
         """
+        # Action
+        flick_action = self.__get_action(action)
+
         # Get border.
+        flick_border = self.__get_border(flick_action, border)
+
+        # Determine v or h, and actual swiping range.
+        flick_range = self.__get_range(flick_action, *flick_border, start, end, fix)
+
+        # Start swiping and check whether it is viewable in max count of swiping.
+        self.__start_flicking(*flick_range, timeout, max_swipe)
+
+        # Start adjusting when element is viewable.
+        # TODO Need to check if it is necessary for flicking is too fast.
+        self.__start_adjusting_flick_range(*flick_border, *flick_range, max_adjust, min_distance)
+
+        # Return self to re-trigger the element finding process, thereby avoiding staleness issues.
+        return self
+    
+    def __get_action(self, action: SwipeAction):
+        if not isinstance(action, SwipeAction):
+            raise TypeError(f'"action" type should be "SwipeAction", not "{type(action).__name__}"')
+        if action.border is None:
+            action.border = SwipeBy.BORDER_RATIO
+        if action.direction is None:
+            action.direction = SwipeBy.VERTICAL_RATIO
+        logstack._logging(f'✅ Swipe action: {action.action}')
+        return action
+    
+    def __get_border(
+            self,
+            action: SwipeAction,
+            border: dict[str, int] | tuple[int, int, int, int]
+    ):
         if isinstance(border, dict):
             left, right, top, bottom = border.values()
         elif isinstance(border, tuple):
@@ -718,19 +813,19 @@ class Element:
         else:
             raise TypeError('Parameter "border" should be dict or tuple.')
 
-        if 'a' not in direction.lower():
+        if action.border and (SwipeBy.RATIO in action.border):
             page = Page(self.driver)
             window_left, window_top, window_width, window_height = page.get_window_rect().values()
             left, right = [int(window_left + window_width * x / 100) for x in (left, right)]
             top, bottom = [int(window_top + window_height * y / 100) for y in (top, bottom)]
 
-        border = (left, right, top, bottom)
-        logstack._logging(f'✅ border: {border}')
-        return border
+        swipe_border = (left, right, top, bottom)
+        logstack._logging(f'✅ Swipe border: {swipe_border}')
+        return swipe_border
 
-    def __get_coordinate(
+    def __get_range(
             self,
-            direction: str,
+            action: SwipeAction,
             left: int,
             right: int,
             top: int,
@@ -739,49 +834,49 @@ class Element:
             end: int,
             fix: bool | int = False
     ):
-        """
-        Usage::
-
-            return sx, sy, ex, ey
-        """
         width = right - left
         height = bottom - top
 
-        # Determine v or h, and actual swiping range.
-        if 'v' in direction.lower():
-            sy = top + int(height * start / 100)
-            ey = top + int(height * end / 100)
-            if fix is False:
+        sx = sy = start
+        ex = ey = end
+        if SwipeBy.VERTICAL in action.direction:
+            if SwipeBy.RATIO in action.direction:
+                sy = top + int(height * start / 100)
+                ey = top + int(height * end / 100)
                 # border center x
                 sx = ex = left + int(width / 2)
-            elif fix is True:
+            if fix is True:
                 # element center x
                 sx = ex = self.center['x']
             elif isinstance(fix, int):
                 # absolute x
                 sx = ex = fix
+                if action.fix and (SwipeBy.RATIO in action.fix):
+                    # ratio x
+                    sx = ex = left + int(width * fix / 100)
             else:
                 raise TypeError('Parameter "fix" should be bool or int.')
-        elif 'h' in direction.lower():
-            sx = left + int(width * start / 100)
-            ex = left + int(width * end / 100)
-            if fix is False:
+        if SwipeBy.HORIZONTAL in action.direction:
+            if SwipeBy.RATIO in action.direction:
+                sx = left + int(width * start / 100)
+                ex = left + int(width * end / 100)
                 # border center y
-                sy = ey = top + int(height / 2)
-            elif fix is True:
+                sy = ey = top + int(height / 2)    
+            if fix is True:
                 # element center y
                 sy = ey = self.center['y']
             elif isinstance(fix, int):
                 # absolute y
                 sy = ey = fix
+                if action.fix and (SwipeBy.RATIO in action.fix):
+                    # ratio y
+                    sy = ey = top + int(height * fix / 100)
             else:
                 raise TypeError('Parameter "fix" should be bool or int.')
-        else:
-            raise ValueError(f'Parameter "dirtype" should be {SA.V}, {SA.VA}, {SA.H} or {SA.HA}.')
 
-        coordinate = (sx, sy, ex, ey)
-        logstack._logging(f'✅ coordinate: {coordinate}')
-        return coordinate
+        swipe_range = (sx, sy, ex, ey)
+        logstack._logging(f'✅ Swipe range: {swipe_range}')
+        return swipe_range
 
     def __start_swiping(
             self,
@@ -793,9 +888,6 @@ class Element:
             timeout: int | float,
             max_swipe: int
     ):
-        """
-        Return viewable or not.
-        """
         logstack._logging(f'🟢 Start swiping to element {self.remark}.')
         count = 0
         while not self.is_viewable(timeout):
@@ -805,8 +897,27 @@ class Element:
             count += 1
         logstack._logging(f'✅ End swiping as the element {self.remark} is now viewable.')
         return True
+    
+    def __start_flicking(
+            self,
+            sx: int,
+            sy: int,
+            ex: int,
+            ey: int,
+            timeout: int | float,
+            max_swipe: int
+    ):
+        logstack._logging(f'🟢 Start flicking to element {self.remark}.')
+        count = 0
+        while not self.is_viewable(timeout):
+            if count == max_swipe:
+                raise ValueError(f'Stop flicking to element {self.remark} as the maximum flick count of {max_swipe} has been reached.')
+            self.driver.flick(sx, sy, ex, ey)
+            count += 1
+        logstack._logging(f'✅ End flicking as the element {self.remark} is now viewable.')
+        return True
 
-    def __start_adjusting(
+    def __start_adjusting_swipe_range(
             self,
             left: int,
             right: int,
@@ -820,9 +931,6 @@ class Element:
             min_distance: int,
             duration: int
     ):
-        """
-        Start adjusting.
-        """
         logstack._logging(f'🟢 Start adjusting to element {self.remark}')
         for i in range(1, max_adjust + 2):
             element_left, element_right, element_top, element_bottom = self.border.values()
@@ -853,7 +961,50 @@ class Element:
                 logstack._logging(f'🟡 End adjusting to the element {self.remark} as the maximum adjust count of {max_adjust} has been reached.')
                 return True
             self.driver.swipe(sx, sy, ex, ey, duration)
-            
+
+    def __start_adjusting_flick_range(
+            self,
+            left: int,
+            right: int,
+            top: int,
+            bottom: int,
+            sx: int,
+            sy: int,
+            ex: int,
+            ey: int,
+            max_adjust: int,
+            min_distance: int
+    ):
+        logstack._logging(f'🟢 Start adjusting to element {self.remark}')
+        for i in range(1, max_adjust + 2):
+            element_left, element_right, element_top, element_bottom = self.border.values()
+            delta_left = left - element_left
+            delta_right = element_right - right
+            delta_top = top - element_top
+            delta_bottom = element_bottom - bottom
+            if delta_left > 0:
+                logstack._logging(f'🟢 Adjust {i}: swipe right.')
+                adjust_distance = delta_left if delta_left > min_distance else min_distance
+                ex = sx + int(adjust_distance)
+            elif delta_right > 0:
+                logstack._logging(f'🟢 Adjust {i}: swipe left.')
+                adjust_distance = delta_right if delta_right > min_distance else min_distance
+                ex = sx - int(adjust_distance)
+            elif delta_top > 0:
+                logstack._logging(f'🟢 Adjust {i}: swipe down.')
+                adjust_distance = delta_top if delta_top > min_distance else min_distance
+                ey = sy + int(adjust_distance)
+            elif delta_bottom > 0:
+                logstack._logging(f'🟢 Adjust {i}: swipe up.')
+                adjust_distance = delta_bottom if delta_bottom > min_distance else min_distance
+                ey = sy - int(adjust_distance)
+            else:
+                logstack._logging(f'✅ End adjusting as the element {self.remark} border is in view border.')
+                return True
+            if i == max_adjust + 1:
+                logstack._logging(f'🟡 End adjusting to the element {self.remark} as the maximum adjust count of {max_adjust} has been reached.')
+                return True
+            self.driver.flick(sx, sy, ex, ey)
 
     def clear(self) -> WebElement | None:
         """
@@ -977,7 +1128,6 @@ class Element:
                 raise
             return False
         
-    # TODO ActionChains
     def action_click(self) -> None:
         """
         Selenium ActionChains API.
@@ -1138,7 +1288,6 @@ class Element:
         element = self.wait_present(reraise=True)
         ActionChains(self.driver).scroll_to_element(element).perform()
 
-    # TODO Select
     @property
     def options(self) -> list[SeleniumWebElement]:
         """

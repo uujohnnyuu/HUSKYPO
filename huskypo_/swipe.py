@@ -1,10 +1,4 @@
 class SwipeBy:
-    
-    # TODO deprecate.
-    V = 'v'
-    VA = 'va'
-    H = 'h'
-    HA = 'ha'
 
     UNDERLINE = '_'
 
