@@ -4,5 +4,5 @@ from .element import Element
 from .elements import Elements
 from .by import By
 from .by import SwipeAction as SA  # to be deprecated
-from .swipe import SwipeBy, SwipeAction
+from .swipe import SwipeBy, SwipeAction, SwipeActionSupport
 from .decorator import dynamic

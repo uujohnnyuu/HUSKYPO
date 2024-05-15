@@ -53,12 +53,44 @@ class SwipeAction:
         return self.border, self.direction, self.fix
     
 
-class SwipeSupport:
+class SwipeActionSupport:
 
-    # Border: 2
-    # Direction: 2 x 2 = 4
-    # Fix: 2
-    # Total: 2 x 4 x 2 = 16
+    # Generally, fixing is not important as all swipe functions default to half of the full screen size.
+    BA_VA = SwipeAction(SwipeBy.BORDER_ABSOLUTE, SwipeBy.VERTICAL_ABSOLUTE)
+    BA_VR = SwipeAction(SwipeBy.BORDER_ABSOLUTE, SwipeBy.VERTICAL_RATIO)
 
-    # TODO Define 16 SwipeAction objects.
-    pass
+    BA_HA = SwipeAction(SwipeBy.BORDER_ABSOLUTE, SwipeBy.HORIZONTAL_ABSOLUTE)
+    BA_HR = SwipeAction(SwipeBy.BORDER_ABSOLUTE, SwipeBy.HORIZONTAL_RATIO)
+
+    BR_VA = SwipeAction(SwipeBy.BORDER_RATIO, SwipeBy.VERTICAL_ABSOLUTE)
+    BR_VR = SwipeAction(SwipeBy.BORDER_RATIO, SwipeBy.VERTICAL_RATIO)
+
+    BR_HA = SwipeAction(SwipeBy.BORDER_RATIO, SwipeBy.HORIZONTAL_ABSOLUTE)
+    BR_HR = SwipeAction(SwipeBy.BORDER_RATIO, SwipeBy.HORIZONTAL_RATIO)
+
+    # The situation where you need to set 'fix' is when you need to move within a specific range.
+    BA_VA_FA = SwipeAction(SwipeBy.BORDER_ABSOLUTE, SwipeBy.VERTICAL_ABSOLUTE, SwipeBy.FIX_ABSOLUTE)
+    BA_VA_FR = SwipeAction(SwipeBy.BORDER_ABSOLUTE, SwipeBy.VERTICAL_ABSOLUTE, SwipeBy.FIX_RATIO)
+
+    BA_VR_FA = SwipeAction(SwipeBy.BORDER_ABSOLUTE, SwipeBy.VERTICAL_RATIO, SwipeBy.FIX_ABSOLUTE)
+    BA_VR_FR = SwipeAction(SwipeBy.BORDER_ABSOLUTE, SwipeBy.VERTICAL_RATIO, SwipeBy.FIX_RATIO)
+
+    BA_HA_FA = SwipeAction(SwipeBy.BORDER_ABSOLUTE, SwipeBy.HORIZONTAL_ABSOLUTE, SwipeBy.FIX_ABSOLUTE)
+    BA_HA_FR = SwipeAction(SwipeBy.BORDER_ABSOLUTE, SwipeBy.HORIZONTAL_ABSOLUTE, SwipeBy.FIX_RATIO)
+
+    BA_HR_FA = SwipeAction(SwipeBy.BORDER_ABSOLUTE, SwipeBy.HORIZONTAL_RATIO, SwipeBy.FIX_ABSOLUTE)
+    BA_HR_FR = SwipeAction(SwipeBy.BORDER_ABSOLUTE, SwipeBy.HORIZONTAL_RATIO, SwipeBy.FIX_RATIO)
+
+    BR_VA_FA = SwipeAction(SwipeBy.BORDER_RATIO, SwipeBy.VERTICAL_ABSOLUTE, SwipeBy.FIX_ABSOLUTE)
+    BR_VA_FR = SwipeAction(SwipeBy.BORDER_RATIO, SwipeBy.VERTICAL_ABSOLUTE, SwipeBy.FIX_RATIO)
+
+    BR_VR_FA = SwipeAction(SwipeBy.BORDER_RATIO, SwipeBy.VERTICAL_RATIO, SwipeBy.FIX_ABSOLUTE)
+    BR_VR_FR = SwipeAction(SwipeBy.BORDER_RATIO, SwipeBy.VERTICAL_RATIO, SwipeBy.FIX_RATIO)
+
+    BR_HA_FA = SwipeAction(SwipeBy.BORDER_RATIO, SwipeBy.HORIZONTAL_ABSOLUTE, SwipeBy.FIX_ABSOLUTE)
+    BR_HA_FR = SwipeAction(SwipeBy.BORDER_RATIO, SwipeBy.HORIZONTAL_ABSOLUTE, SwipeBy.FIX_RATIO)
+
+    BR_HR_FA = SwipeAction(SwipeBy.BORDER_RATIO, SwipeBy.HORIZONTAL_RATIO, SwipeBy.FIX_ABSOLUTE)
+    BR_HR_FR = SwipeAction(SwipeBy.BORDER_RATIO, SwipeBy.HORIZONTAL_RATIO, SwipeBy.FIX_RATIO)
+
+    

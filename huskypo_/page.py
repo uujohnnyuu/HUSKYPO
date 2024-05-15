@@ -19,6 +19,7 @@ from . import logstack
 from . import ec_extension as ecex
 from .config import Timeout
 from .swipe import SwipeBy, SwipeAction
+from .swipe import SwipeActionSupport as SAS
 from .typing import AppiumWebDriver
 from .typing import WebDriver, WebElement, WebDriverTuple
 
@@ -556,7 +557,7 @@ class Page:
         if SwipeBy.VERTICAL in action.direction:
             sy = start
             ey = end 
-            sx = ex = int(width / 2)
+            sx = ex = left + int(width / 2)
             if SwipeBy.RATIO in action.direction:
                 sy = top + int(height * start / 100)
                 ey = top + int(height * end / 100)    
@@ -567,7 +568,7 @@ class Page:
         if SwipeBy.HORIZONTAL in action.direction:
             sx = start
             ex = end
-            sy = ey = int(height / 2)
+            sy = ey = top + int(height / 2)
             if SwipeBy.RATIO in action.direction:
                 sx = left + int(width * start / 100)
                 ex = left + int(width * end / 100)
@@ -627,7 +628,7 @@ class Page:
         """
         # action
         if action is None:
-            action = SwipeAction(SwipeBy.BORDER_RATIO, SwipeBy.VERTICAL_RATIO)
+            action = SAS.BR_VR_FR
         else:
             if action.border is None:
                 action.border = SwipeBy.BORDER_RATIO
