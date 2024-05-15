@@ -515,15 +515,15 @@ class Page:
         """
         return self.driver.swipe(start_x, start_y, end_x, end_y, duration)
     
-    def __get_border(
+    def __get_swipe_border(
             self,
             action: SwipeAction,
-            border: dict[str, int] | tuple[int, int, int, int]
+            swipe_border: dict[str, int] | tuple[int, int, int, int]
     ):
-        if isinstance(border, dict):
-            left, right, top, bottom = border.values()
-        elif isinstance(border, tuple):
-            left, right, top, bottom = border
+        if isinstance(swipe_border, dict):
+            left, right, top, bottom = swipe_border.values()
+        elif isinstance(swipe_border, tuple):
+            left, right, top, bottom = swipe_border
         else:
             raise TypeError('Parameter "border" should be dict or tuple.')
         
@@ -532,63 +532,26 @@ class Page:
             left, right = [int(window_left + window_width * x / 100) for x in (left, right)]
             top, bottom = [int(window_top + window_height * y / 100) for y in (top, bottom)]
 
-        border = (left, right, top, bottom)
-        logstack._logging(f'✅ border: {border}')
-        return border
+        swipe_border = (left, right, top, bottom)
+        logstack._logging(f'✅ Swipe border: {swipe_border}')
+        return swipe_border
     
-    # TODO reconstruct swipe function
-    def swipe_by(
-            self,
-            action: SwipeAction | None = None,
-            border: dict | tuple = {'left': 0, 'right': 100, 'top': 0, 'bottom': 100},
-            start: int = 75,
-            end: int = 25,
-            fix: int | None = None,
-            duration: int = 1000,
-            times: int = 1
-    ) -> AppiumWebDriver:
-        """
-        Args:
-        - action: {'direction': '', 'fix': ''}, using SA attributes:
-            - direction: 
-                - SA.VERTICAL_ABSOLUTE: "start" and "end" will be absolute y coordinate. 
-                - SA.VERTICAL_RATIO: "start" and "end" will be ratio of screen height.
-                - SA.HORIZONTAL_ABSOLUTE: "start" and "end" will be absolute x coordinate. 
-                - SA.HORIZONTAL_RATIO: "start" and "end" will be ratio of screen width.
-            - fix: It is to customize the fixed x position or screen ratio when swiping vertically, 
-                or the fixed y position or screen ratio when swiping horizontally. 
-                If not needed, it will be centered on the screen, 
-                and you don't need to set this action.
-                - No key: Fix by center of screen.
-                - '': Fix by center of screen.
-                - FIX_ABSOLUTE: "fix" will be absolute x or y coordinate.
-                - FIX_RATIO: "fix" will be ratio of screen width or height. 
-        - start: Absolute coordinate or ratio of full screen size to start swiping.
-        - end: Absolute coordinate or ratio of full screen size to stop swiping.
-        - fix:
-            - int: Fixed x or y coordinate or its proportion to the full screen
-                when scrolling vertically or horizontally.
-            - None: Fixed x or y coordinate default set to half of full screen.
-        - duration: defines the swipe speed as time taken to swipe from point a to point b, in ms.
-        - times: Swipe times. 
-
-        Usage::
-            # Default is vertical ratio swiping.
-            page.swipe_by()
-
-            # Using VERTICAL_RATIO
-            action = VERTICAL_RATIO
-            page.swipe_by()
-        """
-        # action
-        if action is None:
-            action = SwipeAction(SwipeBy.BORDER_RATIO, SwipeBy.VERTICAL_RATIO)
-
-        # border
-        left, right, top, bottom = self.__get_border(action, border)
+    def __get_swipe_range(
+            self, 
+            action: SwipeAction, 
+            left: int, 
+            right: int, 
+            top: int, 
+            bottom: int,
+            start: int,
+            end: int,
+            fix: int | None = None
+    ):
         width = right - left
         height = bottom - top
 
+        sx = sy = start
+        ex = ey = end
         # Setting swipe range.
         if SwipeBy.VERTICAL in action.direction:
             sy = start
@@ -612,11 +575,71 @@ class Page:
                 sy = ey = fix
                 if action.fix and (SwipeBy.RATIO in action.fix):
                     sy = ey = top + int(height * fix / 100)
+        swipe_range = (sx, sy, ex, ey)
+        logstack._logging(f'✅ Swipe range: {swipe_range}')
+        return swipe_range
+    
+    # TODO reconstruct swipe function
+    def swipe_by(
+            self,
+            action: SwipeAction | None = None,
+            border: dict | tuple = {'left': 0, 'right': 100, 'top': 0, 'bottom': 100},
+            start: int = 75,
+            end: int = 25,
+            fix: int | None = None,
+            duration: int = 1000,
+            times: int = 1
+    ) -> AppiumWebDriver:
+        """
+        Args:
+        - action: Instance of SwipeAction, you can set action as following example:
+            - None: Default border is full screen size, and swipe vertically with start and end ratio.
+
+                `action = SwipeAction(SwipeBy.BORDER_RATIO, SwipeBy.VERTICAL_RATIO)`
+            - Horizontal: Border is absolute pixel, swipe horizontally with start and end ratio, 
+                and the fix y coordinate is pixel.
+
+                `action = SwipeAction(SwipeBy.BORDER_ABSOLUTE, SwipeBy.HORIZONTAL_RATIO, SwipeBy.FIX_ABSOLUTE)`
+        - start: Absolute coordinate or ratio of full screen size to start swiping.
+        - end: Absolute coordinate or ratio of full screen size to stop swiping.
+        - fix:
+            - int: Fixed x or y coordinate or its proportion to the full screen
+                when scrolling vertically or horizontally.
+            - None: Fixed x or y coordinate default set to half of full screen.
+        - duration: defines the swipe speed as time taken to swipe from point a to point b, in ms.
+        - times: Swipe times. 
+
+        Usage::
+
+            # Default is swiping vertically with ratio of full screen size.
+            # Default fix pixel is half of full screen size. 
+            page.swipe_by()
+
+            # Border ratio set to {'left': 20, 'right': 80, 'top': 20, 'bottom': 80} of full screen size.
+            # Direction ratio start = 90, end = 10.
+            # Fix absolute pixel, fix = 150
+            action = SwipeAction(SwipeBy.BORDER_RATIO, SwipeBy.DIRECTION_RATIO, SwipeBy.FIX_ABSOLUTE)
+            border = (20, 80, 20, 80)  # Allowing tuple.
+            page.swipe_by(action, border, 90, 10, 150)
+
+            # Swiping 3 times.
+            page.swipe_by(times=3)
+        """
+        # action
+        if action is None:
+            action = SwipeAction(SwipeBy.BORDER_RATIO, SwipeBy.VERTICAL_RATIO)
+        else:
+            if action.border is None:
+                action.border = SwipeBy.BORDER_RATIO
+            if action.direction is None:
+                action.direction = SwipeBy.VERTICAL_RATIO
+
+        # set border and range
+        swipe_border = self.__get_swipe_border(action, border)
+        swipe_range = self.__get_swipe_range(action, *swipe_border, start, end, fix)
         
-        # start swiping.
-        logstack._logging(f'✅ Swipe range: {(sx, sy, ex, ey)}')
         for _ in range(times):
-            driver = self.driver.swipe(sx, sy, ex, ey, duration)
+            driver = self.driver.swipe(*swipe_range, duration)
 
         return driver
 
