@@ -15,7 +15,6 @@ from . import logstack
 from . import ec_extension as ecex
 from .config import Timeout
 from .by import ByAttribute
-from .by import SwipeAction as SA
 from .swipe import SwipeBy, SwipeAction
 from .swipe import SwipeActionSupport as SAS
 from .page import Page
