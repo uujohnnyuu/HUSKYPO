@@ -646,18 +646,18 @@ class Page:
             action.border = SwipeBy.BORDER_RATIO
         if action.direction is None:
             action.direction = SwipeBy.VERTICAL_RATIO
-        logstack._logging(f'✅ Swipe action: {action.action}')
+        logstack._logging(f'✅ Action: {action.action}')
         return action
 
     def __get_border(
             self,
             action: SwipeAction,
-            swipe_border: dict[str, int] | tuple[int, int, int, int]
+            border: dict[str, int] | tuple[int, int, int, int]
     ):
-        if isinstance(swipe_border, dict):
-            left, right, top, bottom = swipe_border.values()
-        elif isinstance(swipe_border, tuple):
-            left, right, top, bottom = swipe_border
+        if isinstance(border, dict):
+            left, right, top, bottom = border.values()
+        elif isinstance(border, tuple):
+            left, right, top, bottom = border
         else:
             raise TypeError('Parameter "border" should be dict or tuple.')
         
@@ -666,9 +666,9 @@ class Page:
             left, right = [int(window_left + window_width * x / 100) for x in (left, right)]
             top, bottom = [int(window_top + window_height * y / 100) for y in (top, bottom)]
 
-        swipe_border = (left, right, top, bottom)
-        logstack._logging(f'✅ Swipe border: {swipe_border}')
-        return swipe_border
+        border = (left, right, top, bottom)
+        logstack._logging(f'✅ Border: {border}')
+        return border
     
     def __get_range(
             self, 
@@ -705,9 +705,9 @@ class Page:
                 sy = ey = fix
                 if action.fix and (SwipeBy.RATIO in action.fix):
                     sy = ey = top + int(height * fix / 100)
-        swipe_range = (sx, sy, ex, ey)
-        logstack._logging(f'✅ Swipe range: {swipe_range}')
-        return swipe_range
+        range = (sx, sy, ex, ey)
+        logstack._logging(f'✅ Range: {range}')
+        return range
 
     def js_mobile_scroll_direction(self, direction: str = 'down'):
         """

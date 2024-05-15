@@ -818,9 +818,9 @@ class Element:
             left, right = [int(window_left + window_width * x / 100) for x in (left, right)]
             top, bottom = [int(window_top + window_height * y / 100) for y in (top, bottom)]
 
-        swipe_border = (left, right, top, bottom)
-        logstack._logging(f'✅ Swipe border: {swipe_border}')
-        return swipe_border
+        border = (left, right, top, bottom)
+        logstack._logging(f'✅ Swipe border: {border}')
+        return border
 
     def __get_range(
             self,
@@ -873,9 +873,9 @@ class Element:
             else:
                 raise TypeError('Parameter "fix" should be bool or int.')
 
-        swipe_range = (sx, sy, ex, ey)
-        logstack._logging(f'✅ Swipe range: {swipe_range}')
-        return swipe_range
+        range = (sx, sy, ex, ey)
+        logstack._logging(f'✅ Swipe range: {range}')
+        return range
 
     def __start_swiping(
             self,
