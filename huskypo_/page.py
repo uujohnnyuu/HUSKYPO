@@ -1,6 +1,12 @@
+# Author: Johnny Chou
+# Email: johnny071531@gmail.com
+# PyPI: https://pypi.org/project/huskypo/
+# GitHub: https://github.com/uujohnnyuu/huskyPO
+
 # TODO selenium 4.0 and appium 2.0 methods.
 # TODO Need to confirm the functional difference between 'driver' and 'page'.
 # TODO Tracking the range using wait function.
+
 from __future__ import annotations
 
 from typing import Any, Literal
@@ -19,7 +25,7 @@ from . import logstack
 from . import ec_extension as ecex
 from .config import Timeout
 from .swipe import SwipeBy, SwipeAction
-from .swipe import SwipeActionSupport as SAS
+from .swipe import SwipeActionType as SAT
 from .typing import AppiumWebDriver
 from .typing import WebDriver, WebElement, WebDriverTuple
 
@@ -518,7 +524,7 @@ class Page:
     
     def swipe_by(
             self,
-            action: SwipeAction = SAS.BR_VR,
+            action: SwipeAction = SAT.BP_VP,
             border: dict | tuple = {'left': 0, 'right': 100, 'top': 0, 'bottom': 100},
             start: int = 75,
             end: int = 25,
@@ -588,7 +594,7 @@ class Page:
     
     def flick_by(
             self,
-            action: SwipeAction = SAS.BR_VR,
+            action: SwipeAction = SAT.BP_VP,
             border: dict | tuple = {'left': 0, 'right': 100, 'top': 0, 'bottom': 100},
             start: int = 75,
             end: int = 25,
@@ -643,9 +649,9 @@ class Page:
         if not isinstance(action, SwipeAction):
             raise TypeError(f'"action" type should be "SwipeAction", not "{type(action).__name__}"')
         if action.border is None:
-            action.border = SwipeBy.BORDER_RATIO
+            action.border = SwipeBy.BP
         if action.direction is None:
-            action.direction = SwipeBy.VERTICAL_RATIO
+            action.direction = SwipeBy.VP
         logstack._logging(f'✅ Action: {action.action}')
         return action
 
@@ -661,7 +667,7 @@ class Page:
         else:
             raise TypeError('Parameter "border" should be dict or tuple.')
         
-        if action.border and (SwipeBy.RATIO in action.border):
+        if action.border and (SwipeBy.PERCENTAGE in action.border):
             window_left, window_top, window_width, window_height = self.get_window_rect().values()
             left, right = [int(window_left + window_width * x / 100) for x in (left, right)]
             top, bottom = [int(window_top + window_height * y / 100) for y in (top, bottom)]
@@ -689,21 +695,21 @@ class Page:
         # Setting swipe range.
         if SwipeBy.VERTICAL in action.direction:
             sx = ex = left + int(width / 2)
-            if SwipeBy.RATIO in action.direction:
+            if SwipeBy.PERCENTAGE in action.direction:
                 sy = top + int(height * start / 100)
                 ey = top + int(height * end / 100)    
             if fix:
                 sx = ex = fix
-                if action.fix and (SwipeBy.RATIO in action.fix):
+                if action.fix and (SwipeBy.PERCENTAGE in action.fix):
                     sx = ex = left + int(width * fix / 100)
         if SwipeBy.HORIZONTAL in action.direction:
             sy = ey = top + int(height / 2)
-            if SwipeBy.RATIO in action.direction:
+            if SwipeBy.PERCENTAGE in action.direction:
                 sx = left + int(width * start / 100)
                 ex = left + int(width * end / 100)
             if fix:
                 sy = ey = fix
-                if action.fix and (SwipeBy.RATIO in action.fix):
+                if action.fix and (SwipeBy.PERCENTAGE in action.fix):
                     sy = ey = top + int(height * fix / 100)
         range = (sx, sy, ex, ey)
         logstack._logging(f'✅ Range: {range}')

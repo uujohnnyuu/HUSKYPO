@@ -1,3 +1,8 @@
+# Author: Johnny Chou
+# Email: johnny071531@gmail.com
+# PyPI: https://pypi.org/project/huskypo/
+# GitHub: https://github.com/uujohnnyuu/huskyPO
+
 # TODO selenium 4.0 and appium 2.0 methods.
 from __future__ import annotations
 

@@ -1,3 +1,8 @@
+# Author: Johnny Chou
+# Email: johnny071531@gmail.com
+# PyPI: https://pypi.org/project/huskypo/
+# GitHub: https://github.com/uujohnnyuu/huskyPO
+
 # TODO selenium 4.0 and appium 2.0 methods.
 from __future__ import annotations
 
@@ -16,7 +21,7 @@ from . import ec_extension as ecex
 from .config import Timeout
 from .by import ByAttribute
 from .swipe import SwipeBy, SwipeAction
-from .swipe import SwipeActionSupport as SAS
+from .swipe import SwipeActionType as SAT
 from .page import Page
 from .typing import WebDriver, WebElement, SeleniumWebElement, AppiumWebElement, AppiumWebDriver
 
@@ -610,7 +615,7 @@ class Element:
     
     def swipe_into_view(
             self,
-            action: SwipeAction = SAS.BR_VR,
+            action: SwipeAction = SAT.BP_VP,
             border: dict | tuple = {'left': 0, 'right': 100, 'top': 0, 'bottom': 100},
             start: int = 75,
             end: int = 25,
@@ -701,15 +706,15 @@ class Element:
     
     def flick_into_view(
             self,
-            action: SwipeAction = SAS.BR_VR,
+            action: SwipeAction = SAT.BP_VP,
             border: dict | tuple = {'left': 0, 'right': 100, 'top': 0, 'bottom': 100},
             start: int = 75,
             end: int = 25,
             fix: bool | int = False,
             timeout: int | float = 3,
             max_swipe: int = 10,
-            max_adjust: int = 2,
-            min_distance: int = 100
+            # max_adjust: int = 2,
+            # min_distance: int = 100
     ) -> Element:
         """
         Appium API.
@@ -785,7 +790,7 @@ class Element:
 
         # Start adjusting when element is viewable.
         # TODO Need to check if it is necessary for flicking is too fast.
-        self.__start_adjusting_flick_range(*flick_border, *flick_range, max_adjust, min_distance)
+        # self.__start_adjusting_flick_range(*flick_border, *flick_range, max_adjust, min_distance)
 
         # Return self to re-trigger the element finding process, thereby avoiding staleness issues.
         return self
@@ -794,9 +799,9 @@ class Element:
         if not isinstance(action, SwipeAction):
             raise TypeError(f'"action" type should be "SwipeAction", not "{type(action).__name__}"')
         if action.border is None:
-            action.border = SwipeBy.BORDER_RATIO
+            action.border = SwipeBy.BP
         if action.direction is None:
-            action.direction = SwipeBy.VERTICAL_RATIO
+            action.direction = SwipeBy.VP
         logstack._logging(f'✅ Swipe action: {action.action}')
         return action
     
@@ -812,7 +817,7 @@ class Element:
         else:
             raise TypeError('Parameter "border" should be dict or tuple.')
 
-        if action.border and (SwipeBy.RATIO in action.border):
+        if action.border and (SwipeBy.PERCENTAGE in action.border):
             page = Page(self.driver)
             window_left, window_top, window_width, window_height = page.get_window_rect().values()
             left, right = [int(window_left + window_width * x / 100) for x in (left, right)]
@@ -839,7 +844,7 @@ class Element:
         sx = sy = start
         ex = ey = end
         if SwipeBy.VERTICAL in action.direction:
-            if SwipeBy.RATIO in action.direction:
+            if SwipeBy.PERCENTAGE in action.direction:
                 sy = top + int(height * start / 100)
                 ey = top + int(height * end / 100)
                 # border center x
@@ -850,13 +855,13 @@ class Element:
             elif isinstance(fix, int):
                 # absolute x
                 sx = ex = fix
-                if action.fix and (SwipeBy.RATIO in action.fix):
+                if action.fix and (SwipeBy.PERCENTAGE in action.fix):
                     # ratio x
                     sx = ex = left + int(width * fix / 100)
             else:
                 raise TypeError('Parameter "fix" should be bool or int.')
         if SwipeBy.HORIZONTAL in action.direction:
-            if SwipeBy.RATIO in action.direction:
+            if SwipeBy.PERCENTAGE in action.direction:
                 sx = left + int(width * start / 100)
                 ex = left + int(width * end / 100)
                 # border center y
@@ -867,7 +872,7 @@ class Element:
             elif isinstance(fix, int):
                 # absolute y
                 sy = ey = fix
-                if action.fix and (SwipeBy.RATIO in action.fix):
+                if action.fix and (SwipeBy.PERCENTAGE in action.fix):
                     # ratio y
                     sy = ey = top + int(height * fix / 100)
             else:
@@ -961,6 +966,7 @@ class Element:
                 return True
             self.driver.swipe(sx, sy, ex, ey, duration)
 
+    # TODO Need to check if it is necessary for flicking is too fast.
     def __start_adjusting_flick_range(
             self,
             left: int,
