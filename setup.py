@@ -17,8 +17,6 @@ setup(
     license='Apache 2.0',
     keywords=['huskypo', 'page object', 'selenium', 'appium', 'automation'],
     packages=find_packages(),
-    include_package_data=True,
-    zip_safe=False,
     install_requires=[
         'Appium-Python-Client >= 3.1.0',
     ],
