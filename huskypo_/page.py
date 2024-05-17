@@ -25,7 +25,7 @@ from . import logstack
 from . import ec_extension as ecex
 from .config import Timeout
 from .swipe import SwipeBy, SwipeAction
-from .swipe import SwipeActionType as SAT
+from .swipe import SwipeActionMode as SAT
 from .typing import AppiumWebDriver
 from .typing import WebDriver, WebElement, WebDriverTuple
 
@@ -700,7 +700,7 @@ class Page:
                 ey = top + int(height * end / 100)    
             if fix:
                 sx = ex = fix
-                if action.fix and (SwipeBy.PERCENTAGE in action.fix):
+                if action.fixed and (SwipeBy.PERCENTAGE in action.fixed):
                     sx = ex = left + int(width * fix / 100)
         if SwipeBy.HORIZONTAL in action.direction:
             sy = ey = top + int(height / 2)
@@ -709,7 +709,7 @@ class Page:
                 ex = left + int(width * end / 100)
             if fix:
                 sy = ey = fix
-                if action.fix and (SwipeBy.PERCENTAGE in action.fix):
+                if action.fixed and (SwipeBy.PERCENTAGE in action.fixed):
                     sy = ey = top + int(height * fix / 100)
         range = (sx, sy, ex, ey)
         logstack._logging(f'✅ Range: {range}')

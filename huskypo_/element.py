@@ -21,7 +21,7 @@ from . import ec_extension as ecex
 from .config import Timeout
 from .by import ByAttribute
 from .swipe import SwipeBy, SwipeAction
-from .swipe import SwipeActionType as SAT
+from .swipe import SwipeActionMode as SAM
 from .page import Page
 from .typing import WebDriver, WebElement, SeleniumWebElement, AppiumWebElement, AppiumWebDriver
 
@@ -615,11 +615,11 @@ class Element:
     
     def swipe_into_view(
             self,
-            action: SwipeAction = SAT.BP_VP,
+            action: SwipeAction = SAM.BP_VP,
             border: dict | tuple = {'left': 0, 'right': 100, 'top': 0, 'bottom': 100},
             start: int = 75,
             end: int = 25,
-            fix: bool | int = False,
+            fixed: bool | int = False,
             timeout: int | float = 3,
             max_swipe: int = 10,
             max_adjust: int = 2,
@@ -632,59 +632,91 @@ class Element:
         until the element becomes present(Android) or visible(iOS) within the specified border.
 
         Args:
-        - direction: Use `SwipeAction`, from huskypo import SwipeAction as SA.
-            - vertical: `SA.V` or `SA.VA`, where `VA` denotes `vertical and the border uses absolute pixel values`.
-            - horizontal: `SA.H` or `SA.HA`, where `HA` denotes `horizontal and the border uses absolute pixel values`.
-        - border: The actual border pixel value or a percentage from 0 to 100.
-        - start: The start ratio (0 to 100) of the border parameter.
-        - end: The end ratio (0 to 100) of the border parameter.
-        - fix:
-            - True: Uses the `target element's center x or y` as the fixed coordinate when swiping vertically or horizontally.
-            - False: Uses the `border center x or y` as the fixed coordinate when swiping vertically or horizontally.
-            - int: Assigns an `absolute x or y` as the fixed coordinate when swiping vertically or horizontally.
-        - timeout: The maximum time in seconds to wait for the element to become viewable (either present or visible).
+        - action: An object of SwipeAction. 
+            You can get the defined action object you want from SwipeActionMode (SAM), 
+            which contains all possible actions for relative swipe functions in this package.
+            The purpose is to specify whether the parameter values are coordinates or percentages. 
+            For more details about SAM, you can refer to the class description. Below is an example:
+            - SAM: `from huskypo import SwipeActionMode as SAM`
+            - Default: SAM.BP_VP, which means:
+                - BP (BORDER_PERCENTAGE): border values will be set as percentages of the current page size.
+                - VP (VERTICAL_PERCENTAGE): start and end values will be set as percentages of the border height.
+        - border: The actual border coordinates or percentages from 0 to 100.
+            - There are two types of borders:
+                - dict: {'left': 20, 'right': 300, 'top': 0, 'bottom': 900}
+                - tuple: (20, 300, 0, 900) following the order (left, right, top, bottom)
+            - It is recommended to get the border by:
+                - Page: border = my_page.get_window_border(), which is the default setting for all swipe functions.
+                - Element: border = my_page.scrollable_element.border
+        - start: The start percentage of the border height (for vertical swiping) or width (for horizontal swiping).
+        - end: The end percentage of the border height (for vertical swiping) or width (for horizontal swiping).
+        - fixed:
+            - True: Uses the target element's center x or y as the fixed coordinate when swiping vertically or horizontally.
+            - False: Uses the border center x or y as the fixed coordinate when swiping vertically or horizontally.
+            - int: Assigns an absolute x or y as the fixed coordinate or percentage when swiping vertically or horizontally. 
+                To specify whether this int value is a coordinate or percentage of the border, you can use SAM as follows:
+                - SAM.BP_VP_FL: Sets the fixed value as 
+                    an x or y coordinate when swiping vertically or horizontally.
+                - SAM.BP_VP_FP: Sets the fixed value as 
+                    a percentage of the border width and height when swiping vertically or horizontally.
+        - timeout: The maximum time in seconds to wait for the element to become viewable (visible).
         - max_swipe: The maximum number of swipes allowed.
-        - max_adjust: The maximum number of adjustments to align all borders of the element with the view border.
+        - max_adjust: The maximum number of adjustments to align all borders of the element within the view border.
         - min_distance: The minimum swipe distance to avoid being mistaken for a click.
         - duration: The duration of the swipe in milliseconds, from start to end.
 
+        Note of Args `min_distance` and `duration`:
+        - `min_distance` and `duration` are interdependent.
+        - The default settings are based on sliding at a rate of 100 pixels per second,
+            which has been found to be stable.
+        - It is advisable not to alter these unless specific conditions necessitate changes.
+
         Usage::
 
-            from huskypo.by import Key
+            from huskypo import SwipeActionMode as SAM
 
             # Default scroll down to find the element.
-            page.element.swipe_into_view()
+            # Note that the default border is current page size, 
+            # that is border = (0, 100, 0, 100) percnetages of page size.
+            my_page.target_element.swipe_into_view()
 
-            # Scroll up to find the element with an absolute border.
-            border = (50, 450, 100, 700)  # You can determine the actual border by the scrollable element.
-            page.element.swipe_into_view(Key.VA, border, 20, 80)
+            # Swipe UP to find the element as: 
+            # `border`: (50, 450, 100, 700) is coordinate.
+            # `start`: from 20% of border height.
+            # `end`: to 80% of border height.
+            # 'fixed': False (default 50% of border width).
+            border = (50, 450, 100, 700)
+            my_page.target_element.swipe_into_view(SAM.BC_VP, border, 20, 80)
 
-            # Scroll right to find the element with a ratio-based border.
-            page.element.swipe_into_view(Key.H)
+            # Swipe RIGHT to find the element as:
+            # `border`: get by a scrollable element and it is coordinate.
+            # `start`: from 70% of border width.
+            # `end`: to 30% of border width.
+            # 'fixed': False, that is default 50% of border height.
+            # Note that you don't need to set any fixed action.
+            border = my_page.scrollable_element.border
+            my_page.target_element.swipe_into_view(SAM.BC_HP, border, 70, 30)
 
-            # Scroll left to find the element with a ratio-based border.
-            border = (10, 90, 10, 90)  # (left, right, top, bottom) will be the ratio of the window size.
-            page.element.swipe_into_view(Key.H, border, 25, 75)
+            # Swipe DOWN to find the element as: 
+            # `border`: get by a scrollable element and it is coordinate.
+            # `start`: from 75% of border height.
+            # `end`: to 10% of border height.
+            # 'fixed': True, that is using the target element center x as fixed point.
+            # Note that you don't need to set any fixed action,
+            # and you need to check the target_element is present when out of page border,
+            # this scenario can only be used in iOS.
+            border = my_page.scrollable_element.border
+            my_page.target_element.swipe_into_view(SAM.BC_VP, border, 75, 10, True)
 
-            # Horizontal scrolling with a fixed "y" coordinate obtained from the target element.
-            # This is applicable to iOS. (Element outside the window is present but not visible.)
-            page.element.swipe_into_view(Key.HA, border, 80, 20, True)
-
-            # Horizontal scrolling with a fixed "y" coordinate assigned by an absolute pixel value.
-            # This is suitable for Android. (Element outside the window is not present.)
-            ty = page.another_present_element.center['y']  # Or you can directly assign a value.
-            page.element.swipe_into_view(Key.HA, border, 80, 20, ty)
-
-            # Vertical scrolling with a fixed "x" coordinate assigned by an absolute pixel value.
-            # This is suitable for Android. (Element outside the window is not present.)
-            tx = page.another_present_element.center['x']  # Or you can directly assign a value.
-            page.element.swipe_into_view(Key.VA, border, 80, 20, tx)
-
-        Note:
-        `min_distance` and `duration` are interdependent;
-        the default settings are based on sliding at a rate of 100 pixels per second,
-        which has been found to be stable.
-        It is advisable not to alter these unless specific conditions necessitate changes.
+            # Swipe LEFT to find the element as:
+            # `border`: get by a scrollable element and it is coordinate.
+            # `start`: from 25% of border width.
+            # `end`: to 90% of border width.
+            # 'fixed': 95 and it is coordinate, it will set as fixed y=95.
+            # Note that you should call fixed action in SAM,
+            # because it need to judge whether the fixed value is coordinate or percentage.
+            border = my_page.scrollable_element.border
+            my_page.target_element.swipe_into_view(SAM.BC_HP_FC, border, 25, 90, 95)
         """
         # Action
         swipe_action = self.__get_action(action)
@@ -693,7 +725,7 @@ class Element:
         swipe_border = self.__get_border(swipe_action, border)
 
         # Determine v or h, and actual swiping range.
-        swipe_range = self.__get_range(swipe_action, *swipe_border, start, end, fix)
+        swipe_range = self.__get_range(swipe_action, *swipe_border, start, end, fixed)
 
         # Start swiping and check whether it is viewable in max count of swiping.
         self.__start_swiping(*swipe_range, duration, timeout, max_swipe)
@@ -706,7 +738,7 @@ class Element:
     
     def flick_into_view(
             self,
-            action: SwipeAction = SAT.BP_VP,
+            action: SwipeAction = SAM.BP_VP,
             border: dict | tuple = {'left': 0, 'right': 100, 'top': 0, 'bottom': 100},
             start: int = 75,
             end: int = 25,
@@ -718,63 +750,86 @@ class Element:
     ) -> Element:
         """
         Appium API.
-        For native iOS and Android apps, this function swipes the screen vertically or horizontally
+        For native iOS and Android apps, this function flicks the screen vertically or horizontally
         until the element becomes present(Android) or visible(iOS) within the specified border.
 
         Args:
-        - direction: Use `SwipeAction`, from huskypo import SwipeAction as SA.
-            - vertical: `SA.V` or `SA.VA`, where `VA` denotes `vertical and the border uses absolute pixel values`.
-            - horizontal: `SA.H` or `SA.HA`, where `HA` denotes `horizontal and the border uses absolute pixel values`.
-        - border: The actual border pixel value or a percentage from 0 to 100.
-        - start: The start ratio (0 to 100) of the border parameter.
-        - end: The end ratio (0 to 100) of the border parameter.
-        - fix:
-            - True: Uses the `target element's center x or y` as the fixed coordinate when swiping vertically or horizontally.
-            - False: Uses the `border center x or y` as the fixed coordinate when swiping vertically or horizontally.
-            - int: Assigns an `absolute x or y` as the fixed coordinate when swiping vertically or horizontally.
-        - timeout: The maximum time in seconds to wait for the element to become viewable (either present or visible).
+        - action: An object of SwipeAction. 
+            You can get the defined action object you want from SwipeActionMode (SAM), 
+            which contains all possible actions for relative swipe functions in this package.
+            The purpose is to specify whether the parameter values are coordinates or percentages. 
+            For more details about SAM, you can refer to the class description. Below is an example:
+            - SAM: `from huskypo import SwipeActionMode as SAM`
+            - Default: SAM.BP_VP, which means:
+                - BP (BORDER_PERCENTAGE): border values will be set as percentages of the current page size.
+                - VP (VERTICAL_PERCENTAGE): start and end values will be set as percentages of the border height.
+        - border: The actual border coordinates or percentages from 0 to 100.
+            - There are two types of borders:
+                - dict: {'left': 20, 'right': 300, 'top': 0, 'bottom': 900}
+                - tuple: (20, 300, 0, 900) following the order (left, right, top, bottom)
+            - It is recommended to get the border by:
+                - Page: border = my_page.get_window_border(), which is the default setting for all swipe functions.
+                - Element: border = my_page.scrollable_element.border
+        - start: The start percentage of the border height (for vertical swiping) or width (for horizontal swiping).
+        - end: The end percentage of the border height (for vertical swiping) or width (for horizontal swiping).
+        - fixed:
+            - True: Uses the target element's center x or y as the fixed coordinate when swiping vertically or horizontally.
+            - False: Uses the border center x or y as the fixed coordinate when swiping vertically or horizontally.
+            - int: Assigns an absolute x or y as the fixed coordinate or percentage when swiping vertically or horizontally. 
+                To specify whether this int value is a coordinate or percentage of the border, you can use SAM as follows:
+                - SAM.BP_VP_FL: Sets the fixed value as 
+                    an x or y coordinate when swiping vertically or horizontally.
+                - SAM.BP_VP_FP: Sets the fixed value as 
+                    a percentage of the border width and height when swiping vertically or horizontally.
+        - timeout: The maximum time in seconds to wait for the element to become viewable (visible).
         - max_swipe: The maximum number of swipes allowed.
-        - max_adjust: The maximum number of adjustments to align all borders of the element with the view border.
-        - min_distance: The minimum swipe distance to avoid being mistaken for a click.
-        - duration: The duration of the swipe in milliseconds, from start to end.
-
+        
         Usage::
 
-            from huskypo.by import Key
+            from huskypo import SwipeActionMode as SAM
 
             # Default scroll down to find the element.
-            page.element.swipe_into_view()
+            # Note that the default border is current page size, 
+            # that is border = (0, 100, 0, 100) percnetages of page size.
+            my_page.target_element.swipe_into_view()
 
-            # Scroll up to find the element with an absolute border.
-            border = (50, 450, 100, 700)  # You can determine the actual border by the scrollable element.
-            page.element.swipe_into_view(Key.VA, border, 20, 80)
+            # Swipe UP to find the element as: 
+            # `border`: (50, 450, 100, 700) is coordinate.
+            # `start`: from 20% of border height.
+            # `end`: to 80% of border height.
+            # 'fixed': False (default 50% of border width).
+            border = (50, 450, 100, 700)
+            my_page.target_element.swipe_into_view(SAM.BC_VP, border, 20, 80)
 
-            # Scroll right to find the element with a ratio-based border.
-            page.element.swipe_into_view(Key.H)
+            # Swipe RIGHT to find the element as:
+            # `border`: get by a scrollable element and it is coordinate.
+            # `start`: from 70% of border width.
+            # `end`: to 30% of border width.
+            # 'fixed': False, that is default 50% of border height.
+            # Note that you don't need to set any fixed action.
+            border = my_page.scrollable_element.border
+            my_page.target_element.swipe_into_view(SAM.BC_HP, border, 70, 30)
 
-            # Scroll left to find the element with a ratio-based border.
-            border = (10, 90, 10, 90)  # (left, right, top, bottom) will be the ratio of the window size.
-            page.element.swipe_into_view(Key.H, border, 25, 75)
+            # Swipe DOWN to find the element as: 
+            # `border`: get by a scrollable element and it is coordinate.
+            # `start`: from 75% of border height.
+            # `end`: to 10% of border height.
+            # 'fixed': True, that is using the target element center x as fixed point.
+            # Note that you don't need to set any fixed action,
+            # and you need to check the target_element is present when out of page border,
+            # this scenario can only be used in iOS.
+            border = my_page.scrollable_element.border
+            my_page.target_element.swipe_into_view(SAM.BC_VP, border, 75, 10, True)
 
-            # Horizontal scrolling with a fixed "y" coordinate obtained from the target element.
-            # This is applicable to iOS. (Element outside the window is present but not visible.)
-            page.element.swipe_into_view(Key.HA, border, 80, 20, True)
-
-            # Horizontal scrolling with a fixed "y" coordinate assigned by an absolute pixel value.
-            # This is suitable for Android. (Element outside the window is not present.)
-            ty = page.another_present_element.center['y']  # Or you can directly assign a value.
-            page.element.swipe_into_view(Key.HA, border, 80, 20, ty)
-
-            # Vertical scrolling with a fixed "x" coordinate assigned by an absolute pixel value.
-            # This is suitable for Android. (Element outside the window is not present.)
-            tx = page.another_present_element.center['x']  # Or you can directly assign a value.
-            page.element.swipe_into_view(Key.VA, border, 80, 20, tx)
-
-        Note:
-        `min_distance` and `duration` are interdependent;
-        the default settings are based on sliding at a rate of 100 pixels per second,
-        which has been found to be stable.
-        It is advisable not to alter these unless specific conditions necessitate changes.
+            # Swipe LEFT to find the element as:
+            # `border`: get by a scrollable element and it is coordinate.
+            # `start`: from 25% of border width.
+            # `end`: to 90% of border width.
+            # 'fixed': 95 and it is coordinate, it will set as fixed y=95.
+            # Note that you should call fixed action in SAM,
+            # because it need to judge whether the fixed value is coordinate or percentage.
+            border = my_page.scrollable_element.border
+            my_page.target_element.swipe_into_view(SAM.BC_HP_FC, border, 25, 90, 95)
         """
         # Action
         flick_action = self.__get_action(action)
@@ -855,7 +910,7 @@ class Element:
             elif isinstance(fix, int):
                 # absolute x
                 sx = ex = fix
-                if action.fix and (SwipeBy.PERCENTAGE in action.fix):
+                if action.fixed and (SwipeBy.PERCENTAGE in action.fixed):
                     # ratio x
                     sx = ex = left + int(width * fix / 100)
             else:
@@ -872,7 +927,7 @@ class Element:
             elif isinstance(fix, int):
                 # absolute y
                 sy = ey = fix
-                if action.fix and (SwipeBy.PERCENTAGE in action.fix):
+                if action.fixed and (SwipeBy.PERCENTAGE in action.fixed):
                     # ratio y
                     sy = ey = top + int(height * fix / 100)
             else:
