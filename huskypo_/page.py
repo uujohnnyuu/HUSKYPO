@@ -9,7 +9,7 @@
 
 from __future__ import annotations
 
-from typing import Any, Literal
+from typing import Any, Literal, TypeAlias
 
 from selenium.common.exceptions import TimeoutException
 from selenium.webdriver.support import expected_conditions as ec
@@ -28,6 +28,12 @@ from .swipe import SwipeBy, SwipeAction
 from .swipe import SwipeActionMode as SAT
 from .typing import AppiumWebDriver
 from .typing import WebDriver, WebElement, WebDriverTuple
+
+IntCoordinate: TypeAlias = dict[str, int] | tuple[int, int, int, int]
+FloatCoordinate: TypeAlias = dict[str, float] | tuple[float, float, float, float]
+TupleCoordinate: TypeAlias = tuple[int, int, int, int] | tuple[float, float, float, float]
+Coordinate: TypeAlias = IntCoordinate | FloatCoordinate
+
 
 
 class Page:
@@ -521,6 +527,83 @@ class Page:
 
         """
         return self.driver.swipe(start_x, start_y, end_x, end_y, duration)
+    
+    # TODO 全部更新 swipe 方式
+    # def swipe_(
+    #         self,
+    #         offset: Coordinate = {'start_x': 0.5, 'start_y': 0.75, 'end_x': 0.5, 'end_y': 0.25},
+    #         border: Coordinate = {'x': 0.0, 'y': 0.0, 'width': 1.0, 'height': 1.0},
+    #         duration: int = 1000,
+    #         times: int = 1
+    # ):
+    #     # TODO 尚須確認 border 的定義，目前 rect 較無數值驗證上的問題
+
+    #     offset = self.__is_coordinate(offset, 'offset')
+    #     border = self.__is_coordinate(border, 'border')
+
+    # def __is_coordinate(
+    #         self, 
+    #         coordinate: Coordinate, 
+    #         name: str
+    # ) -> TupleCoordinate:
+
+    #     # is dict or tuple
+    #     if isinstance(coordinate, dict):
+    #         coordinate = tuple(coordinate.values())
+    #     else:
+    #         raise TypeError(f'"{name}" should be dict or tuple.')
+        
+    #     # is coordinate
+    #     if not all(isinstance(c, int) for c in coordinate) or all(isinstance(c, float) for c in coordinate):
+    #         raise TypeError(f'All "{name}" coordinate values should be "int" or "float".')
+        
+    #     return coordinate
+    
+    # # TODO
+    # def __get_border_(self, border: TupleCoordinate) -> tuple[int, int, int, int]:
+
+    #     # TODO
+
+    #     border = self.__is_coordinate(border, 'border')
+    #     border_x, border_y, border_width, border_height = border
+
+    #     if isinstance(border_width, float):
+    #         if not all((0.0 <= value <= 1.0) for value in border):
+    #             raise ValueError(f'All "border" float values should be in the range "0.0" to "1.0".')
+    #         else:
+    #             if border_x + border_width > 1:
+    #                 raise ValueError(f'border_x + border_width = {border_x + border_width} is over 1.0 (100%).')
+    #             if border_y + border_height > 1:
+    #                 raise ValueError(f'border_y + border_height = {border_x + border_width} is over 1.0 (100%).')
+
+
+    #     border_left, border_right, border_top, border_bottom = self.__is_coordinate(border, 'border')
+
+    #     if isinstance(border_left, float):
+    #         window_left, window_top, window_width, window_height = self.get_window_rect().values()
+    #         border_left, border_right = [int(window_left + window_width * x) for x in (border_left, border_right)]
+    #         border_top, border_bottom = [int(window_top + window_height * y) for y in (border_top, border_bottom)]
+    #         border = (border_left, border_right, border_top, border_bottom)
+
+    #     logstack._logging(f'🟢 border: {border}')
+    #     return border
+    
+    # def __get_offset(self, 
+    #         offset: TupleCoordinate, 
+    #         border: tuple[int, int, int, int]
+    #     ) -> tuple[int, int, int, int]:
+
+    #     # TODO
+
+    #     start_x, start_y, end_x, end_y = self.__is_coordinate(offset, 'offset')
+    #     border_left, border_right, border_top, border_bottom = border
+    #     border_width = border_right - border_left
+    #     border_height = border_bottom - border_top
+
+    #     # if isinstance(start_x, float):
+    #     #     start_x, end_x = [int(border_left + border_width * x) for x in (start_x, end_x)]
+    #     #     border_top, border_bottom = [int(window_top + window_height * y) for y in (border_top, border_bottom)]
+
     
     def swipe_by(
             self,
