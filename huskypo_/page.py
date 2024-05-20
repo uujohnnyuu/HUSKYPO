@@ -528,136 +528,130 @@ class Page:
         """
         return self.driver.swipe(start_x, start_y, end_x, end_y, duration)
     
-    # TODO 全部更新 swipe 方式
-    # def swipe_(
-    #         self,
-    #         offset: Coordinate = {'start_x': 0.5, 'start_y': 0.75, 'end_x': 0.5, 'end_y': 0.25},
-    #         border: Coordinate = {'x': 0.0, 'y': 0.0, 'width': 1.0, 'height': 1.0},
-    #         duration: int = 1000,
-    #         times: int = 1
-    # ):
-    #     # TODO 尚須確認 border 的定義，目前 rect 較無數值驗證上的問題
-
-    #     offset = self.__is_coordinate(offset, 'offset')
-    #     border = self.__is_coordinate(border, 'border')
-
-    # def __is_coordinate(
-    #         self, 
-    #         coordinate: Coordinate, 
-    #         name: str
-    # ) -> TupleCoordinate:
-
-    #     # is dict or tuple
-    #     if isinstance(coordinate, dict):
-    #         coordinate = tuple(coordinate.values())
-    #     else:
-    #         raise TypeError(f'"{name}" should be dict or tuple.')
-        
-    #     # is coordinate
-    #     if not all(isinstance(c, int) for c in coordinate) or all(isinstance(c, float) for c in coordinate):
-    #         raise TypeError(f'All "{name}" coordinate values should be "int" or "float".')
-        
-    #     return coordinate
-    
-    # # TODO
-    # def __get_border_(self, border: TupleCoordinate) -> tuple[int, int, int, int]:
-
-    #     # TODO
-
-    #     border = self.__is_coordinate(border, 'border')
-    #     border_x, border_y, border_width, border_height = border
-
-    #     if isinstance(border_width, float):
-    #         if not all((0.0 <= value <= 1.0) for value in border):
-    #             raise ValueError(f'All "border" float values should be in the range "0.0" to "1.0".')
-    #         else:
-    #             if border_x + border_width > 1:
-    #                 raise ValueError(f'border_x + border_width = {border_x + border_width} is over 1.0 (100%).')
-    #             if border_y + border_height > 1:
-    #                 raise ValueError(f'border_y + border_height = {border_x + border_width} is over 1.0 (100%).')
-
-
-    #     border_left, border_right, border_top, border_bottom = self.__is_coordinate(border, 'border')
-
-    #     if isinstance(border_left, float):
-    #         window_left, window_top, window_width, window_height = self.get_window_rect().values()
-    #         border_left, border_right = [int(window_left + window_width * x) for x in (border_left, border_right)]
-    #         border_top, border_bottom = [int(window_top + window_height * y) for y in (border_top, border_bottom)]
-    #         border = (border_left, border_right, border_top, border_bottom)
-
-    #     logstack._logging(f'🟢 border: {border}')
-    #     return border
-    
-    # def __get_offset(self, 
-    #         offset: TupleCoordinate, 
-    #         border: tuple[int, int, int, int]
-    #     ) -> tuple[int, int, int, int]:
-
-    #     # TODO
-
-    #     start_x, start_y, end_x, end_y = self.__is_coordinate(offset, 'offset')
-    #     border_left, border_right, border_top, border_bottom = border
-    #     border_width = border_right - border_left
-    #     border_height = border_bottom - border_top
-
-    #     # if isinstance(start_x, float):
-    #     #     start_x, end_x = [int(border_left + border_width * x) for x in (start_x, end_x)]
-    #     #     border_top, border_bottom = [int(window_top + window_height * y) for y in (border_top, border_bottom)]
-
-    
     def swipe_by(
             self,
-            action: SwipeAction = SAT.BP_VP,
-            border: dict | tuple = {'left': 0, 'right': 100, 'top': 0, 'bottom': 100},
-            start: int = 75,
-            end: int = 25,
-            fix: int | None = None,
+            offset: Coordinate = {'start_x': 0.5, 'start_y': 0.75, 'end_x': 0.5, 'end_y': 0.25},
+            border: Coordinate = {'x': 0.0, 'y': 0.0, 'width': 1.0, 'height': 1.0},
             duration: int = 1000,
             times: int = 1
     ) -> AppiumWebDriver:
         """
+        Swipe from one point to another point, which can customize offset and border setting.
+
         Args:
-        - action: Instance of SwipeAction, you can set action as following example:
-            - None: Default border is full screen size, and swipe vertically with start and end ratio.
-
-                `action = SwipeAction(SwipeBy.BORDER_RATIO, SwipeBy.VERTICAL_RATIO)`
-            - Horizontal: Border is absolute pixel, swipe horizontally with start and end ratio, 
-                and the fix y coordinate is pixel.
-
-                `action = SwipeAction(SwipeBy.BORDER_ABSOLUTE, SwipeBy.HORIZONTAL_RATIO, SwipeBy.FIX_ABSOLUTE)`
-        - start: Absolute coordinate or ratio of full screen size to start swiping.
-        - end: Absolute coordinate or ratio of full screen size to stop swiping.
-        - fix:
-            - int: Fixed x or y coordinate or its proportion to the full screen
-                when scrolling vertically or horizontally.
-            - None: Fixed x or y coordinate default set to half of full screen.
-        - duration: defines the swipe speed as time taken to swipe from point a to point b, in ms.
-        - times: Swipe times. 
+        - offset: The swiping range, which can be set as:
+            - int: the absolute coordinate.
+                - dict: {'start_x': int, 'start_y': int, 'end_x': int, 'end_y': int}
+                - tuple: (int, int, int, int) follow as dict key.
+            - float: the ratio of border (swipable range), and it should between 0.0 to 1.0.
+                - dict: {'start_x': float, 'start_y': float, 'end_x': float, 'end_y': float}
+                - tuple: (float, float, float, float) follow as dict key.
+        - border: The swipable range, default is current window size, which can be set as:
+            - int: the absolute rect.
+                - dict: {'x': int, 'y': int, 'width': int, 'height': int}
+                - tuple: (int, int, int, int) follow as dict key.
+            - float: the ratio of current window size, and it should between 0.0 to 1.0.
+                - dict: {'x': float, 'y': float, 'width': float, 'height': float}
+                - tuple: (float, float, float, float) follow as dict key.
+        - duration: defines the swipe speed as time taken to swipe from point a to point b, in ms,
+                note that default set to 250 by ActionBuilder.
+        - times: the swiping times.
 
         Usage::
 
-            # Default is swiping vertically with ratio of full screen size.
-            # Default fix pixel is half of full screen size. 
-            page.swipe_by()
+            # Default is swiping down.
+            # x: Fixed 50% (half) of current window width.
+            # y: From 75% to 25% of current window height.
+            my_page.swipe_by()
 
-            # Border ratio set to {'left': 20, 'right': 80, 'top': 20, 'bottom': 80} of full screen size.
-            # Direction ratio start = 90, end = 10.
-            # Fix absolute pixel, fix = 150
-            action = SwipeAction(SwipeBy.BORDER_RATIO, SwipeBy.DIRECTION_RATIO, SwipeBy.FIX_ABSOLUTE)
-            border = (20, 80, 20, 80)  # Allowing tuple.
-            page.swipe_by(action, border, 90, 10, 150)
+            # Swipe with customize absolute offset.
+            # Note that the border parameter will not affect any swiping behavior.
+            my_page.swipe_by((250, 300, 400, 700))
 
-            # Swiping 3 times.
-            page.swipe_by(times=3)
+            # Swipe with ratio of border.
+            # Border is current window size (default).
+            my_page.swipe_by((0.3, 0.85, 0.5, 0.35))
+
+            # Swipe with ratio of border.
+            # Border is ratio of current window size.
+            my_page.swipe_by((0.3, 0.85, 0.5, 0.35), (0.2, 0.2, 0.6, 0.8))
+
+            # Swipe with ratio of border.
+            # Border is absolute coordinate.
+            my_page.swipe_by((0.3, 0.85, 0.5, 0.35), (100, 150, 300, 700))
+
+            # Get absolute border coordinate by scrollable element rect.
+            border = my_page.scrollable_element.rect
+            my_page.swipe_by((0.3, 0.85, 0.5, 0.35), border)
         """
-        swipe_action = self.__get_action(action)
-        swipe_border = self.__get_border(swipe_action, border)
-        swipe_range = self.__get_range(swipe_action, *swipe_border, start, end, fix)
-        
+
+        border = self.__get_border(border)
+        offset = self.__get_offset(offset, border)
+
         for _ in range(times):
-            driver = self.driver.swipe(*swipe_range, duration)
+            driver = self.driver.swipe(*offset, duration)
 
         return driver
+
+    def __get_coordinate(
+            self, 
+            coordinate: Coordinate, 
+            name: str
+    ) -> TupleCoordinate:
+
+        # is dict or tuple
+        if isinstance(coordinate, dict):
+            values = tuple(coordinate.values())
+        elif isinstance(coordinate, tuple):
+            values = coordinate
+        else:
+            raise TypeError(f'"{name}" should be dict or tuple.')
+        
+        # is coordinate
+        if all(isinstance(value, int) for value in values):
+            values_type = int
+        elif all(isinstance(value, float) for value in values):
+            values_type = float
+        else:
+            raise TypeError(f'All "{name}" values should be "int" or "float".')
+        
+        if values_type == float and not all(0 <= value <= 1 for value in values):
+            raise ValueError(f'All "{name}" values are floats and should be between "0.0" and "1.0".')
+        
+        return values
+
+    def __get_border(self, border: TupleCoordinate) -> tuple[int, int, int, int]:
+
+        border_x, border_y, border_width, border_height = self.__get_coordinate(border, 'border')
+
+        if isinstance(border_width, float):
+            window_x, window_y, window_width, window_height = self.get_window_rect().values()
+            border_x = window_x + int(window_width * border_x)
+            border_y = window_y + int(window_height * border_y)
+            border_width = int(window_width * border_width)
+            border_height = int(window_height * border_height)
+        
+        border = (border_x, border_y, border_width, border_height)
+        logstack._logging(f'🟢 border: {border}')
+        return border
+    
+    def __get_offset(self, 
+            offset: TupleCoordinate, 
+            border: tuple[int, int, int, int]
+        ) -> tuple[int, int, int, int]:
+
+        start_x, start_y, end_x, end_y = self.__get_coordinate(offset, 'offset')
+
+        if isinstance(start_x, float):
+            border_x, border_y, border_width, border_height = border
+            start_x = border_x + int(border_width * start_x)
+            start_y = border_y + int(border_height * start_y)
+            end_x = border_x + int(border_width * end_x)
+            end_y = border_y + int(border_height * end_y)
+        
+        offset = (start_x, start_y, end_x, end_y)
+        logstack._logging(f'🟢 offset: {offset}')
+        return offset
     
     def flick(self, start_x: int, start_y: int, end_x: int, end_y: int) -> AppiumWebDriver:
         """
@@ -674,129 +668,6 @@ class Page:
             page.flick(100, 100, 100, 400)
         """
         return self.driver.flick(start_x, start_y, end_x, end_y)
-    
-    def flick_by(
-            self,
-            action: SwipeAction = SAT.BP_VP,
-            border: dict | tuple = {'left': 0, 'right': 100, 'top': 0, 'bottom': 100},
-            start: int = 75,
-            end: int = 25,
-            fix: int | None = None,
-            times: int = 1
-    ) -> AppiumWebDriver:
-        """
-        Args:
-        - action: Instance of SwipeAction, you can set action as following example:
-            - None: Default border is full screen size, and swipe vertically with start and end ratio.
-
-                `action = SwipeAction(SwipeBy.BORDER_RATIO, SwipeBy.VERTICAL_RATIO)`
-            - Horizontal: Border is absolute pixel, swipe horizontally with start and end ratio, 
-                and the fix y coordinate is pixel.
-
-                `action = SwipeAction(SwipeBy.BORDER_ABSOLUTE, SwipeBy.HORIZONTAL_RATIO, SwipeBy.FIX_ABSOLUTE)`
-        - start: Absolute coordinate or ratio of full screen size to start swiping.
-        - end: Absolute coordinate or ratio of full screen size to stop swiping.
-        - fix:
-            - int: Fixed x or y coordinate or its proportion to the full screen
-                when scrolling vertically or horizontally.
-            - None: Fixed x or y coordinate default set to half of full screen.
-        - duration: defines the swipe speed as time taken to swipe from point a to point b, in ms.
-        - times: Swipe times. 
-
-        Usage::
-
-            # Default is swiping vertically with ratio of full screen size.
-            # Default fix pixel is half of full screen size. 
-            page.swipe_by()
-
-            # Border ratio set to {'left': 20, 'right': 80, 'top': 20, 'bottom': 80} of full screen size.
-            # Direction ratio start = 90, end = 10.
-            # Fix absolute pixel, fix = 150
-            action = SwipeAction(SwipeBy.BORDER_RATIO, SwipeBy.DIRECTION_RATIO, SwipeBy.FIX_ABSOLUTE)
-            border = (20, 80, 20, 80)  # Allowing tuple.
-            page.swipe_by(action, border, 90, 10, 150)
-
-            # Swiping 3 times.
-            page.swipe_by(times=3)
-        """
-        flick_action = self.__get_action(action)
-        flick_border = self.__get_border(flick_action, border)
-        flick_range = self.__get_range(flick_action, *flick_border, start, end, fix)
-        
-        for _ in range(times):
-            driver = self.driver.flick(*flick_range)
-
-        return driver
-    
-    def __get_action(self, action: SwipeAction):
-        if not isinstance(action, SwipeAction):
-            raise TypeError(f'"action" type should be "SwipeAction", not "{type(action).__name__}"')
-        if action.border is None:
-            action.border = SwipeBy.BP
-        if action.direction is None:
-            action.direction = SwipeBy.VP
-        logstack._logging(f'✅ Action: {action.action}')
-        return action
-
-    def __get_border(
-            self,
-            action: SwipeAction,
-            border: dict[str, int] | tuple[int, int, int, int]
-    ):
-        if isinstance(border, dict):
-            left, right, top, bottom = border.values()
-        elif isinstance(border, tuple):
-            left, right, top, bottom = border
-        else:
-            raise TypeError('Parameter "border" should be dict or tuple.')
-        
-        if action.border and (SwipeBy.PERCENTAGE in action.border):
-            window_left, window_top, window_width, window_height = self.get_window_rect().values()
-            left, right = [int(window_left + window_width * x / 100) for x in (left, right)]
-            top, bottom = [int(window_top + window_height * y / 100) for y in (top, bottom)]
-
-        border = (left, right, top, bottom)
-        logstack._logging(f'✅ Border: {border}')
-        return border
-    
-    def __get_range(
-            self, 
-            action: SwipeAction, 
-            left: int, 
-            right: int, 
-            top: int, 
-            bottom: int,
-            start: int,
-            end: int,
-            fix: int | None = None
-    ):
-        width = right - left
-        height = bottom - top
-
-        sx = sy = start
-        ex = ey = end
-        # Setting swipe range.
-        if SwipeBy.VERTICAL in action.direction:
-            sx = ex = left + int(width / 2)
-            if SwipeBy.PERCENTAGE in action.direction:
-                sy = top + int(height * start / 100)
-                ey = top + int(height * end / 100)    
-            if fix:
-                sx = ex = fix
-                if action.fixed and (SwipeBy.PERCENTAGE in action.fixed):
-                    sx = ex = left + int(width * fix / 100)
-        if SwipeBy.HORIZONTAL in action.direction:
-            sy = ey = top + int(height / 2)
-            if SwipeBy.PERCENTAGE in action.direction:
-                sx = left + int(width * start / 100)
-                ex = left + int(width * end / 100)
-            if fix:
-                sy = ey = fix
-                if action.fixed and (SwipeBy.PERCENTAGE in action.fixed):
-                    sy = ey = top + int(height * fix / 100)
-        range = (sx, sy, ex, ey)
-        logstack._logging(f'✅ Range: {range}')
-        return range
 
     def js_mobile_scroll_direction(self, direction: str = 'down'):
         """
