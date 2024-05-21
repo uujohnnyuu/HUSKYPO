@@ -24,8 +24,6 @@ from selenium.webdriver.common.print_page_options import PrintOptions
 from . import logstack
 from . import ec_extension as ecex
 from .config import Timeout
-from .swipe import SwipeBy, SwipeAction
-from .swipe import SwipeActionMode as SAT
 from .typing import AppiumWebDriver
 from .typing import WebDriver, WebElement, WebDriverTuple
 
@@ -531,31 +529,31 @@ class Page:
     def swipe_by(
             self,
             offset: Coordinate = {'start_x': 0.5, 'start_y': 0.75, 'end_x': 0.5, 'end_y': 0.25},
-            border: Coordinate = {'x': 0.0, 'y': 0.0, 'width': 1.0, 'height': 1.0},
+            area: Coordinate = {'x': 0.0, 'y': 0.0, 'width': 1.0, 'height': 1.0},
             duration: int = 1000,
             times: int = 1
     ) -> AppiumWebDriver:
         """
-        Swipe from one point to another point, which can customize offset and border setting.
+        Swipe from one point to another, allowing customization of the offset and border settings.
 
         Args:
         - offset: The swiping range, which can be set as:
-            - int: the absolute coordinate.
+            - int: The absolute coordinates.
                 - dict: {'start_x': int, 'start_y': int, 'end_x': int, 'end_y': int}
-                - tuple: (int, int, int, int) follow as dict key.
-            - float: the ratio of border (swipable range), and it should between 0.0 to 1.0.
+                - tuple: (int, int, int, int) corresponding to the keys in the dict.
+            - float: The ratio of the border (swipeable range), which should be between 0.0 and 1.0.
                 - dict: {'start_x': float, 'start_y': float, 'end_x': float, 'end_y': float}
-                - tuple: (float, float, float, float) follow as dict key.
-        - border: The swipable range, default is current window size, which can be set as:
-            - int: the absolute rect.
+                - tuple: (float, float, float, float) corresponding to the keys in the dict.
+        - area: The swipeable area, default is the current window size, which can be set as:
+            - int: The absolute rectangle.
                 - dict: {'x': int, 'y': int, 'width': int, 'height': int}
-                - tuple: (int, int, int, int) follow as dict key.
-            - float: the ratio of current window size, and it should between 0.0 to 1.0.
+                - tuple: (int, int, int, int) corresponding to the keys in the dict.
+            - float: The ratio of the current window size, which should be between 0.0 and 1.0.
                 - dict: {'x': float, 'y': float, 'width': float, 'height': float}
-                - tuple: (float, float, float, float) follow as dict key.
-        - duration: defines the swipe speed as time taken to swipe from point a to point b, in ms,
-                note that default set to 250 by ActionBuilder.
-        - times: the swiping times.
+                - tuple: (float, float, float, float) corresponding to the keys in the dict.
+        - duration: Defines the swipe speed as the time taken to swipe from point A to point B, in milliseconds. 
+            The default is set to 250 by ActionBuilder.
+        - times: The number of times to perform the swipe.
 
         Usage::
 
@@ -565,33 +563,144 @@ class Page:
             my_page.swipe_by()
 
             # Swipe with customize absolute offset.
-            # Note that the border parameter will not affect any swiping behavior.
+            # Note that the area parameter will not affect any swiping behavior.
             my_page.swipe_by((250, 300, 400, 700))
 
             # Swipe with ratio of border.
-            # Border is current window size (default).
+            # Area is current window size (default).
             my_page.swipe_by((0.3, 0.85, 0.5, 0.35))
 
             # Swipe with ratio of border.
-            # Border is ratio of current window size.
+            # Area is ratio of current window size.
             my_page.swipe_by((0.3, 0.85, 0.5, 0.35), (0.2, 0.2, 0.6, 0.8))
 
             # Swipe with ratio of border.
-            # Border is absolute coordinate.
+            # Area is absolute coordinate.
             my_page.swipe_by((0.3, 0.85, 0.5, 0.35), (100, 150, 300, 700))
 
             # Get absolute border coordinate by scrollable element rect.
-            border = my_page.scrollable_element.rect
-            my_page.swipe_by((0.3, 0.85, 0.5, 0.35), border)
+            area = my_page.scrollable_element.rect
+            my_page.swipe_by((0.3, 0.85, 0.5, 0.35), area)
         """
 
-        border = self.__get_border(border)
-        offset = self.__get_offset(offset, border)
+        area = self.__get_area(area)
+        offset = self.__get_offset(offset, area)
 
         for _ in range(times):
             driver = self.driver.swipe(*offset, duration)
 
         return driver
+    
+    def flick(self, start_x: int, start_y: int, end_x: int, end_y: int) -> AppiumWebDriver:
+        """
+        Appium API.
+        Flick from one point to another point.
+
+        Args:
+            start_x: x-coordinate at which to start
+            start_y: y-coordinate at which to start
+            end_x: x-coordinate at which to stop
+            end_y: y-coordinate at which to stop
+
+        Usage:
+            page.flick(100, 100, 100, 400)
+        """
+        return self.driver.flick(start_x, start_y, end_x, end_y)
+    
+    def flick_by(
+            self,
+            offset: Coordinate = {'start_x': 0.5, 'start_y': 0.75, 'end_x': 0.5, 'end_y': 0.25},
+            area: Coordinate = {'x': 0.0, 'y': 0.0, 'width': 1.0, 'height': 1.0},
+            times: int = 1
+    ) -> AppiumWebDriver:
+        """
+        Flick from one point to another, allowing customization of the offset and border settings.
+
+        Args:
+        - offset: The flicking range, which can be set as:
+            - int: The absolute coordinates.
+                - dict: {'start_x': int, 'start_y': int, 'end_x': int, 'end_y': int}
+                - tuple: (int, int, int, int) corresponding to the keys in the dict.
+            - float: The ratio of the border (flickable range), which should be between 0.0 and 1.0.
+                - dict: {'start_x': float, 'start_y': float, 'end_x': float, 'end_y': float}
+                - tuple: (float, float, float, float) corresponding to the keys in the dict.
+        - area: The flickable area, default is the current window size, which can be set as:
+            - int: The absolute rectangle.
+                - dict: {'x': int, 'y': int, 'width': int, 'height': int}
+                - tuple: (int, int, int, int) corresponding to the keys in the dict.
+            - float: The ratio of the current window size, which should be between 0.0 and 1.0.
+                - dict: {'x': float, 'y': float, 'width': float, 'height': float}
+                - tuple: (float, float, float, float) corresponding to the keys in the dict.
+        - times: The number of times to perform the flick.
+
+        Usage::
+
+            # Default is flicking down.
+            # x: Fixed 50% (half) of current window width.
+            # y: From 75% to 25% of current window height.
+            my_page.flick_by()
+
+            # Flick with customize absolute offset.
+            # Note that the area parameter will not affect any swiping behavior.
+            my_page.flick_by((250, 300, 400, 700))
+
+            # Flick with ratio of border.
+            # Area is current window size (default).
+            my_page.flick_by((0.3, 0.85, 0.5, 0.35))
+
+            # Flick with ratio of border.
+            # Area is ratio of current window size.
+            my_page.flick_by((0.3, 0.85, 0.5, 0.35), (0.2, 0.2, 0.6, 0.8))
+
+            # Flick with ratio of border.
+            # Area is absolute coordinate.
+            my_page.flick_by((0.3, 0.85, 0.5, 0.35), (100, 150, 300, 700))
+
+            # Get absolute border coordinate by scrollable element rect.
+            area = my_page.scrollable_element.rect
+            my_page.flick_by((0.3, 0.85, 0.5, 0.35), area)
+        """
+
+        area = self.__get_area(area)
+        offset = self.__get_offset(offset, area)
+
+        for _ in range(times):
+            driver = self.driver.flick(*offset)
+
+        return driver
+    
+    def __get_offset(self, 
+            offset: Coordinate, 
+            area: tuple[int, int, int, int]
+        ) -> tuple[int, int, int, int]:
+
+        start_x, start_y, end_x, end_y = self.__get_coordinate(offset, 'offset')
+
+        if isinstance(start_x, float):
+            area_x, area_y, area_width, area_height = area
+            start_x = area_x + int(area_width * start_x)
+            start_y = area_y + int(area_height * start_y)
+            end_x = area_x + int(area_width * end_x)
+            end_y = area_y + int(area_height * end_y)
+        
+        offset = (start_x, start_y, end_x, end_y)
+        logstack._logging(f'🟢 offset: {offset}')
+        return offset
+    
+    def __get_area(self, area: Coordinate) -> tuple[int, int, int, int]:
+
+        area_x, area_y, area_width, area_height = self.__get_coordinate(area, 'area')
+
+        if isinstance(area_width, float):
+            window_x, window_y, window_width, window_height = self.get_window_rect().values()
+            area_x = window_x + int(window_width * area_x)
+            area_y = window_y + int(window_height * area_y)
+            area_width = int(window_width * area_width)
+            area_height = int(window_height * area_height)
+        
+        area = (area_x, area_y, area_width, area_height)
+        logstack._logging(f'🟢 area: {area}')
+        return area
 
     def __get_coordinate(
             self, 
@@ -615,59 +724,11 @@ class Page:
         else:
             raise TypeError(f'All "{name}" values should be "int" or "float".')
         
+        # if float, all should be (0 <= x <= 1)
         if values_type == float and not all(0 <= value <= 1 for value in values):
             raise ValueError(f'All "{name}" values are floats and should be between "0.0" and "1.0".')
         
         return values
-
-    def __get_border(self, border: TupleCoordinate) -> tuple[int, int, int, int]:
-
-        border_x, border_y, border_width, border_height = self.__get_coordinate(border, 'border')
-
-        if isinstance(border_width, float):
-            window_x, window_y, window_width, window_height = self.get_window_rect().values()
-            border_x = window_x + int(window_width * border_x)
-            border_y = window_y + int(window_height * border_y)
-            border_width = int(window_width * border_width)
-            border_height = int(window_height * border_height)
-        
-        border = (border_x, border_y, border_width, border_height)
-        logstack._logging(f'🟢 border: {border}')
-        return border
-    
-    def __get_offset(self, 
-            offset: TupleCoordinate, 
-            border: tuple[int, int, int, int]
-        ) -> tuple[int, int, int, int]:
-
-        start_x, start_y, end_x, end_y = self.__get_coordinate(offset, 'offset')
-
-        if isinstance(start_x, float):
-            border_x, border_y, border_width, border_height = border
-            start_x = border_x + int(border_width * start_x)
-            start_y = border_y + int(border_height * start_y)
-            end_x = border_x + int(border_width * end_x)
-            end_y = border_y + int(border_height * end_y)
-        
-        offset = (start_x, start_y, end_x, end_y)
-        logstack._logging(f'🟢 offset: {offset}')
-        return offset
-    
-    def flick(self, start_x: int, start_y: int, end_x: int, end_y: int) -> AppiumWebDriver:
-        """
-        Appium API.
-        Flick from one point to another point.
-
-        Args:
-            start_x: x-coordinate at which to start
-            start_y: y-coordinate at which to start
-            end_x: x-coordinate at which to stop
-            end_y: y-coordinate at which to stop
-
-        Usage:
-            page.flick(100, 100, 100, 400)
-        """
-        return self.driver.flick(start_x, start_y, end_x, end_y)
 
     def js_mobile_scroll_direction(self, direction: str = 'down'):
         """

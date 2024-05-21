@@ -7,7 +7,7 @@
 from __future__ import annotations
 
 import platform
-from typing import Any, Literal
+from typing import Any, Literal, TypeAlias
 
 from selenium.common.exceptions import TimeoutException
 from selenium.webdriver.common.action_chains import ActionChains
@@ -24,6 +24,11 @@ from .swipe import SwipeBy, SwipeAction
 from .swipe import SwipeActionMode as SAM
 from .page import Page
 from .typing import WebDriver, WebElement, SeleniumWebElement, AppiumWebElement, AppiumWebDriver
+
+IntCoordinate: TypeAlias = dict[str, int] | tuple[int, int, int, int]
+FloatCoordinate: TypeAlias = dict[str, float] | tuple[float, float, float, float]
+TupleCoordinate: TypeAlias = tuple[int, int, int, int] | tuple[float, float, float, float]
+Coordinate: TypeAlias = IntCoordinate | FloatCoordinate
 
 
 class Element:
@@ -612,6 +617,172 @@ class Element:
         """
         element = self.wait_present(timeout, False)
         return element.is_displayed() if element else False
+    
+    def swipe_by(
+            self,
+            offset: Coordinate = {'start_x': 0.5, 'start_y': 0.75, 'end_x': 0.5, 'end_y': 0.25},
+            area: Coordinate = {'x': 0.0, 'y': 0.0, 'width': 1.0, 'height': 1.0},
+            timeout: int | float = 3,
+            max_swipe: int = 10,
+            max_adjust: int = 2,
+            min_distance: int = 100,
+            duration: int = 1000
+    ) -> Element:
+        """
+        
+        """
+        area = self.__get_area(area)
+        offset = self.__get_offset(offset, area)
+        
+        
+        return self
+
+    def __get_coordinate(
+            self, 
+            coordinate: Coordinate, 
+            name: str
+    ) -> TupleCoordinate:
+
+        # is dict or tuple
+        if isinstance(coordinate, dict):
+            values = tuple(coordinate.values())
+        elif isinstance(coordinate, tuple):
+            values = coordinate
+        else:
+            raise TypeError(f'"{name}" should be dict or tuple.')
+        
+        # is coordinate
+        if all(isinstance(value, int) for value in values):
+            values_type = int
+        elif all(isinstance(value, float) for value in values):
+            values_type = float
+        else:
+            raise TypeError(f'All "{name}" values should be "int" or "float".')
+        
+        # if float, all should be (0 <= x <= 1)
+        if values_type == float and not all(0 <= value <= 1 for value in values):
+            raise ValueError(f'All "{name}" values are floats and should be between "0.0" and "1.0".')
+        
+        return values
+    
+    def __get_area(self, area: Coordinate) -> tuple[int, int, int, int]:
+
+        area_x, area_y, area_width, area_height = self.__get_coordinate(area, 'area')
+
+        if isinstance(area_width, float):
+            window_x, window_y, window_width, window_height = Page(self.driver).get_window_rect().values()
+            area_x = window_x + int(window_width * area_x)
+            area_y = window_y + int(window_height * area_y)
+            area_width = int(window_width * area_width)
+            area_height = int(window_height * area_height)
+        
+        area = (area_x, area_y, area_width, area_height)
+        logstack._logging(f'🟢 area: {area}')
+        return area
+    
+    def __get_offset(self, 
+            offset: Coordinate, 
+            area: tuple[int, int, int, int]
+        ) -> tuple[int, int, int, int]:
+
+        start_x, start_y, end_x, end_y = self.__get_coordinate(offset, 'offset')
+
+        if isinstance(start_x, float):
+            area_x, area_y, area_width, area_height = area
+            start_x = area_x + int(area_width * start_x)
+            start_y = area_y + int(area_height * start_y)
+            end_x = area_x + int(area_width * end_x)
+            end_y = area_y + int(area_height * end_y)
+        
+        offset = (start_x, start_y, end_x, end_y)
+        logstack._logging(f'🟢 offset: {offset}')
+        return offset
+    
+    def __start_swiping_by(
+            self,
+            offset: tuple[int, int, int, int],
+            duration: int,
+            timeout: int | float,
+            max_swipe: int
+    ):
+        logstack._logging(f'🟢 Start swiping to element {self.remark}.')
+        count = 0
+        while not self.is_viewable(timeout):
+            if count == max_swipe:
+                raise ValueError(f'Stop swiping to element {self.remark} as the maximum swipe count of {max_swipe} has been reached.')
+            self.driver.swipe(*offset, duration)
+            count += 1
+        logstack._logging(f'✅ End swiping as the element {self.remark} is now viewable.')
+        return True
+    
+    def __start_adjusting_location(
+            self,
+            offset: tuple[int, int, int, int],
+            area: tuple[int, int, int, int],
+            max_adjust: int,
+            min_distance: int,
+            duration: int
+    ):
+        logstack._logging(f'🟢 Start adjusting to element {self.remark}')
+
+        for i in range(1, max_adjust + 2):
+
+            # area border
+            area_left, area_top, area_width, area_height = area
+            area_right = area_left + area_width
+            area_bottom = area_top + area_height
+
+            # TODO 八個位置: 
+                # 1(LT)--2(CT)--3(RT)
+                # 4(LC)---------6(RC)
+                # 7(LB)--8(CB)--9(RB)
+            # if left < 0 and top < 0: left top
+            # if top < 0, top ...之類的方式
+
+
+            # TODO 需確認如何調整會比較好，因已不受限於垂直或水平
+            # 從 area 四個角落處判斷
+            # 是否指定 start end 都先在中心
+            start_x = end_x = area_left + int(area_width / 2)
+            start_y = end_y = area_top + int(area_height / 2)
+
+            # element border
+            element_left, element_right, element_top, element_bottom = self.border.values()
+
+            # area border
+            area_left, area_top, area_width, area_height = area
+            area_right = area_left + area_width
+            area_bottom = area_top + area_height
+
+            # The diff of borders, which the element should totally in area.
+            left = element_left - area_left
+            right = area_right - element_right
+            top = element_top - area_top
+            bottom = area_bottom - element_bottom
+
+            if left < 0:
+                logstack._logging(f'🟢 Adjust {i}: swipe right.')
+                adjust_distance = left if left > min_distance else min_distance
+                end_x = start_x + int(adjust_distance)
+            elif right < 0:
+                logstack._logging(f'🟢 Adjust {i}: swipe left.')
+                adjust_distance = right if right > min_distance else min_distance
+                end_x = start_x - int(adjust_distance)
+            elif top < 0:
+                logstack._logging(f'🟢 Adjust {i}: swipe down.')
+                adjust_distance = top if top > min_distance else min_distance
+                end_y = start_y + int(adjust_distance)
+            elif bottom < 0:
+                logstack._logging(f'🟢 Adjust {i}: swipe up.')
+                adjust_distance = bottom if bottom > min_distance else min_distance
+                end_y = start_y - int(adjust_distance)
+            else:
+                logstack._logging(f'✅ End adjusting as the element {self.remark} border is in view border.')
+                return True
+            if i == max_adjust + 1:
+                logstack._logging(f'🟡 End adjusting to the element {self.remark} as the maximum adjust count of {max_adjust} has been reached.')
+                return True
+            self.driver.swipe(start_x, start_y, end_x, end_y, duration)
     
     def swipe_into_view(
             self,
