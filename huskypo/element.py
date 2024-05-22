@@ -670,7 +670,7 @@ class Element:
             # offset = (0.5, 0.75, 0.5, 0.25) and area = (0.0, 0.0, 1.0, 1.0) means
             # x: Fixed 50% (0.5) of current window width (100% (1.0) window width).
             # y: From 75% (0.75) to 25% (0.25) of current window height (100% (1.0) window height).
-            my_page.swipe_by()
+            my_page.target_element.swipe_by()
 
             # Swipe with customize absolute offset.
             # Note that the area parameter will affect the adjusting process.
@@ -678,23 +678,23 @@ class Element:
             # unless you have a specific testing scenario.
             # (ex. Swiping range is not within the area, 
             # and the target element should be inside the area after swiping.)
-            my_page.swipe_by((250, 300, 400, 700))
+            my_page.target_element.swipe_by((250, 300, 400, 700))
 
             # Swipe with ratio of area.
             # Area is current window size (default).
-            my_page.swipe_by((0.3, 0.85, 0.5, 0.35))
+            my_page.target_element.swipe_by((0.3, 0.85, 0.5, 0.35))
 
             # Swipe with ratio of area.
             # Area is ratio of current window size.
-            my_page.swipe_by((0.3, 0.85, 0.5, 0.35), (0.2, 0.2, 0.6, 0.8))
+            my_page.target_element.swipe_by((0.3, 0.85, 0.5, 0.35), (0.2, 0.2, 0.6, 0.8))
 
             # Swipe with ratio of area.
             # Area is absolute coordinate.
-            my_page.swipe_by((0.3, 0.85, 0.5, 0.35), (100, 150, 300, 700))
+            my_page.target_element.swipe_by((0.3, 0.85, 0.5, 0.35), (100, 150, 300, 700))
 
             # Get absolute area coordinate by scrollable element rect.
             area = my_page.scrollable_element.rect
-            my_page.swipe_by((0.3, 0.85, 0.5, 0.35), area)
+            my_page.target_element.swipe_by((0.3, 0.85, 0.5, 0.35), area)
 
         """
         area = self.__get_area(area)
@@ -753,7 +753,7 @@ class Element:
             # offset = (0.5, 0.75, 0.5, 0.25) and area = (0.0, 0.0, 1.0, 1.0) means
             # x: Fixed 50% (0.5) of current window width (100% (1.0) window width).
             # y: From 75% (0.75) to 25% (0.25) of current window height (100% (1.0) window height).
-            my_page.flick_by()
+            my_page.target_element.flick_by()
 
             # Flick with customize absolute offset.
             # Note that the area parameter will affect the adjusting process.
@@ -761,23 +761,23 @@ class Element:
             # unless you have a specific testing scenario.
             # (ex. flicking range is not within the area, 
             # and the target element should be inside the area after flicking.)
-            my_page.flick_by((250, 300, 400, 700))
+            my_page.target_element.flick_by((250, 300, 400, 700))
 
             # Flick with ratio of area.
             # Area is current window size (default).
-            my_page.flick_by((0.3, 0.85, 0.5, 0.35))
+            my_page.target_element.flick_by((0.3, 0.85, 0.5, 0.35))
 
             # Flick with ratio of area.
             # Area is ratio of current window size.
-            my_page.flick_by((0.3, 0.85, 0.5, 0.35), (0.2, 0.2, 0.6, 0.8))
+            my_page.target_element.flick_by((0.3, 0.85, 0.5, 0.35), (0.2, 0.2, 0.6, 0.8))
 
             # Flick with ratio of area.
             # Area is absolute coordinate.
-            my_page.flick_by((0.3, 0.85, 0.5, 0.35), (100, 150, 300, 700))
+            my_page.target_element.flick_by((0.3, 0.85, 0.5, 0.35), (100, 150, 300, 700))
 
             # Get absolute area coordinate by scrollable element rect.
             area = my_page.scrollable_element.rect
-            my_page.flick_by((0.3, 0.85, 0.5, 0.35), area)
+            my_page.target_element.flick_by((0.3, 0.85, 0.5, 0.35), area)
         
         """
         area = self.__get_area(area)
