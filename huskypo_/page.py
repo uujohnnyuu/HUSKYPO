@@ -9,6 +9,7 @@
 
 from __future__ import annotations
 
+import warnings
 from typing import Any, Literal, TypeAlias
 
 from selenium.common.exceptions import TimeoutException
@@ -26,6 +27,9 @@ from . import ec_extension as ecex
 from .config import Timeout
 from .typing import AppiumWebDriver
 from .typing import WebDriver, WebElement, WebDriverTuple
+
+# TODO deprecate
+from .by import SwipeAction as SA
 
 IntCoordinate: TypeAlias = dict[str, int] | tuple[int, int, int, int]
 FloatCoordinate: TypeAlias = dict[str, float] | tuple[float, float, float, float]
@@ -1096,3 +1100,68 @@ class Page:
 
         """
         self.driver.set_page_load_timeout(time_to_wait)
+
+    def swipe_ratio(
+            self,
+            direction: str = SA.V,
+            start: int = 75,
+            end: int = 25,
+            fix: int = None,
+            ratio: bool = False,
+            duration: int = 1000
+    ) -> None:
+        """
+        Swipe by window ratio vertically or horizontally.
+
+        Args:
+        - dirtype:
+            - vertical: 'vertical', 'v'
+            - horizontal: 'horizontal', 'h'
+        - start: Ratio of full screen size to start swiping.
+        - end: Ratio of full screen size to stop swiping.
+        - fix:
+            - int: Fixed x or y coordinate or its proportion to the full screen
+                when scrolling vertically or horizontally.
+            - None: Fixed x or y coordinate default set to half of full screen.
+        - fix_is_ratio: True, fixed coordination is proportion to the full screen, vice versa.
+        - duration: defines the swipe speed as time taken to swipe from point a to point b, in ms.
+
+        Usage::
+
+            page.swipe_ratio('v', 80, 20)
+            page.swipe_ratio('h', 80, 20)
+            page.swipe_ratio('h', 80, 20, 100)
+            page.swipe_ratio('h', 80, 20, 40, True)
+
+        """
+        # TODO deprecate
+        warnings.warn(
+            'This function is deprecated and will be removed in future versions. Please use "swipe_by" instead.',
+            DeprecationWarning,
+            stacklevel=2)
+        
+        vertical = 'v'
+        horizontal = 'h'
+
+        width, height = self.get_window_size().values()
+        if direction.lower() in vertical:
+            sx = ex = int(width / 2)
+            sy = int(height * start / 100)
+            ey = int(height * end / 100)
+            if fix:
+                if ratio:
+                    sx = ex = int(width * fix / 100)
+                else:
+                    sx = ex = fix
+        elif direction.lower() in horizontal:
+            sy = ey = int(height / 2)
+            sx = int(width * start / 100)
+            ex = int(width * end / 100)
+            if fix:
+                if ratio:
+                    sy = ey = int(height * fix / 100)
+                else:
+                    sy = ey = fix
+        else:
+            raise ValueError('Only accept dirtype: "v", "h"')
+        self.driver.swipe(sx, sy, ex, ey, duration)

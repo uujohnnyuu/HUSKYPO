@@ -9,3 +9,6 @@ from .element import Element
 from .elements import Elements
 from .by import By
 from .decorator import dynamic
+
+# TODO deprecate
+from .by import SwipeAction as SA

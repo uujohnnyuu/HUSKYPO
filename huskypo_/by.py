@@ -16,3 +16,12 @@ class ByAttribute:
     NAMES = [attr for attr in dir(By) if not attr.startswith('__')]
     VALUES = [getattr(By, attr) for attr in NAMES]
     VALUES_WITH_NONE = VALUES + [None]
+
+
+class SwipeAction:
+
+    # TODO deprecate
+    V = 'v'
+    H = 'h'
+    VA = 'va'
+    HA = 'ha'
