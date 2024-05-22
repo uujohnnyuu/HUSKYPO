@@ -906,17 +906,11 @@ class Element:
             # element border
             element_left, element_right, element_top, element_bottom = self.border.values()
 
-            # delta = area - element
-            delta_left = area_left - element_left
-            delta_right = area_right - element_right
-            delta_top = area_top - element_top
-            delta_bottom = area_bottom - element_bottom
-
-            # compare delta with min distance
-            delta_left = get_final_delta(delta_left)
-            delta_right = get_final_delta(delta_right)
-            delta_top = get_final_delta(delta_top)
-            delta_bottom = get_final_delta(delta_bottom)
+            # delta = (area - element) and compare with min distance 
+            delta_left = get_final_delta(area_left - element_left)
+            delta_right = get_final_delta(area_right - element_right)
+            delta_top = get_final_delta(area_top - element_top)
+            delta_bottom = get_final_delta(area_bottom - element_bottom)
 
             # adjust condition
             adjust_left = delta_left > 0

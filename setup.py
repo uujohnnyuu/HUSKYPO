@@ -3,7 +3,7 @@ import os
 
 from setuptools import setup, find_packages
 
-from huskypo_ import version
+from huskypo import version
 
 setup(
     name='huskypo',
