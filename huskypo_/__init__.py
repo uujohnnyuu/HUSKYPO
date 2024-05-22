@@ -8,5 +8,4 @@ from .page import Page
 from .element import Element
 from .elements import Elements
 from .by import By
-from .swipe import SwipeBy, SwipeAction, SwipeActionMode
 from .decorator import dynamic

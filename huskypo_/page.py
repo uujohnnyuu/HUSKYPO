@@ -669,39 +669,6 @@ class Page:
 
         return driver
     
-    def __get_offset(self, 
-            offset: Coordinate, 
-            area: tuple[int, int, int, int]
-        ) -> tuple[int, int, int, int]:
-
-        start_x, start_y, end_x, end_y = self.__get_coordinate(offset, 'offset')
-
-        if isinstance(start_x, float):
-            area_x, area_y, area_width, area_height = area
-            start_x = area_x + int(area_width * start_x)
-            start_y = area_y + int(area_height * start_y)
-            end_x = area_x + int(area_width * end_x)
-            end_y = area_y + int(area_height * end_y)
-        
-        offset = (start_x, start_y, end_x, end_y)
-        logstack._logging(f'🟢 offset: {offset}')
-        return offset
-    
-    def __get_area(self, area: Coordinate) -> tuple[int, int, int, int]:
-
-        area_x, area_y, area_width, area_height = self.__get_coordinate(area, 'area')
-
-        if isinstance(area_width, float):
-            window_x, window_y, window_width, window_height = self.get_window_rect().values()
-            area_x = window_x + int(window_width * area_x)
-            area_y = window_y + int(window_height * area_y)
-            area_width = int(window_width * area_width)
-            area_height = int(window_height * area_height)
-        
-        area = (area_x, area_y, area_width, area_height)
-        logstack._logging(f'🟢 area: {area}')
-        return area
-
     def __get_coordinate(
             self, 
             coordinate: Coordinate, 
@@ -729,7 +696,40 @@ class Page:
             raise ValueError(f'All "{name}" values are floats and should be between "0.0" and "1.0".')
         
         return values
+    
+    def __get_area(self, area: Coordinate) -> tuple[int, int, int, int]:
 
+        area_x, area_y, area_width, area_height = self.__get_coordinate(area, 'area')
+
+        if isinstance(area_width, float):
+            window_x, window_y, window_width, window_height = self.get_window_rect().values()
+            area_x = window_x + int(window_width * area_x)
+            area_y = window_y + int(window_height * area_y)
+            area_width = int(window_width * area_width)
+            area_height = int(window_height * area_height)
+        
+        area = (area_x, area_y, area_width, area_height)
+        logstack._logging(f'🟢 area: {area}')
+        return area
+    
+    def __get_offset(self, 
+            offset: Coordinate, 
+            area: tuple[int, int, int, int]
+        ) -> tuple[int, int, int, int]:
+
+        start_x, start_y, end_x, end_y = self.__get_coordinate(offset, 'offset')
+
+        if isinstance(start_x, float):
+            area_x, area_y, area_width, area_height = area
+            start_x = area_x + int(area_width * start_x)
+            start_y = area_y + int(area_height * start_y)
+            end_x = area_x + int(area_width * end_x)
+            end_y = area_y + int(area_height * end_y)
+        
+        offset = (start_x, start_y, end_x, end_y)
+        logstack._logging(f'🟢 offset: {offset}')
+        return offset
+    
     def js_mobile_scroll_direction(self, direction: str = 'down'):
         """
         java script::
