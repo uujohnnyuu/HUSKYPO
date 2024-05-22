@@ -73,6 +73,8 @@ class Page:
             page.action.scroll_to_element(element).click(element)
         """
         return self._action
+    
+    # TODO: scroll_by_amount, scroll_from_origin
 
     def get(self, url: str) -> None:
         """

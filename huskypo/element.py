@@ -1228,6 +1228,8 @@ class Element:
         element = self.wait_present(reraise=True)
         ActionChains(self.driver).scroll_to_element(element).perform()
 
+    # TODO: scroll_from_origin
+
     @property
     def options(self) -> list[SeleniumWebElement]:
         """
