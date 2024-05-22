@@ -6,6 +6,7 @@
 # TODO selenium 4.0 and appium 2.0 methods.
 from __future__ import annotations
 
+import math
 import platform
 from typing import Any, Literal, TypeAlias
 
@@ -633,8 +634,8 @@ class Element:
         """
         area = self.__get_area(area)
         offset = self.__get_offset(offset, area)
-        
-        
+        self.__start_swiping_by(offset, duration, timeout, max_swipe)
+        self.__start_adjusting_by(offset, area, max_adjust, min_distance, duration)
         return self
 
     def __get_coordinate(
@@ -709,13 +710,13 @@ class Element:
         count = 0
         while not self.is_viewable(timeout):
             if count == max_swipe:
-                raise ValueError(f'Stop swiping to element {self.remark} as the maximum swipe count of {max_swipe} has been reached.')
+                raise ValueError(f'❌ Stop swiping to element {self.remark} as the maximum swipe count of {max_swipe} has been reached.')
             self.driver.swipe(*offset, duration)
             count += 1
         logstack._logging(f'✅ End swiping as the element {self.remark} is now viewable.')
         return True
     
-    def __start_adjusting_location(
+    def __start_adjusting_by(
             self,
             offset: tuple[int, int, int, int],
             area: tuple[int, int, int, int],
@@ -723,65 +724,68 @@ class Element:
             min_distance: int,
             duration: int
     ):
+        def get_final_delta(delta):
+            return int(math.copysign(min_distance, delta)) if abs(delta) < min_distance else delta
+
         logstack._logging(f'🟢 Start adjusting to element {self.remark}')
 
         for i in range(1, max_adjust + 2):
 
+            # offset
+            start_x, start_y, end_x, end_y = offset
+
             # area border
             area_left, area_top, area_width, area_height = area
             area_right = area_left + area_width
             area_bottom = area_top + area_height
-
-            # TODO 八個位置: 
-                # 1(LT)--2(CT)--3(RT)
-                # 4(LC)---------6(RC)
-                # 7(LB)--8(CB)--9(RB)
-            # if left < 0 and top < 0: left top
-            # if top < 0, top ...之類的方式
-
-
-            # TODO 需確認如何調整會比較好，因已不受限於垂直或水平
-            # 從 area 四個角落處判斷
-            # 是否指定 start end 都先在中心
-            start_x = end_x = area_left + int(area_width / 2)
-            start_y = end_y = area_top + int(area_height / 2)
 
             # element border
             element_left, element_right, element_top, element_bottom = self.border.values()
 
-            # area border
-            area_left, area_top, area_width, area_height = area
-            area_right = area_left + area_width
-            area_bottom = area_top + area_height
+            # delta = area - element
+            delta_left = area_left - element_left
+            delta_right = area_right - element_right
+            delta_top = area_top - element_top
+            delta_bottom = area_bottom - element_bottom
 
-            # The diff of borders, which the element should totally in area.
-            left = element_left - area_left
-            right = area_right - element_right
-            top = element_top - area_top
-            bottom = area_bottom - element_bottom
+            # compare delta with min distance
+            delta_left = get_final_delta(delta_left)
+            delta_right = get_final_delta(delta_right)
+            delta_top = get_final_delta(delta_top)
+            delta_bottom = get_final_delta(delta_bottom)
 
-            if left < 0:
-                logstack._logging(f'🟢 Adjust {i}: swipe right.')
-                adjust_distance = left if left > min_distance else min_distance
-                end_x = start_x + int(adjust_distance)
-            elif right < 0:
-                logstack._logging(f'🟢 Adjust {i}: swipe left.')
-                adjust_distance = right if right > min_distance else min_distance
-                end_x = start_x - int(adjust_distance)
-            elif top < 0:
-                logstack._logging(f'🟢 Adjust {i}: swipe down.')
-                adjust_distance = top if top > min_distance else min_distance
-                end_y = start_y + int(adjust_distance)
-            elif bottom < 0:
-                logstack._logging(f'🟢 Adjust {i}: swipe up.')
-                adjust_distance = bottom if bottom > min_distance else min_distance
-                end_y = start_y - int(adjust_distance)
+            # adjust condition
+            adjust_left = delta_left > 0
+            adjust_right = delta_right < 0
+            adjust_top = delta_top > 0
+            adjust_bottom = delta_bottom < 0
+            adjust = (adjust_left, adjust_right, adjust_top, adjust_bottom)
+            adjust_actions = {
+                (True, False, True, False): (delta_left, delta_top),
+                (False, False, True, False): (0, delta_top),
+                (False, True, True, False): (delta_right, delta_top),
+                (True, False, False, False): (delta_left, 0),
+                (False, True, False, False): (delta_right, 0),
+                (True, False, False, True): (delta_left, delta_bottom),
+                (False, False, False, True): (0, delta_bottom),
+                (False, True, False, True): (delta_right, delta_bottom),
+            }
+
+            # Set the end point by adjust actions.
+            if adjust in adjust_actions:
+                logstack._logging(f'🟢 Adjust (left, right, top, bottom): {adjust}')
+                delta_x, delta_y = adjust_actions[adjust]
+                end_x = start_x + delta_x
+                end_y = start_y + delta_y
             else:
-                logstack._logging(f'✅ End adjusting as the element {self.remark} border is in view border.')
+                logstack._logging(f'✅ End adjusting as the element {self.remark} is in area.')
                 return True
+            
+            # max
             if i == max_adjust + 1:
                 logstack._logging(f'🟡 End adjusting to the element {self.remark} as the maximum adjust count of {max_adjust} has been reached.')
                 return True
+            
             self.driver.swipe(start_x, start_y, end_x, end_y, duration)
     
     def swipe_into_view(
