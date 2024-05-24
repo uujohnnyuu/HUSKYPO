@@ -1,6 +1,6 @@
-from huskypo import Page, Element, Elements
-from huskypo import By
-from huskypo import dynamic
+from huskypo_ import Page, Element, Elements
+from huskypo_ import By
+from huskypo_ import dynamic
 
 
 class MyPage(Page):
