@@ -20,6 +20,7 @@ from selenium.webdriver.common.action_chains import ActionChains
 from selenium.webdriver.common.actions import interaction
 from selenium.webdriver.common.actions.action_builder import ActionBuilder
 from selenium.webdriver.common.actions.pointer_input import PointerInput
+from selenium.webdriver.common.actions.wheel_input import ScrollOrigin
 from selenium.webdriver.common.print_page_options import PrintOptions
 
 from . import logstack
@@ -40,16 +41,27 @@ Coordinate: TypeAlias = IntCoordinate | FloatCoordinate
 
 class Page:
 
-    def __init__(self, driver):
+    def __init__(self, driver: WebDriver):
         if not isinstance(driver, WebDriverTuple):
             raise TypeError(f'The driver type should be "WebDriver", not {type(driver).__name__}.')
-        self._driver: WebDriver = driver
-        self._wait_timeout: int | float | None = None
+        self._driver = driver
         self._action = ActionChains(driver)
 
     @property
     def driver(self) -> WebDriver:
         return self._driver
+    
+    @property
+    def action(self) -> ActionChains:
+        """
+        Calling instance of ActionChains.
+        You can use it to perform an ActionChains method.
+
+        Usage::
+            
+            page.action.scroll_to_element(element).click(element)
+        """
+        return self._action
 
     def wait(self, timeout: int | float | None = None):
         """
@@ -63,18 +75,64 @@ class Page:
         return WebDriverWait(self.driver, self._wait_timeout)
     
     @property
-    def action(self):
+    def wait_timeout(self):
         """
-        Calling instance of ActionChains.
-        You can use it to perform an ActionChains method.
+        Get the final waiting timeout of the page function 
+        which executed with explicit wait.
+        If no relevant function has been executed yet,
+        it will return None.
+        """
+        try:
+            return self._wait_timeout
+        except AttributeError:
+            return None
 
-        Usage::
-            
-            page.action.scroll_to_element(element).click(element)
+    def scroll_by_amount(self, delta_x: int, delta_y: int, perform: bool = True):
         """
-        return self._action
+        Scrolls by provided amounts with the origin in the top left corner of the viewport.
+
+        Args:
+        - delta_x: Distance along X axis to scroll using the wheel. A negative value scrolls left.
+        - delta_y: Distance along Y axis to scroll using the wheel. A negative value scrolls up.
+        """
+        action = self.action.scroll_by_amount(delta_x, delta_y)
+        if perform:
+             action.perform()
+        return action
+
+    def scroll_origin(self, x_offset: int = 0, y_offset: int = 0) -> ScrollOrigin:
+        """
+        Get the scroll originates by viewport left top plus provided offsets.
+        This function should be used with `scroll_from_origin`.
+
+        Args:
+        - x_offset: from origin viewport, a negative value offset left.
+        - y_offset: from origin viewport, a negative value offset up.
+        """
+        return ScrollOrigin.from_viewport(x_offset, y_offset)
     
-    # TODO: scroll_by_amount, scroll_from_origin
+    def scroll_from_origin(
+            self, 
+            scroll_origin: ScrollOrigin, 
+            delta_x: int, 
+            delta_y: int,
+            perform: bool = True):
+        """
+        Scrolls by provided amount based on a provided origin. The scroll origin is either the center of an element or the upper left of the viewport plus any offsets. If the origin is an element, and the element is not in the viewport, the bottom of the element will first be scrolled to the bottom of the viewport.
+
+        Args:
+
+        origin: Where scroll originates (viewport or element center) plus provided offsets.
+        delta_x: Distance along X axis to scroll using the wheel. A negative value scrolls left.
+        delta_y: Distance along Y axis to scroll using the wheel. A negative value scrolls up.
+        :Raises: If the origin with offset is outside the viewport.
+
+        MoveTargetOutOfBoundsException - If the origin with offset is outside the viewport.
+        """
+        action = self.action.scroll_from_origin(scroll_origin, delta_x, delta_y)
+        if perform:
+            action.perform()
+        return action
 
     def get(self, url: str) -> None:
         """

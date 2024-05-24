@@ -52,9 +52,6 @@ class Elements:
             elements = Elements(By.ACCESSIBILITY_ID, 'element_accid', 10, 'these are xxx')
 
         """
-        # Get driver reference from Page instance attribute _driver by __get__.
-        self._driver: WebDriver | None = None
-
         # (by, value)
         # Allowing `None` to initialize an empty descriptor for dynamic elements.
         if by not in ByAttribute.VALUES_WITH_NONE:
@@ -65,25 +62,21 @@ class Elements:
         self.value = value
 
         # (by, value, timeout)
-        self.timeout = timeout
+        self._timeout = timeout
         # (by, value, remark)
         if not isinstance(timeout, (int, float, type(None))):
             remark = str(timeout)
-            self.timeout = None
+            self._timeout = None
 
         # (by, value, timeout, remark)
         self.remark = remark
         if remark is None:
             self.remark = self.value
 
-        # Get final timeout from wait()
-        self._wait_timeout = None
-
     def __get__(self, instance: Page, owner):
-        # Assign the reference of the page _driver to each element _driver.
-        # Since it only assigns a reference, rather than the entire WebDriver object,
-        # the memory impact is not significant.
-        self._driver = instance._driver
+        # Dynamically obtain the page instance and 
+        # execute the corresponding function only when needed.
+        self._page = instance
         return self
 
     def __set__(self, instance: Page, value):
@@ -93,7 +86,7 @@ class Elements:
 
     @property
     def driver(self) -> WebDriver:
-        return self._driver
+        return self._page._driver
 
     @property
     def locator(self) -> tuple[str, str]:
@@ -106,37 +99,29 @@ class Elements:
         return (self.by, self.value)
 
     @property
-    def element_timeout(self):
+    def timeout(self):
         """
-        Initialize element timeout.
+        Get the initial timeout of the elements.
         """
-        return Timeout.DEFAULT if self.timeout is None else self.timeout
-
-    @property
-    def wait_timeout(self):
-        """
-        Get actual waiting timeout.
-        """
-        return self._wait_timeout
+        return Timeout.DEFAULT if self._timeout is None else self._timeout
 
     def test_attributes(self):
         """
         unit test
         """
-        logstack.info(f'driver           : {self.driver}')
         logstack.info(f'by               : {self.by}')
         logstack.info(f'value            : {self.value}')
         logstack.info(f'locator          : {self.locator}')
         logstack.info(f'timeout          : {self.timeout}')
-        logstack.info(f'element_timeout  : {self.element_timeout}')
-        logstack.info(f'wait_timeout     : {self.wait_timeout}')
-        logstack.info(f'remark           : {self.remark}')
-        logstack.info('')
+        logstack.info(f'remark           : {self.remark}\n')
 
-    def find_elements(self) -> list[WebElement | None]:
+    def find_elements(self) -> list[WebElement]:
         """
-        Using the traditional find_elements method to locate elements without any waiting behavior.
+        Using the traditional find_elements method 
+        to locate elements without any waiting behavior.
         It is recommended for use in situations where no waiting is required.
+        Note that if there are no any element found, 
+        it will return empty list `[]`.
         """
         return self.driver.find_elements(*self.locator)
 
@@ -144,17 +129,26 @@ class Elements:
         """
         Selenium and Appium API.
         Packing WebDriverWait(driver, timeout) to accept only the timeout parameter.
+        If you sets a timeout in here, it takes precedence;
+        otherwise, it defaults to the timeout set for the element.
 
         Args:
         - timeout: Maximum time in seconds to wait for the expected condition.
         """
-        # self.wait_timeout is used to record the final timeout value.
-        # If the function sets a timeout, it takes precedence;
-        # otherwise, it defaults to the timeout set for the element.
-
-        # TODO tracking
-        self._wait_timeout = self.element_timeout if timeout is None else timeout
+        self._wait_timeout = self.timeout if timeout is None else timeout
         return WebDriverWait(self.driver, self._wait_timeout)
+    
+    @property
+    def wait_timeout(self):
+        """
+        Get the final waiting timeout of the element.
+        If no element action has been executed yet,
+        it will return None.
+        """
+        try:
+            return self._wait_timeout
+        except AttributeError:
+            return None
 
     def find(
             self,

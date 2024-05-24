@@ -13,6 +13,7 @@ from typing import Any, Literal, TypeAlias
 
 from selenium.common.exceptions import TimeoutException
 from selenium.webdriver.common.action_chains import ActionChains
+from selenium.webdriver.common.actions.wheel_input import ScrollOrigin
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.support import expected_conditions as ec
 from selenium.webdriver.support.select import Select
@@ -76,9 +77,6 @@ class Element:
             element = Element(By.ID, 'element_id', 3, 10, 'this is xxx')
 
         """
-        # Get driver reference from Page instance attribute _driver by __get__.
-        self._driver: WebDriver | None = None
-
         # (by, value)
         # Allowing `None` to initialize an empty descriptor for dynamic elements.
         if by not in ByAttribute.VALUES_WITH_NONE:
@@ -96,25 +94,21 @@ class Element:
             self.index = None
 
         # (by, value, index, timeout)
-        self.timeout = timeout
+        self._timeout = timeout
         # (by, value, index, remark)
         if not isinstance(timeout, (int, float, type(None))):
             remark = str(timeout)
-            self.timeout = None
+            self._timeout = None
 
         # (by, value, index, timeout, remark)
         self.remark = remark
         if remark is None:
             self.remark = f'{self.value}' if self.index is None else f'({self.value})[{self.index}]'
 
-        # Get the final timeout value from wait()
-        self._wait_timeout = None
-
     def __get__(self, instance: Page, owner):
-        # Assign the reference of the page _driver to each element _driver.
-        # Since it only assigns a reference, rather than the entire WebDriver object,
-        # the memory impact is not significant.
-        self._driver = instance._driver
+        # Dynamically obtain the page instance and 
+        # execute the corresponding function only when needed.
+        self._page = instance
         return self
 
     def __set__(self, instance: Page, value):
@@ -124,7 +118,11 @@ class Element:
 
     @property
     def driver(self) -> WebDriver:
-        return self._driver
+        return self._page._driver
+    
+    @property
+    def action(self) -> ActionChains:
+        return self._page._action
 
     @property
     def locator(self) -> tuple[str, str]:
@@ -137,37 +135,27 @@ class Element:
         return (self.by, self.value)
 
     @property
-    def element_timeout(self):
+    def timeout(self):
         """
-        Initialize element timeout.
+        Get the initial timeout of the element.
         """
-        return Timeout.DEFAULT if self.timeout is None else self.timeout
-
-    @property
-    def wait_timeout(self):
-        """
-        Get actual waiting timeout.
-        """
-        return self._wait_timeout
+        return Timeout.DEFAULT if self._timeout is None else self._timeout
 
     def test_attributes(self):
         """
         unit test
         """
-        logstack.info(f'driver           : {self.driver}')
         logstack.info(f'by               : {self.by}')
         logstack.info(f'value            : {self.value}')
         logstack.info(f'locator          : {self.locator}')
         logstack.info(f'index            : {self.index}')
         logstack.info(f'timeout          : {self.timeout}')
-        logstack.info(f'element_timeout  : {self.element_timeout}')
-        logstack.info(f'wait_timeout     : {self.wait_timeout}')
-        logstack.info(f'remark           : {self.remark}')
-        logstack.info('')
+        logstack.info(f'remark           : {self.remark}\n')
 
     def find_element(self) -> WebElement:
         """
-        Using the traditional find_element method to locate element without any waiting behavior.
+        Using the traditional find_element method 
+        to locate element without any waiting behavior.
         It is recommended for use in situations where no waiting is required,
         such as the Android UiScrollable locator method.
         """
@@ -177,15 +165,26 @@ class Element:
         """
         Selenium and Appium API.
         Packing WebDriverWait(driver, timeout) to accept only the timeout parameter.
+        If you sets a timeout in here, it takes precedence;
+        otherwise, it defaults to the timeout set for the element.
 
         Args:
         - timeout: Maximum time in seconds to wait for the expected condition.
         """
-        # self.wait_timeout is used to record the final timeout value.
-        # If the function sets a timeout, it takes precedence;
-        # otherwise, it defaults to the timeout set for the element.
-        self._wait_timeout = self.element_timeout if timeout is None else timeout
+        self._wait_timeout = self.timeout if timeout is None else timeout
         return WebDriverWait(self.driver, self._wait_timeout)
+    
+    @property
+    def wait_timeout(self):
+        """
+        Get the final waiting timeout of the element.
+        If no element action has been executed yet,
+        it will return None.
+        """
+        try:
+            return self._wait_timeout
+        except AttributeError:
+            return None
 
     def find(
             self,
@@ -1067,8 +1066,9 @@ class Element:
             if Timeout.reraise(reraise):
                 raise
             return False
-        
-    def action_click(self) -> None:
+    
+    # TODO rewrite description for it will return self.
+    def action_click(self, perform: bool = True) -> Element:
         """
         Selenium ActionChains API.
         Clicks an element.
@@ -1079,9 +1079,12 @@ class Element:
         and then chain it with the original ActionChains methods.
         """
         element = self.wait_present(reraise=True)
-        ActionChains(self.driver).click(element).perform()
+        action = self.action.click(element)
+        if perform:
+            action.perform()
+        return self
 
-    def click_and_hold(self) -> None:
+    def click_and_hold(self, perform: bool = True) -> Element:
         """
         Selenium ActionChains API.
         Holds down the left mouse button on an element.
@@ -1092,9 +1095,12 @@ class Element:
         and then chain it with the original ActionChains methods.
         """
         element = self.wait_present(reraise=True)
-        ActionChains(self.driver).click_and_hold(element).perform()
+        action = self.action.click_and_hold(element)
+        if perform:
+            action.perform()
+        return self
     
-    def context_click(self) -> None:
+    def context_click(self, perform: bool = True) -> Element:
         """
         Selenium ActionChains API.
         Performs a context-click (right click) on an element.
@@ -1105,9 +1111,12 @@ class Element:
         and then chain it with the original ActionChains methods.
         """
         element = self.wait_present(reraise=True)
-        ActionChains(self.driver).context_click(element).perform()
+        action = self.action.context_click(element)
+        if perform:
+            action.perform()
+        return self
 
-    def double_click(self) -> None:
+    def double_click(self, perform: bool = True) -> Element:
         """
         Selenium ActionChains API.
         Double-clicks an element.
@@ -1118,9 +1127,15 @@ class Element:
         and then chain it with the original ActionChains methods.
         """
         element = self.wait_present(reraise=True)
-        ActionChains(self.driver).double_click(element).perform()
+        action = self.action.double_click(element)
+        if perform:
+            action.perform()
+        return self
 
-    def drag_and_drop(self, target: Element | SeleniumWebElement) -> None:
+    def drag_and_drop(self, 
+            target: Element | SeleniumWebElement,
+            perform: bool = True
+    ) -> Element:
         """
         Selenium ActionChains API.
         Holds down the left mouse button on the source element, then moves
@@ -1134,9 +1149,17 @@ class Element:
         source = self.wait_present(reraise=True)
         if isinstance(target, Element):
             target = target.wait_present(reraise=True)
-        ActionChains(self.driver).drag_and_drop(source, target).perform()
+        action = self.action.drag_and_drop(source, target)
+        if perform:
+            action.perform()
+        return self
 
-    def drag_and_drop_by_offset(self, xoffset: int, yoffset: int) -> None:
+    def drag_and_drop_by_offset(
+            self, 
+            xoffset: int, 
+            yoffset: int,
+            perform: bool = True
+        ) -> Element:
         """
         Selenium ActionChains API.
         Holds down the left mouse button on the source element,
@@ -1152,9 +1175,12 @@ class Element:
         and then chain it with the original ActionChains methods.
         """
         element = self.wait_present(reraise=True)
-        ActionChains(self.driver).drag_and_drop_by_offset(element, xoffset, yoffset).perform()
+        action = self.action.drag_and_drop_by_offset(element, xoffset, yoffset)
+        if perform:
+            action.perform()
+        return self
 
-    def move_to_element(self) -> None:
+    def move_to_element(self, perform: bool = True) -> Element:
         """
         Selenium ActionChains API.
         Moving the mouse to the middle of an element.
@@ -1165,9 +1191,17 @@ class Element:
         and then chain it with the original ActionChains methods.
         """
         element = self.wait_present(reraise=True)
-        ActionChains(self.driver).move_to_element(element).perform()
+        action = self.action.move_to_element(element)
+        if perform:
+            action.perform()
+        return self
 
-    def move_to_element_with_offset(self, xoffset: int, yoffset: int) -> None:
+    def move_to_element_with_offset(
+            self, 
+            xoffset: int, 
+            yoffset: int,
+            perform: bool = True
+        ) -> Element:
         """
         Selenium ActionChains API.
         Move the mouse by an offset of the specified element.
@@ -1183,9 +1217,12 @@ class Element:
         and then chain it with the original ActionChains methods.
         """
         element = self.wait_present(reraise=True)
-        ActionChains(self.driver).move_to_element_with_offset(element, xoffset, yoffset).perform()
+        action = self.action.move_to_element_with_offset(element, xoffset, yoffset)
+        if perform:
+            action.perform()
+        return self
 
-    def release(self) -> None:
+    def release(self, perform: bool = True) -> Element:
         """
         Selenium ActionChains API.
         Releasing a held mouse button on an element.
@@ -1196,9 +1233,16 @@ class Element:
         and then chain it with the original ActionChains methods.
         """
         element = self.wait_present(reraise=True)
-        ActionChains(self.driver).release(element).perform()
+        action = self.action.release(element)
+        if perform:
+            action.perform()
+        return self
 
-    def send_keys_to_element(self, *keys_to_send: str) -> None:
+    def send_keys_to_element(
+            self, 
+            *keys_to_send: str,
+            perform: bool = True
+        ) -> Element:
         """
         Selenium ActionChains API.
         Sends keys to an element.
@@ -1212,9 +1256,12 @@ class Element:
         and then chain it with the original ActionChains methods.
         """
         element = self.wait_present(reraise=True)
-        ActionChains(self.driver).send_keys_to_element(element, *keys_to_send).perform()
+        action = self.action.send_keys_to_element(element, *keys_to_send)
+        if perform:
+            action.perform()
+        return self
 
-    def scroll_to_element(self) -> None:
+    def scroll_to_element(self, perform: bool = True) -> Element:
         """
         Selenium API.
         If the element is outside the viewport,
@@ -1226,9 +1273,41 @@ class Element:
         and then chain it with the original ActionChains methods.
         """
         element = self.wait_present(reraise=True)
-        ActionChains(self.driver).scroll_to_element(element).perform()
+        action = self.action.scroll_to_element(element)
+        if perform:
+            action.perform()
+        return self
 
-    # TODO: scroll_from_origin
+    # TODO Below can be refactor like app driver.swipe(*offset)
+    def scroll_origin(self, x_offset: int = 0, y_offset: int = 0) -> ScrollOrigin:
+        """
+        Get the scroll originates by element center plus provided offsets.
+        This function should be used with `scroll_from_origin`.
+
+        Args:
+        - x_offset: from origin element center, a negative value offset left.
+        - y_offset: from origin element center, a negative value offset up.
+        """
+        element = self.wait_present(reraise=True)
+        return ScrollOrigin.from_element(element, x_offset, y_offset)
+
+    def scroll_from_origin(self, scroll_origin: ScrollOrigin, delta_x: int, delta_y: int):
+        """
+        Scrolls by provided amount based on a provided origin. 
+        The scroll origin is the center of an element plus any offsets. 
+        If the element is not in the viewport, 
+        the bottom of the element will first be scrolled to the bottom of the viewport.
+
+        Args:
+        - scroll_origin: The ScrollOrigin object which is got from 
+            my_page.target_element.scroll_origin() method.
+        - delta_x: Distance along X axis to scroll using the wheel. A negative value scrolls left.
+        - delta_y: Distance along Y axis to scroll using the wheel. A negative value scrolls up.
+        
+        Raises:
+          - MoveTargetOutOfBoundsException: If the origin with offset is outside the viewport.
+        """
+        ActionChains(self.driver).scroll_from_origin(scroll_origin, delta_x, delta_y).perform()
 
     @property
     def options(self) -> list[SeleniumWebElement]:
