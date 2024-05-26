@@ -231,6 +231,43 @@ class Element:
                 raise
             return False
 
+    def wait_present_(
+            self,
+            timeout: int | float | None = None,
+            reraise: bool | None = None
+    ) -> WebElement | Literal[False]:
+        """
+        Selenium and Appium API.
+        Wait for the element to be `present`.
+
+        Args:
+        - timeout: Maximum time in seconds to wait for the element to become present.
+        - reraise: True means reraising TimeoutException; vice versa.
+
+        Returns:
+        - WebElement: The element is present before timeout.
+        - False: The element is still not present after timeout.
+        """
+        # 1. present -> 其他高位狀態
+        # page.element.text  此時會有 present_element
+        # page.element.click()  此時可用 present_element, 但尚未有 clickable_element,
+        # 此處是否在 wait_clickable 內判斷 如果有 present_element 則引用 element_to_be_clickable(present_element)
+        # 不用再重新等待尋找
+
+        # 2. 其他高位狀態 -> present
+        # page.element.wait_clickable()  此時會有 present_element, visible_element, clickable_element
+        # page.element.text  此時可用 present_element
+
+        try:
+            self._present_element = self.wait(timeout).until(
+                ecex.presence_of_element_located(self.locator, self.index),
+                f'Wait for element {self.remark} to be present timed out after {self._wait_timeout} seconds.')
+            return self._present_element
+        except TimeoutException:
+            if Timeout.reraise(reraise):
+                raise
+            return False
+
     def wait_not_present(
             self,
             timeout: int | float | None = None,
