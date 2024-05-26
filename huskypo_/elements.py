@@ -62,11 +62,11 @@ class Elements:
         self.value = value
 
         # (by, value, timeout)
-        self._timeout = timeout
+        self.timeout = timeout
         # (by, value, remark)
         if not isinstance(timeout, (int, float, type(None))):
             remark = str(timeout)
-            self._timeout = None
+            self.timeout = None
 
         # (by, value, timeout, remark)
         self.remark = remark
@@ -74,7 +74,7 @@ class Elements:
             self.remark = self.value
 
     def __get__(self, instance: Page, owner):
-        # Dynamically obtain the page instance and 
+        # Dynamically obtain the page instance and
         # execute the corresponding function only when needed.
         self._page = instance
         return self
@@ -99,11 +99,11 @@ class Elements:
         return (self.by, self.value)
 
     @property
-    def timeout(self):
+    def initial_timeout(self):
         """
         Get the initial timeout of the elements.
         """
-        return Timeout.DEFAULT if self._timeout is None else self._timeout
+        return Timeout.DEFAULT if self.timeout is None else self.timeout
 
     def test_attributes(self):
         """
@@ -112,7 +112,7 @@ class Elements:
         logstack.info(f'by               : {self.by}')
         logstack.info(f'value            : {self.value}')
         logstack.info(f'locator          : {self.locator}')
-        logstack.info(f'timeout          : {self.timeout}')
+        logstack.info(f'timeout          : {self.initial_timeout}')
         logstack.info(f'remark           : {self.remark}\n')
 
     def find_elements(self) -> list[WebElement]:
@@ -135,9 +135,9 @@ class Elements:
         Args:
         - timeout: Maximum time in seconds to wait for the expected condition.
         """
-        self._wait_timeout = self.timeout if timeout is None else timeout
+        self._wait_timeout = self.initial_timeout if timeout is None else timeout
         return WebDriverWait(self.driver, self._wait_timeout)
-    
+
     @property
     def wait_timeout(self):
         """

@@ -11,7 +11,7 @@ import math
 import platform
 from typing import Any, Literal, TypeAlias
 
-from selenium.common.exceptions import TimeoutException
+from selenium.common.exceptions import TimeoutException, StaleElementReferenceException
 from selenium.webdriver.common.action_chains import ActionChains
 from selenium.webdriver.common.actions.wheel_input import ScrollOrigin
 from selenium.webdriver.common.keys import Keys
@@ -94,11 +94,11 @@ class Element:
             self.index = None
 
         # (by, value, index, timeout)
-        self._timeout = timeout
+        self.timeout = timeout
         # (by, value, index, remark)
         if not isinstance(timeout, (int, float, type(None))):
             remark = str(timeout)
-            self._timeout = None
+            self.timeout = None
 
         # (by, value, index, timeout, remark)
         self.remark = remark
@@ -135,11 +135,11 @@ class Element:
         return (self.by, self.value)
 
     @property
-    def timeout(self):
+    def initial_timeout(self):
         """
         Get the initial timeout of the element.
         """
-        return Timeout.DEFAULT if self._timeout is None else self._timeout
+        return Timeout.DEFAULT if self.timeout is None else self.timeout
 
     def test_attributes(self):
         """
@@ -149,7 +149,7 @@ class Element:
         logstack.info(f'value            : {self.value}')
         logstack.info(f'locator          : {self.locator}')
         logstack.info(f'index            : {self.index}')
-        logstack.info(f'timeout          : {self.timeout}')
+        logstack.info(f'timeout          : {self.initial_timeout}')
         logstack.info(f'remark           : {self.remark}\n')
 
     def find_element(self) -> WebElement:
@@ -171,7 +171,7 @@ class Element:
         Args:
         - timeout: Maximum time in seconds to wait for the expected condition.
         """
-        self._wait_timeout = self.timeout if timeout is None else timeout
+        self._wait_timeout = self.initial_timeout if timeout is None else timeout
         return WebDriverWait(self.driver, self._wait_timeout)
 
     @property
