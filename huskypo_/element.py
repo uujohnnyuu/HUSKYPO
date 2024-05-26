@@ -106,7 +106,7 @@ class Element:
             self.remark = f'{self.value}' if self.index is None else f'({self.value})[{self.index}]'
 
     def __get__(self, instance: Page, owner):
-        # Dynamically obtain the page instance and 
+        # Dynamically obtain the page instance and
         # execute the corresponding function only when needed.
         self._page = instance
         return self
@@ -119,7 +119,7 @@ class Element:
     @property
     def driver(self) -> WebDriver:
         return self._page._driver
-    
+
     @property
     def action(self) -> ActionChains:
         return self._page._action
@@ -173,7 +173,7 @@ class Element:
         """
         self._wait_timeout = self.timeout if timeout is None else timeout
         return WebDriverWait(self.driver, self._wait_timeout)
-    
+
     @property
     def wait_timeout(self):
         """
@@ -619,7 +619,7 @@ class Element:
         """
         element = self.wait_present(timeout, False)
         return element.is_displayed() if element else False
-    
+
     def swipe_by(
             self,
             offset: Coordinate = {'start_x': 0.5, 'start_y': 0.75, 'end_x': 0.5, 'end_y': 0.25},
@@ -701,7 +701,7 @@ class Element:
         self.__start_swiping_by(offset, duration, timeout, max_swipe)
         self.__start_adjusting_by(offset, area, max_adjust, min_distance, duration)
         return self
-    
+
     def flick_by(
             self,
             offset: Coordinate = {'start_x': 0.5, 'start_y': 0.75, 'end_x': 0.5, 'end_y': 0.25},
@@ -777,7 +777,7 @@ class Element:
             # Get absolute area coordinate by scrollable element rect.
             area = my_page.scrollable_element.rect
             my_page.target_element.flick_by((0.3, 0.85, 0.5, 0.35), area)
-        
+
         """
         area = self.__get_area(area)
         offset = self.__get_offset(offset, area)
@@ -786,8 +786,8 @@ class Element:
         return self
 
     def __get_coordinate(
-            self, 
-            coordinate: Coordinate, 
+            self,
+            coordinate: Coordinate,
             name: str
     ) -> TupleCoordinate:
 
@@ -798,7 +798,7 @@ class Element:
             values = coordinate
         else:
             raise TypeError(f'"{name}" should be dict or tuple.')
-        
+
         # is coordinate
         if all(isinstance(value, int) for value in values):
             values_type = int
@@ -806,32 +806,32 @@ class Element:
             values_type = float
         else:
             raise TypeError(f'All "{name}" values should be "int" or "float".')
-        
+
         # if float, all should be (0 <= x <= 1)
         if values_type == float and not all(0 <= value <= 1 for value in values):
             raise ValueError(f'All "{name}" values are floats and should be between "0.0" and "1.0".')
-        
+
         return values
-    
+
     def __get_area(self, area: Coordinate) -> tuple[int, int, int, int]:
 
         area_x, area_y, area_width, area_height = self.__get_coordinate(area, 'area')
 
         if isinstance(area_width, float):
-            window_x, window_y, window_width, window_height = Page(self.driver).get_window_rect().values()
+            window_x, window_y, window_width, window_height = self._page.get_window_rect().values()
             area_x = window_x + int(window_width * area_x)
             area_y = window_y + int(window_height * area_y)
             area_width = int(window_width * area_width)
             area_height = int(window_height * area_height)
-        
+
         area = (area_x, area_y, area_width, area_height)
         logstack._logging(f'🟢 area: {area}')
         return area
-    
-    def __get_offset(self, 
-            offset: Coordinate, 
-            area: tuple[int, int, int, int]
-        ) -> tuple[int, int, int, int]:
+
+    def __get_offset(self,
+                     offset: Coordinate,
+                     area: tuple[int, int, int, int]
+                     ) -> tuple[int, int, int, int]:
 
         start_x, start_y, end_x, end_y = self.__get_coordinate(offset, 'offset')
 
@@ -841,11 +841,11 @@ class Element:
             start_y = area_y + int(area_height * start_y)
             end_x = area_x + int(area_width * end_x)
             end_y = area_y + int(area_height * end_y)
-        
+
         offset = (start_x, start_y, end_x, end_y)
         logstack._logging(f'🟢 offset: {offset}')
         return offset
-    
+
     def __start_swiping_by(
             self,
             offset: tuple[int, int, int, int],
@@ -857,12 +857,13 @@ class Element:
         count = 0
         while not self.is_viewable(timeout):
             if count == max_swipe:
-                logstack._logging(f'🟡 Stop swiping to element {self.remark} as the maximum swipe count of {max_swipe} has been reached.')
+                logstack._logging(
+                    f'🟡 Stop swiping to element {self.remark} as the maximum swipe count of {max_swipe} has been reached.')
             self.driver.swipe(*offset, duration)
             count += 1
         logstack._logging(f'✅ End swiping as the element {self.remark} is now viewable.')
         return True
-    
+
     def __start_flicking_by(
             self,
             offset: tuple[int, int, int, int],
@@ -873,12 +874,13 @@ class Element:
         count = 0
         while not self.is_viewable(timeout):
             if count == max_swipe:
-                logstack._logging(f'🟡 Stop flicking to element {self.remark} as the maximum flick count of {max_swipe} has been reached.')
+                logstack._logging(
+                    f'🟡 Stop flicking to element {self.remark} as the maximum flick count of {max_swipe} has been reached.')
             self.driver.flick(*offset)
             count += 1
         logstack._logging(f'✅ End flicking as the element {self.remark} is now viewable.')
         return True
-    
+
     def __start_adjusting_by(
             self,
             offset: tuple[int, int, int, int],
@@ -905,7 +907,7 @@ class Element:
             # element border
             element_left, element_right, element_top, element_bottom = self.border.values()
 
-            # delta = (area - element) and compare with min distance 
+            # delta = (area - element) and compare with min distance
             delta_left = get_final_delta(area_left - element_left)
             delta_right = get_final_delta(area_right - element_right)
             delta_top = get_final_delta(area_top - element_top)
@@ -937,12 +939,13 @@ class Element:
             else:
                 logstack._logging(f'✅ End adjusting as the element {self.remark} is in area.')
                 return True
-            
+
             # max
             if i == max_adjust + 1:
-                logstack._logging(f'🟡 End adjusting to the element {self.remark} as the maximum adjust count of {max_adjust} has been reached.')
+                logstack._logging(
+                    f'🟡 End adjusting to the element {self.remark} as the maximum adjust count of {max_adjust} has been reached.')
                 return True
-            
+
             self.driver.swipe(start_x, start_y, end_x, end_y, duration)
 
     def clear(self) -> WebElement | None:
@@ -1066,7 +1069,7 @@ class Element:
             if Timeout.reraise(reraise):
                 raise
             return False
-    
+
     # TODO rewrite description for it will return self.
     def action_click(self, perform: bool = True) -> Element:
         """
@@ -1099,7 +1102,7 @@ class Element:
         if perform:
             action.perform()
         return self
-    
+
     def context_click(self, perform: bool = True) -> Element:
         """
         Selenium ActionChains API.
@@ -1132,10 +1135,10 @@ class Element:
             action.perform()
         return self
 
-    def drag_and_drop(self, 
-            target: Element | SeleniumWebElement,
-            perform: bool = True
-    ) -> Element:
+    def drag_and_drop(self,
+                      target: Element | SeleniumWebElement,
+                      perform: bool = True
+                      ) -> Element:
         """
         Selenium ActionChains API.
         Holds down the left mouse button on the source element, then moves
@@ -1155,11 +1158,11 @@ class Element:
         return self
 
     def drag_and_drop_by_offset(
-            self, 
-            xoffset: int, 
-            yoffset: int,
-            perform: bool = True
-        ) -> Element:
+        self,
+        xoffset: int,
+        yoffset: int,
+        perform: bool = True
+    ) -> Element:
         """
         Selenium ActionChains API.
         Holds down the left mouse button on the source element,
@@ -1197,11 +1200,11 @@ class Element:
         return self
 
     def move_to_element_with_offset(
-            self, 
-            xoffset: int, 
-            yoffset: int,
-            perform: bool = True
-        ) -> Element:
+        self,
+        xoffset: int,
+        yoffset: int,
+        perform: bool = True
+    ) -> Element:
         """
         Selenium ActionChains API.
         Move the mouse by an offset of the specified element.
@@ -1239,10 +1242,10 @@ class Element:
         return self
 
     def send_keys_to_element(
-            self, 
-            *keys_to_send: str,
-            perform: bool = True
-        ) -> Element:
+        self,
+        *keys_to_send: str,
+        perform: bool = True
+    ) -> Element:
         """
         Selenium ActionChains API.
         Sends keys to an element.
@@ -1303,7 +1306,7 @@ class Element:
             my_page.target_element.scroll_origin() method.
         - delta_x: Distance along X axis to scroll using the wheel. A negative value scrolls left.
         - delta_y: Distance along Y axis to scroll using the wheel. A negative value scrolls up.
-        
+
         Raises:
           - MoveTargetOutOfBoundsException: If the origin with offset is outside the viewport.
         """
@@ -1317,7 +1320,7 @@ class Element:
         """
         element = self.wait_present(reraise=True)
         return Select(element).options
-    
+
     @property
     def all_selected_options(self) -> list[SeleniumWebElement]:
         """
@@ -1615,8 +1618,7 @@ class Element:
             raise TypeError('Parameter "border" should be dict or tuple.')
 
         if 'a' not in direction.lower():
-            page = Page(self.driver)
-            window_left, window_top, window_width, window_height = page.get_window_rect().values()
+            window_left, window_top, window_width, window_height = self._page.get_window_rect().values()
             left, right = [int(window_left + window_width * x / 100) for x in (left, right)]
             top, bottom = [int(window_top + window_height * y / 100) for y in (top, bottom)]
 
@@ -1696,7 +1698,8 @@ class Element:
         count = 0
         while not self.is_viewable(timeout):
             if count == max_swipe:
-                raise ValueError(f'Stop swiping to element {self.remark} as the maximum swipe count of {max_swipe} has been reached.')
+                raise ValueError(
+                    f'Stop swiping to element {self.remark} as the maximum swipe count of {max_swipe} has been reached.')
             self.driver.swipe(sx, sy, ex, ey, duration)
             count += 1
         logstack._logging(f'✅ End swiping as the element {self.remark} is now viewable.')
@@ -1746,6 +1749,7 @@ class Element:
                 logstack._logging(f'✅ End adjusting as the element {self.remark} border is in view border.')
                 return True
             if i == max_adjust + 1:
-                logstack._logging(f'🟡 End adjusting to the element {self.remark} as the maximum adjust count of {max_adjust} has been reached.')
+                logstack._logging(
+                    f'🟡 End adjusting to the element {self.remark} as the maximum adjust count of {max_adjust} has been reached.')
                 return True
             self.driver.swipe(sx, sy, ex, ey, duration)
