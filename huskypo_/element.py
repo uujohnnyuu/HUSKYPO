@@ -236,18 +236,6 @@ class Element:
             timeout: int | float | None = None,
             reraise: bool | None = None
     ) -> WebElement | Literal[False]:
-        """
-        Selenium and Appium API.
-        Wait for the element to be `present`.
-
-        Args:
-        - timeout: Maximum time in seconds to wait for the element to become present.
-        - reraise: True means reraising TimeoutException; vice versa.
-
-        Returns:
-        - WebElement: The element is present before timeout.
-        - False: The element is still not present after timeout.
-        """
         # 1. present -> 其他高位狀態
         # page.element.text  此時會有 present_element
         # page.element.click()  此時可用 present_element, 但尚未有 clickable_element,
@@ -258,6 +246,8 @@ class Element:
         # page.element.wait_clickable()  此時會有 present_element, visible_element, clickable_element
         # page.element.text  此時可用 present_element
 
+        # 由上得出，如果是 present -> 其他高位狀態 需要在 wait_xxx 內判斷是否有 present_element
+        # 如果有，則直接使用 ec.xxx(present_element) 的方式獲取高位狀態
         try:
             self._present_element = self.wait(timeout).until(
                 ecex.presence_of_element_located(self.locator, self.index),
