@@ -361,7 +361,15 @@ class Element:
         Returns:
         - WebElement: The element is clickable before timeout.
         - False: The element is still not present or not clickable after timeout.
+        
+        try:
+            self._present_element.is_displayed()
+            element = self._present_element
+        except (Stale, Attr):
+            element = self.locator
+        接續底下的等待流程
         """
+        
         try:
             return self.wait(timeout).until(
                 ecex.element_located_to_be_clickable(self.locator, self.index),
