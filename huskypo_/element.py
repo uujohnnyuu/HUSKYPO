@@ -1426,8 +1426,7 @@ class Element:
         Selenium Select API.
         Returns a list of all options belonging to this select tag.
         """
-        element = self.wait_present(reraise=True)
-        return Select(element).options
+        return Select(self.present_element).options
 
     @property
     def all_selected_options(self) -> list[SeleniumWebElement]:
@@ -1435,8 +1434,7 @@ class Element:
         Selenium Select API.
         Returns a list of all selected options belonging to this select tag.
         """
-        element = self.wait_present(reraise=True)
-        return Select(element).all_selected_options
+        return Select(self.present_element).all_selected_options
 
     @property
     def first_selected_option(self) -> SeleniumWebElement:
@@ -1444,8 +1442,7 @@ class Element:
         Selenium Select API.
         The first selected option in this select tag (or the currently selected option in a normal select)
         """
-        element = self.wait_present(reraise=True)
-        return Select(element).first_selected_option
+        return Select(self.present_element).first_selected_option
 
     def select_by_value(self, value: str) -> None:
         """
@@ -1458,8 +1455,7 @@ class Element:
         Args:
         - value: The value to match against
         """
-        element = self.wait_present(reraise=True)
-        Select(element).select_by_value(value)
+        Select(self.present_element).select_by_value(value)
 
     def select_by_index(self, index: int) -> None:
         """
@@ -1472,8 +1468,7 @@ class Element:
         index - The option at this index will be selected
         throws NoSuchElementException If there is no option with specified index in SELECT
         """
-        element = self.wait_present(reraise=True)
-        Select(element).select_by_index(index)
+        Select(self.present_element).select_by_index(index)
 
     def select_by_visible_text(self, text: str) -> None:
         """
@@ -1487,8 +1482,7 @@ class Element:
         text - The visible text to match against
         throws NoSuchElementException If there is no option with specified text in SELECT
         """
-        element = self.wait_present(reraise=True)
-        Select(element).select_by_visible_text(text)
+        Select(self.present_element).select_by_visible_text(text)
 
     def deselect_all(self) -> None:
         """
@@ -1496,8 +1490,7 @@ class Element:
         Clear all selected entries.
         This is only valid when the SELECT supports multiple selections.
         """
-        element = self.wait_present(reraise=True)
-        Select(element).deselect_all()
+        Select(self.present_element).deselect_all()
 
     def deselect_by_value(self, value: str) -> None:
         """
@@ -1508,8 +1501,7 @@ class Element:
         Args:
         - value: The value to match against
         """
-        element = self.wait_present(reraise=True)
-        Select(element).deselect_by_value(value)
+        Select(self.present_element).deselect_by_value(value)
 
     def deselect_by_index(self, index: int) -> None:
         """
@@ -1521,8 +1513,7 @@ class Element:
         Args:
         - index: The option at this index will be deselected
         """
-        element = self.wait_present(reraise=True)
-        Select(element).deselect_by_index(index)
+        Select(self.present_element).deselect_by_index(index)
 
     def deselect_by_visible_text(self, text: str) -> None:
         """
@@ -1534,8 +1525,7 @@ class Element:
         Args:
         - text: The visible text to match against
         """
-        element = self.wait_present(reraise=True)
-        Select(element).deselect_by_visible_text(text)
+        Select(self.present_element).deselect_by_visible_text(text)
 
     @property
     def location_in_view(self) -> dict[str, int]:
@@ -1544,74 +1534,104 @@ class Element:
         Retrieve the location (coordination) of the element relative to the view when it is present.
         Return: {'x': int, 'y': int}
         """
-        return self.wait_present(reraise=True).location_in_view
+        try:
+            return self._present_element.location_in_view
+        except ElementException:
+            return self.wait_present(reraise=True).location_in_view
 
     def enter(self) -> None:
         """
         Selenium API
         Send keys ENTER to the element.
         """
-        self.wait_present(reraise=True).send_keys(Keys.ENTER)
+        try:
+            self._present_element.send_keys(Keys.ENTER)
+        except ElementException:
+            self.wait_present(reraise=True).send_keys(Keys.ENTER)
 
     def select_all(self) -> None:
         """
         Selenium API
         Send keys "COMMAND/CONTROL + A" to the element.
         """
-        key_c = Keys.COMMAND if platform.system().lower() == "darwin" else Keys.CONTROL
-        self.wait_present(reraise=True).send_keys(key_c, "a")
+        first = Keys.COMMAND if platform.system().lower() == "darwin" else Keys.CONTROL
+        try:
+            self._present_element.send_keys(first, 'a')
+        except ElementException:
+            self.wait_present(reraise=True).send_keys(first, 'a')
 
     def cut(self) -> None:
         """
         Selenium API
         Send keys "COMMAND/CONTROL + X" to the element.
         """
-        key_c = Keys.COMMAND if platform.system().lower() == "darwin" else Keys.CONTROL
-        self.wait_present(reraise=True).send_keys(key_c, "x")
+        first = Keys.COMMAND if platform.system().lower() == "darwin" else Keys.CONTROL
+        try:
+            self._present_element.send_keys(first, 'x')
+        except ElementException:
+            self.wait_present(reraise=True).send_keys(first, 'x')
 
     def copy(self) -> None:
         """
         Selenium API
         Send keys "COMMAND/CONTROL + C" to the element.
         """
-        key_c = Keys.COMMAND if platform.system().lower() == "darwin" else Keys.CONTROL
-        self.wait_present(reraise=True).send_keys(key_c, "c")
+        first = Keys.COMMAND if platform.system().lower() == "darwin" else Keys.CONTROL
+        try:
+            self._present_element.send_keys(first, 'c')
+        except ElementException:
+            self.wait_present(reraise=True).send_keys(first, 'c')
 
     def paste(self) -> None:
         """
         Selenium API
         Send keys "COMMAND/CONTROL + V" to the element.
         """
-        key_c = Keys.COMMAND if platform.system().lower() == "darwin" else Keys.CONTROL
-        self.wait_present(reraise=True).send_keys(key_c, "v")
+        first = Keys.COMMAND if platform.system().lower() == "darwin" else Keys.CONTROL
+        try:
+            self._present_element.send_keys(first, 'v')
+        except ElementException:
+            self.wait_present(reraise=True).send_keys(first, 'v')
 
     def backspace(self) -> None:
         """
         Selenium API
         Send keys BACKSPACE to the element.
         """
-        self.wait_present(reraise=True).send_keys(Keys.BACKSPACE)
+        try:
+            self._present_element.send_keys(Keys.BACKSPACE)
+        except ElementException:
+            self.wait_present(reraise=True).send_keys(Keys.BACKSPACE)
 
     def delete(self) -> None:
         """
         Selenium API
         Send keys DELETE to the element.
         """
-        self.wait_present(reraise=True).send_keys(Keys.DELETE)
+        try:
+            self._present_element.send_keys(Keys.DELETE)
+        except ElementException:
+            self.wait_present(reraise=True).send_keys(Keys.DELETE)
 
     def tab(self) -> None:
         """
         Selenium API
         Send keys TAB to the element.
         """
-        self.wait_present(reraise=True).send_keys(Keys.TAB)
+        try:
+            self._present_element.send_keys(Keys.TAB)
+        except ElementException:
+            self.wait_present(reraise=True).send_keys(Keys.TAB)
 
     def space(self) -> None:
         """
         Selenium API
         Send keys SPACE to the element.
         """
-        self.wait_present(reraise=True).send_keys(Keys.SPACE)
+        try:
+            self._present_element.send_keys(Keys.SPACE)
+        except ElementException:
+            self.wait_present(reraise=True).send_keys(Keys.SPACE)
 
     def swipe_into_view(
             self,
