@@ -230,8 +230,10 @@ class Element:
         """
         try:
             self._present_element.is_displayed()
+            logstack.info(f'✅ MARK: present_element: {self.present_element}')
             return self._present_element
         except ElementException:
+            logstack.info(f'✅ MARK: locator: {self.locator}')
             return self.locator
         
     @property
@@ -242,8 +244,10 @@ class Element:
         """
         try:
             self._present_element.is_displayed()
+            logstack.info(f'✅ PRESENT ELEMENT: inner: {self._present_element}')
             return self._present_element
         except ElementException:
+            logstack.info(f'✅ PRESENT ELEMENT: wait_present()')
             return self.wait_present(reraise=True)
         
     def wait_present(
