@@ -234,11 +234,23 @@ class Element:
         """
         return self.wait_present(timeout, reraise)
         
-    def _wait_present(
+    def wait_present(
             self,
             timeout: int | float | None = None,
             reraise: bool | None = None
     ) -> WebElement | Literal[False]:
+        """
+        Selenium and Appium API.
+        Wait for the element to be `present`.
+
+        Args:
+        - timeout: Maximum time in seconds to wait for the element to become present.
+        - reraise: True means reraising TimeoutException; vice versa.
+
+        Returns:
+        - WebElement: The element is present before timeout.
+        - False: The element is still not present after timeout.
+        """
         try:
             self._present_element = self.wait(timeout).until(
                 ecex.presence_of_element_located(self.locator, self.index),
@@ -276,11 +288,23 @@ class Element:
                 raise
             return False
         
-    def _wait_visible(
+    def wait_visible(
             self,
             timeout: int | float | None = None,
             reraise: bool | None = None
     ) -> WebElement | Literal[False]:
+        """
+        Selenium and Appium API.
+        Wait for the element to be `visible`.
+
+        Args:
+        - timeout: Maximum time in seconds to wait for the element to become visible.
+        - reraise: True means reraising TimeoutException; vice versa.
+
+        Returns:
+        - WebElement: The element is visible before timeout.
+        - False: The element is still not present or not visible after timeout.
+        """
         try:
             self._visible_element = self.wait(timeout).until(
                 ecex.visibility_of_element(self._mark, self.index),
@@ -332,11 +356,23 @@ class Element:
                 raise
             return False
         
-    def _wait_clickable(
+    def wait_clickable(
             self,
             timeout: int | float | None = None,
             reraise: bool | None = None
     ) -> WebElement | Literal[False]:
+        """
+        Selenium and Appium API.
+        Wait for the element to be `clickable`.
+
+        Args:
+        - timeout: Maximum time in seconds to wait for the element to become clickable.
+        - reraise: True means reraising TimeoutException; vice versa.
+
+        Returns:
+        - WebElement: The element is clickable before timeout.
+        - False: The element is still not present or not clickable after timeout.
+        """
         try:
             self._clickable_element = self.wait(timeout).until(
                 ecex.element_to_be_clickable(self._mark, self.index),
@@ -348,7 +384,7 @@ class Element:
                 raise
             return False
         
-    def _wait_not_clickable(
+    def wait_not_clickable(
             self,
             timeout: int | float | None = None,
             present: bool = True,
@@ -388,7 +424,7 @@ class Element:
                 raise
             return False
         
-    def _wait_selected(
+    def wait_selected(
             self,
             timeout: int | float | None = None,
             reraise: bool | None = None
@@ -453,260 +489,6 @@ class Element:
             if Timeout.reraise(reraise):
                 raise
             return False
-        
-    @property
-    def _text(self) -> str:
-        """
-        Selenium and Appium API.
-        The text of the element when it is present.
-        """
-        try:
-            return self._present_element.text
-        except ElementException:
-            return self._wait_present(reraise=True).text
-
-    def _click(self) -> None:
-        """
-        Selenium and Appium API.
-        The text of the element when it is present.
-        """
-        try:
-            self._clickable_element.click()
-        except ElementException:
-            self._wait_clickable(reraise=True).click()
-
-    def wait_present(
-            self,
-            timeout: int | float | None = None,
-            reraise: bool | None = None
-    ) -> WebElement | Literal[False]:
-        """
-        Selenium and Appium API.
-        Wait for the element to be `present`.
-
-        Args:
-        - timeout: Maximum time in seconds to wait for the element to become present.
-        - reraise: True means reraising TimeoutException; vice versa.
-
-        Returns:
-        - WebElement: The element is present before timeout.
-        - False: The element is still not present after timeout.
-        """
-        try:
-            return self.wait(timeout).until(
-                ecex.presence_of_element_located(self.locator, self.index),
-                f'Wait for element {self.remark} to be present timed out after {self._wait_timeout} seconds.')
-        except TimeoutException:
-            if Timeout.reraise(reraise):
-                raise
-            return False
-        
-    def wait_not_present(
-            self,
-            timeout: int | float | None = None,
-            reraise: bool | None = None
-    ) -> bool:
-        """
-        Selenium and Appium API.
-        Wait for the element to be `NOT present`.
-
-        Args:
-        - timeout: Maximum time in seconds to wait for the element to become not present.
-        - reraise: True means reraising TimeoutException; vice versa.
-
-        Returns:
-        - True: The element is not present before timeout.
-        - False: The element is still present after timeout.
-        """
-        try:
-            self.wait(timeout).until_not(
-                ecex.presence_of_element_located(self.locator, self.index),
-                f'Wait for element {self.remark} to be not present timed out after {self._wait_timeout} seconds.')
-            return True
-        except TimeoutException:
-            if Timeout.reraise(reraise):
-                raise
-            return False
-
-    def wait_visible(
-            self,
-            timeout: int | float | None = None,
-            reraise: bool | None = None
-    ) -> WebElement | Literal[False]:
-        """
-        Selenium and Appium API.
-        Wait for the element to be `visible`.
-
-        Args:
-        - timeout: Maximum time in seconds to wait for the element to become visible.
-        - reraise: True means reraising TimeoutException; vice versa.
-
-        Returns:
-        - WebElement: The element is visible before timeout.
-        - False: The element is still not present or not visible after timeout.
-        """
-        try:
-            return self.wait(timeout).until(
-                ecex.visibility_of_element_located(self.locator, self.index),
-                f'Wait for element {self.remark} to be visible timed out after {self._wait_timeout} seconds.')
-        except TimeoutException:
-            if Timeout.reraise(reraise):
-                raise
-            return False
-
-    def wait_not_visible(
-            self,
-            timeout: int | float | None = None,
-            present: bool = True,
-            reraise: bool | None = None
-    ) -> bool:
-        """
-        Selenium and Appium API.
-        Wait for the element to be `not visible`.
-
-        Args:
-        - timeout: Maximum time in seconds to wait for the element to become not visible.
-        - present:
-            - True: Only accept not visible condition.
-            - False: Accept not present as a part of not visible condition.
-        - reraise: True means reraising TimeoutException; vice versa.
-
-        Returns:
-        - True: The element is not visible before the timeout.
-        - None: The element is not present before the timeout, and the present parameter is True.
-        - False: The element is still visible after the timeout.
-        """
-        try:
-            result = self.wait(timeout).until_not(
-                ecex.visibility_of_element_located(self.locator, self.index),
-                f'Wait for element {self.remark} to be not visible timed out after {self._wait_timeout} seconds.')
-            if result and present:
-                return None
-            return True
-        except TimeoutException:
-            if Timeout.reraise(reraise):
-                raise
-            return False
-
-    def wait_clickable(
-            self,
-            timeout: int | float | None = None,
-            reraise: bool | None = None
-    ) -> WebElement | Literal[False]:
-        """
-        Selenium and Appium API.
-        Wait for the element to be `clickable`.
-
-        Args:
-        - timeout: Maximum time in seconds to wait for the element to become clickable.
-        - reraise: True means reraising TimeoutException; vice versa.
-
-        Returns:
-        - WebElement: The element is clickable before timeout.
-        - False: The element is still not present or not clickable after timeout.
-        """
-        try:
-            return self.wait(timeout).until(
-                ecex.element_located_to_be_clickable(self.locator, self.index),
-                f'Wait for element {self.remark} to be clickable timed out after {self._wait_timeout} seconds.')
-        except TimeoutException:
-            if Timeout.reraise(reraise):
-                raise
-            return False
-
-    def wait_not_clickable(
-            self,
-            timeout: int | float | None = None,
-            present: bool = True,
-            reraise: bool | None = None
-    ) -> bool:
-        """
-        Selenium and Appium API.
-        Wait for the element to be `not clickable`.
-
-        Args:
-        - timeout: Maximum time in seconds to wait for the element to become not clickable.
-        - present:
-            - True: Only accept not clickable as a condition.
-            - False: Accept not present as a part of not clickable condition.
-        - reraise: True means reraising TimeoutException; vice versa.
-
-        Returns:
-        - True: The element is not clickable before the timeout.
-        - None: The element is not present before the timeout, and the present parameter is True.
-        - False: The element is still clickable after the timeout.
-        """
-        try:
-            result = self.wait(timeout).until_not(
-                ecex.element_located_to_be_clickable(self.locator, self.index),
-                f'Wait for element {self.remark} to be not clickable timed out after {self._wait_timeout} seconds.')
-            if result and present:
-                return None
-            return True
-        except TimeoutException:
-            if Timeout.reraise(reraise):
-                raise
-            return False
-
-    def wait_selected(
-            self,
-            timeout: int | float | None = None,
-            reraise: bool | None = None
-    ) -> bool:
-        """
-        Selenium and Appium API.
-        Wait for the element to be `selected`.
-
-        Args:
-        - timeout: Maximum time in seconds to wait for the element to become selected.
-        - reraise: True means reraising TimeoutException; vice versa.
-
-        Returns:
-        - True: The element is selected before timeout.
-        - False: The element is still not present or not selected after timeout.
-        """
-        try:
-            return self.wait(timeout).until(
-                ecex.element_located_to_be_selected(self.locator, self.index),
-                f'Wait for element {self.remark} to be selected timed out after {self._wait_timeout} seconds.')
-        except TimeoutException:
-            if Timeout.reraise(reraise):
-                raise
-            return False
-
-    def wait_not_selected(
-            self,
-            timeout: int | float | None = None,
-            present: bool = True,
-            reraise: bool | None = None
-    ) -> bool:
-        """
-        Selenium and Appium API.
-        Wait for the element to be `not selected`.
-
-        Args:
-        - timeout: Maximum time in seconds to wait for the element to become not selected.
-        - present:
-            - True: Only accept not selected as a condition.
-            - False: Accept not present as a part of not selected condition.
-        - reraise: True means reraising TimeoutException; vice versa.
-
-        Returns:
-        - True: The element is not selected before the timeout.
-        - None: The element is not present before the timeout, and the present parameter is True.
-        - False: The element is still selected after the timeout.
-        """
-        try:
-            result = self.wait(timeout).until_not(
-                ecex.element_located_to_be_selected(self.locator, self.index),
-                f'Wait for element {self.remark} to be not selected timed out after {self._wait_timeout} seconds.')
-            if result and present:
-                return None
-            return True
-        except TimeoutException:
-            if Timeout.reraise(reraise):
-                raise
-            return False
 
     def is_present(self, timeout: int | float | None = None) -> bool:
         """
@@ -720,36 +502,52 @@ class Element:
         - True: The element is present before timeout.
         - False: The element is still not present after timeout.
         """
-        return True if self.wait_present(timeout, False) else False
+        try:
+            self._present_element.is_displayed()
+            return True
+        except ElementException:
+            return True if self.wait_present(timeout, False) else False
 
     def is_visible(self) -> bool:
         """
         Selenium and Appium API.
         Whether the element is visible.
         """
-        return self.wait_present(reraise=True).is_displayed()
+        try:
+            return self._present_element.is_displayed()
+        except ElementException:
+            return self.wait_present(reraise=True).is_displayed()
 
     def is_enabled(self) -> bool:
         """
         Selenium and Appium API.
         Whether the element is enabled.
         """
-        return self.wait_present(reraise=True).is_enabled()
+        try:
+            return self._present_element.is_enabled()
+        except ElementException:
+            return self.wait_present(reraise=True).is_enabled()
 
     def is_clickable(self) -> bool:
         """
         Selenium and Appium API.
         Whether the element is clickable.
         """
-        element = self.wait_present(reraise=True)
-        return element.is_displayed() and element.is_enabled()
+        try:
+            return self._present_element.is_displayed() and self._present_element.is_enabled()
+        except ElementException:
+            element = self.wait_present(reraise=True)
+            return element.is_displayed() and element.is_enabled()
 
     def is_selected(self) -> bool:
         """
         Selenium and Appium API.
         Whether the element is selected.
         """
-        return self.wait_present(reraise=True).is_selected()
+        try:
+            return self._present_element.is_selected()
+        except ElementException:
+            return self.wait_present(reraise=True).is_selected()
 
     @property
     def text(self) -> str:
@@ -757,7 +555,10 @@ class Element:
         Selenium and Appium API.
         The text of the element when it is present.
         """
-        return self.wait_present(reraise=True).text
+        try:
+            return self._present_element.text
+        except ElementException:
+            return self.wait_present(reraise=True).text
 
     @property
     def visible_text(self) -> str:
@@ -765,7 +566,10 @@ class Element:
         Selenium and Appium API.
         The text of the element when it is visible.
         """
-        return self.wait_visible(reraise=True).text
+        try:
+            return self._visible_element.text
+        except ElementException:
+            return self.wait_visible(reraise=True).text
 
     @property
     def rect(self) -> dict[str, int]:
@@ -776,7 +580,10 @@ class Element:
         Return:
         - We rearrange it as {'x': int, 'y': int, 'width': int, 'height': int}
         """
-        rect = self.wait_present(reraise=True).rect
+        try:
+            rect = self._present_element.rect
+        except ElementException:
+            rect = self.wait_present(reraise=True).rect
         return {'x': rect['x'], 'y': rect['y'], 'width': rect['width'], 'height': rect['height']}
 
     @property
@@ -787,7 +594,10 @@ class Element:
 
         Return: {'x': int, 'y': int}
         """
-        return self.wait_present(reraise=True).location
+        try:
+            return self._present_element.location
+        except ElementException:
+            return self.wait_present(reraise=True).location
 
     @property
     def size(self) -> dict[str, int]:
@@ -798,7 +608,10 @@ class Element:
         Return:
         - we rearrange it to: {'width': int, 'height': int}
         """
-        size = self.wait_present(reraise=True).size
+        try:
+            size = self._present_element.size
+        except ElementException:
+            size = self.wait_present(reraise=True).size
         return {'width': size['width'], 'height': size['height']}
 
     @property
@@ -809,11 +622,14 @@ class Element:
 
         Return: {'left': int, 'right': int, 'top': int, 'bottom': int}
         """
-        rect = self.wait_present(reraise=True).rect
+        try:
+            rect = self._present_element.rect
+        except ElementException:
+            rect = self.wait_present(reraise=True).rect
         left = rect['x']
-        right = rect['x'] + rect['width']
+        right = left + rect['width']
         top = rect['y']
-        bottom = rect['y'] + rect['height']
+        bottom = top + rect['height']
         return {'left': left, 'right': right, 'top': top, 'bottom': bottom}
 
     @property
@@ -824,7 +640,10 @@ class Element:
 
         Return: {'x': int, 'y': int}
         """
-        rect = self.wait_present(reraise=True).rect
+        try:
+            rect = self._present_element.rect
+        except ElementException:
+            rect = self.wait_present(reraise=True).rect
         x = int(rect['x'] + rect['width'] / 2)
         y = int(rect['y'] + rect['height'] / 2)
         return {'x': x, 'y': y}
@@ -834,7 +653,10 @@ class Element:
         Selenium and Appium API.
         Click the element when it is clickable.
         """
-        self.wait_clickable(reraise=True).click()
+        try:
+            self._clickable_element.click()
+        except ElementException:
+            self.wait_clickable(reraise=True).click()
 
     def tap(self, duration: int | None = None) -> None:
         """
