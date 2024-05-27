@@ -11,7 +11,7 @@ import math
 import platform
 from typing import Any, Literal, TypeAlias
 
-from selenium.common.exceptions import TimeoutException, StaleElementReferenceException
+from selenium.common.exceptions import TimeoutException, StaleElementReferenceException, InvalidSessionIdException
 from selenium.webdriver.common.action_chains import ActionChains
 from selenium.webdriver.common.actions.wheel_input import ScrollOrigin
 from selenium.webdriver.common.keys import Keys
@@ -26,14 +26,15 @@ from .by import ByAttribute
 from .page import Page
 from .typing import WebDriver, WebElement, SeleniumWebElement, AppiumWebElement, AppiumWebDriver
 
-# TODO deprecate
-from .by import SwipeAction as SA
+ElementException = (StaleElementReferenceException, InvalidSessionIdException, AttributeError)
 
 IntCoordinate: TypeAlias = dict[str, int] | tuple[int, int, int, int]
 FloatCoordinate: TypeAlias = dict[str, float] | tuple[float, float, float, float]
 TupleCoordinate: TypeAlias = tuple[int, int, int, int] | tuple[float, float, float, float]
 Coordinate: TypeAlias = IntCoordinate | FloatCoordinate
 
+# TODO deprecate
+from .by import SwipeAction as SA
 
 class Element:
 
@@ -145,12 +146,13 @@ class Element:
         """
         unit test
         """
-        logstack.info(f'by               : {self.by}')
-        logstack.info(f'value            : {self.value}')
-        logstack.info(f'locator          : {self.locator}')
-        logstack.info(f'index            : {self.index}')
-        logstack.info(f'timeout          : {self.initial_timeout}')
-        logstack.info(f'remark           : {self.remark}\n')
+        logstack.info(f'by              : {self.by}')
+        logstack.info(f'value           : {self.value}')
+        logstack.info(f'locator         : {self.locator}')
+        logstack.info(f'index           : {self.index}')
+        logstack.info(f'timeout         : {self.timeout}')
+        logstack.info(f'initial_timeout : {self.initial_timeout}')
+        logstack.info(f'remark          : {self.remark}\n')
 
     def find_element(self) -> WebElement:
         """
@@ -204,6 +206,90 @@ class Element:
         - False: The element is still not present after timeout.
         """
         return self.wait_present(timeout, reraise)
+    
+    def _get_present_element(self):
+        try:
+            self._present_element.is_displayed()
+            logstack.info(f'✅ WAIT: Using present element "{self._present_element}".')
+            return self._present_element
+        except ElementException:
+            logstack.info(f'✅ WAIT: Using locator "{self.locator}".')
+            return self.locator
+        
+    def _wait_present(
+            self,
+            timeout: int | float | None = None,
+            reraise: bool | None = None
+    ) -> WebElement | Literal[False]:
+        try:
+            self._present_element = self.wait(timeout).until(
+                ecex.presence_of_element_located(self.locator, self.index),
+                f'Wait for element {self.remark} to be present timed out after {self._wait_timeout} seconds.')
+            return self._present_element
+        except TimeoutException:
+            if Timeout.reraise(reraise):
+                raise
+            return False
+        
+    def _wait_visible(
+            self,
+            timeout: int | float | None = None,
+            reraise: bool | None = None
+    ) -> WebElement | Literal[False]:
+        element = self._get_present_element()
+        try:
+            self._visible_element = self.wait(timeout).until(
+                ecex.visibility_of_element(element, self.index),
+                f'Wait for element {self.remark} to be visible timed out after {self._wait_timeout} seconds.')
+            self._present_element = self._visible_element
+            return self._visible_element
+        except TimeoutException:
+            if Timeout.reraise(reraise):
+                raise
+            return False
+        
+    def _wait_clickable(
+            self,
+            timeout: int | float | None = None,
+            reraise: bool | None = None
+    ) -> WebElement | Literal[False]:
+        element = self._get_present_element()
+        try:
+            self._clickable_element = self.wait(timeout).until(
+                ecex.element_to_be_clickable(element, self.index),
+                f'Wait for element {self.remark} to be clickable timed out after {self._wait_timeout} seconds.')
+            self._present_element = self._visible_element = self._clickable_element
+            return self._clickable_element
+        except TimeoutException:
+            if Timeout.reraise(reraise):
+                raise
+            return False
+        
+    @property
+    def _text(self) -> str:
+        """
+        Selenium and Appium API.
+        The text of the element when it is present.
+        """
+        try:
+            text = self._present_element.text
+            logstack.info(f'✅ TEXT: Using present element "{self._present_element}".')
+        except ElementException:
+            text = self._wait_present(reraise=True).text
+            logstack.info(f'✅ TEXT: Using wait present method.')
+            return text
+
+    def _click(self) -> None:
+        """
+        Selenium and Appium API.
+        The text of the element when it is present.
+        """
+        try:
+            self._clickable_element.click()
+            logstack.info(f'✅ CLICK: Using clickable element "{self._clickable_element}".')
+        except ElementException:
+            self._wait_clickable(reraise=True).click()
+            logstack.info(f'✅ CLICK: Using wait clickable method.')
 
     def wait_present(
             self,
@@ -230,34 +316,7 @@ class Element:
             if Timeout.reraise(reraise):
                 raise
             return False
-
-    def wait_present_(
-            self,
-            timeout: int | float | None = None,
-            reraise: bool | None = None
-    ) -> WebElement | Literal[False]:
-        # 1. present -> 其他高位狀態
-        # page.element.text  此時會有 present_element
-        # page.element.click()  此時可用 present_element, 但尚未有 clickable_element,
-        # 此處是否在 wait_clickable 內判斷 如果有 present_element 則引用 element_to_be_clickable(present_element)
-        # 不用再重新等待尋找
-
-        # 2. 其他高位狀態 -> present
-        # page.element.wait_clickable()  此時會有 present_element, visible_element, clickable_element
-        # page.element.text  此時可用 present_element
-
-        # 由上得出，如果是 present -> 其他高位狀態 需要在 wait_xxx 內判斷是否有 present_element
-        # 如果有，則直接使用 ec.xxx(present_element) 的方式獲取高位狀態
-        try:
-            self._present_element = self.wait(timeout).until(
-                ecex.presence_of_element_located(self.locator, self.index),
-                f'Wait for element {self.remark} to be present timed out after {self._wait_timeout} seconds.')
-            return self._present_element
-        except TimeoutException:
-            if Timeout.reraise(reraise):
-                raise
-            return False
-
+        
     def wait_not_present(
             self,
             timeout: int | float | None = None,
@@ -361,15 +420,7 @@ class Element:
         Returns:
         - WebElement: The element is clickable before timeout.
         - False: The element is still not present or not clickable after timeout.
-        
-        try:
-            self._present_element.is_displayed()
-            element = self._present_element
-        except (Stale, Attr):
-            element = self.locator
-        接續底下的等待流程
         """
-        
         try:
             return self.wait(timeout).until(
                 ecex.element_located_to_be_clickable(self.locator, self.index),

@@ -11,6 +11,90 @@ from selenium.common.exceptions import StaleElementReferenceException
 
 from .typing import AppiumWebDriver, WebDriver, WebElement
 
+def visibility_of_element(
+        element: tuple[str, str] | WebElement,
+        index: int | None
+) -> Callable[[WebDriver], WebElement | Literal[False]]:
+
+    def _predicate(driver: WebDriver):
+        target = element
+        try:
+            if isinstance(target, tuple):
+                if index is None:
+                    # avoid to call both find method when index is not none.
+                    target = driver.find_element(*target)
+                else:
+                    try:
+                        target = driver.find_elements(*target)[index]
+                    except IndexError:
+                        # Due to find_elements not throwing any exceptions,
+                        # we treat an IndexError as a NoSuchElementException,
+                        # it will trigger ignored_exception process in until and until_not method.
+                        raise NoSuchElementException
+            return target if target.is_displayed() else False
+        except StaleElementReferenceException:
+            return False
+
+    return _predicate
+
+def element_to_be_clickable(
+        element: tuple[str, str] | WebElement,
+        index: int | None
+) -> Callable[[WebDriver], WebElement | Literal[False]]:
+    """
+    We referenced the official `element_to_be_clickable` method
+    and named it `element_located_to_be_clickable` to restrict users
+    to only use locator for providing element information,
+    and allowing the use of `driver.find_elements(*locator)[index]` to perform explicit wait.
+    """
+
+    def _predicate(driver: WebDriver):
+        target = element
+        try:
+            if isinstance(target, tuple):
+                if index is None:
+                    # avoid to call both find method when index is not none.
+                    target = driver.find_element(*target)
+                else:
+                    try:
+                        target = driver.find_elements(*target)[index]
+                    except IndexError:
+                        # Due to find_elements not throwing any exceptions,
+                        # we treat an IndexError as a NoSuchElementException,
+                        # it will trigger ignored_exception process in until and until_not method.
+                        raise NoSuchElementException
+            return target if target.is_displayed() and target.is_enabled() else False
+        except StaleElementReferenceException:
+            return False
+
+    return _predicate
+
+def element_to_be_selected(
+        element: tuple[str, str] | WebElement,
+        index: int | None
+) -> Callable[[WebDriver], bool]:
+
+    def _predicate(driver: WebDriver):
+        target = element
+        try:
+            if isinstance(target, tuple):
+                if index is None:
+                    # avoid to call both find method when index is not none.
+                    target = driver.find_element(*target)
+                else:
+                    try:
+                        target = driver.find_elements(*target)[index]
+                    except IndexError:
+                        # Due to find_elements not throwing any exceptions,
+                        # we treat an IndexError as a NoSuchElementException,
+                        # it will trigger ignored_exception process in until and until_not method.
+                        raise NoSuchElementException
+            return target.is_selected()
+        except StaleElementReferenceException:
+            return False
+        
+    return _predicate
+
 
 def presence_of_element_located(
         locator: tuple[str, str],
@@ -111,7 +195,6 @@ def element_located_to_be_clickable(
             return False
 
     return _predicate
-
 
 def element_located_to_be_selected(
         locator: tuple[str, str],

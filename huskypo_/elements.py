@@ -109,11 +109,12 @@ class Elements:
         """
         unit test
         """
-        logstack.info(f'by               : {self.by}')
-        logstack.info(f'value            : {self.value}')
-        logstack.info(f'locator          : {self.locator}')
-        logstack.info(f'timeout          : {self.initial_timeout}')
-        logstack.info(f'remark           : {self.remark}\n')
+        logstack.info(f'by              : {self.by}')
+        logstack.info(f'value           : {self.value}')
+        logstack.info(f'locator         : {self.locator}')
+        logstack.info(f'timeout         : {self.timeout}')
+        logstack.info(f'initial_timeout : {self.initial_timeout}')
+        logstack.info(f'remark          : {self.remark}\n')
 
     def find_elements(self) -> list[WebElement]:
         """
