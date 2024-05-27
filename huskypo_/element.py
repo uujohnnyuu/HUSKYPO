@@ -1393,36 +1393,32 @@ class Element:
             action.perform()
         return self
 
-    # TODO Below can be refactor like app driver.swipe(*offset)
-    def scroll_origin(self, x_offset: int = 0, y_offset: int = 0) -> ScrollOrigin:
+    def scroll_from_element(
+            self, 
+            x_offset: int = 0, 
+            y_offset: int = 0,
+            delta_x: int = 0, 
+            delta_y: int = 0,
+            perform: bool = True
+    ):
         """
-        Get the scroll originates by element center plus provided offsets.
-        This function should be used with `scroll_from_origin`.
-
-        Args:
-        - x_offset: from origin element center, a negative value offset left.
-        - y_offset: from origin element center, a negative value offset up.
-        """
-        element = self.wait_present(reraise=True)
-        return ScrollOrigin.from_element(element, x_offset, y_offset)
-
-    def scroll_from_origin(self, scroll_origin: ScrollOrigin, delta_x: int, delta_y: int):
-        """
-        Scrolls by provided amount based on a provided origin. 
-        The scroll origin is the center of an element plus any offsets. 
+        Selenium ActionChains API.
+        Set the origin to the center of the element with an offset,
+        and perform the swipe with the specified delta.
         If the element is not in the viewport, 
         the bottom of the element will first be scrolled to the bottom of the viewport.
 
         Args:
-        - scroll_origin: The ScrollOrigin object which is got from 
-            my_page.target_element.scroll_origin() method.
+        - x_offset: from origin element center, a negative value offset left.
+        - y_offset: from origin element center, a negative value offset up.
         - delta_x: Distance along X axis to scroll using the wheel. A negative value scrolls left.
         - delta_y: Distance along Y axis to scroll using the wheel. A negative value scrolls up.
-
-        Raises:
-          - MoveTargetOutOfBoundsException: If the origin with offset is outside the viewport.
         """
-        ActionChains(self.driver).scroll_from_origin(scroll_origin, delta_x, delta_y).perform()
+        scroll_origin = ScrollOrigin.from_element(self.present_element, x_offset, y_offset)
+        action = self._action.scroll_from_origin(scroll_origin, delta_x, delta_y)
+        if perform:
+            action.perform()
+        return self
 
     @property
     def options(self) -> list[SeleniumWebElement]:
