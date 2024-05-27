@@ -147,19 +147,6 @@ class Element:
             raise ValueError("""'by' and 'value' cannot be None when performing element operations.
                              Please ensure both are provided with valid values.""")
         return (self.by, self.value)
-    
-    @property
-    def _mark(self):
-        """
-        Internal use.
-        Get WebElement if the element is not stale; otherwise, return the locator.
-        This will be called in wait_related functions.
-        """
-        try:
-            self._present_element.is_displayed()
-            return self._present_element
-        except ElementException:
-            return self.locator
 
     @property
     def initial_timeout(self):
@@ -233,6 +220,31 @@ class Element:
         - False: The element is still not present after timeout.
         """
         return self.wait_present(timeout, reraise)
+    
+    @property
+    def _mark(self) -> WebElement | tuple[str, str]:
+        """
+        Internal use.
+        Get WebElement if the element is not stale; otherwise, return the locator.
+        This will be called in wait_related functions.
+        """
+        try:
+            self._present_element.is_displayed()
+            return self._present_element
+        except ElementException:
+            return self.locator
+        
+    @property
+    def present_element(self) -> WebElement:
+        """
+        Get WebElement if the element is not stale; 
+        otherwise, execute the wait_present to re-find it.
+        """
+        try:
+            self._present_element.is_displayed()
+            return self._present_element
+        except ElementException:
+            return self.wait_present(reraise=True)
         
     def wait_present(
             self,
@@ -680,9 +692,9 @@ class Element:
         Args:
             target: the element to drag to
         """
-        source = self.wait_present(reraise=True)
+        source = self.present_element
         if isinstance(target, Element):
-            target = target.wait_present(reraise=True)
+            target = target.present_element
         return self.driver.drag_and_drop(source, target)
 
     def app_scroll(self, target: Element | AppiumWebElement, duration: int | None = None) -> AppiumWebDriver:
@@ -695,9 +707,9 @@ class Element:
             duration: defines speed of scroll action when moving to target.
                 Default is 600 ms for W3C spec.
         """
-        source = self.wait_present(reraise=True)
+        source = self.present_element
         if isinstance(target, Element):
-            target = target.wait_present(reraise=True)
+            target = target.present_element
         return self.driver.scroll(source, target, duration)
 
     def is_viewable(self, timeout: int | float | None = None) -> bool:
@@ -1049,7 +1061,10 @@ class Element:
         - None: Selenium.
         - WebElement: Appium.
         """
-        return self.wait_present(reraise=True).clear()
+        try:
+            return self._present_element.clear()
+        except ElementException:
+            return self.wait_present(reraise=True).clear()
 
     def send_keys(
             self,
@@ -1071,7 +1086,7 @@ class Element:
         - None: Selenium
         - WebElement: Appium
         """
-        element = self.wait_present(reraise=True)
+        element = self.present_element
         if click:
             element.click()
         if clear:
@@ -1105,7 +1120,10 @@ class Element:
             is_active = "active" in target_element.get_attribute("class")
 
         """
-        return self.wait_present(reraise=True).get_attribute(name)
+        try:
+            return self._present_element.get_attribute(name)
+        except ElementException:
+            return self.wait_present(reraise=True).get_attribute(name)
 
     def get_property(self, name: Any) -> WebElement | bool | dict | str | Any:
         """
@@ -1120,14 +1138,20 @@ class Element:
             text_length = target_element.get_property("text_length")
 
         """
-        return self.wait_present(reraise=True).get_property(name)
+        try:
+            return self._present_element.get_property(name)
+        except ElementException:
+            return self.wait_present(reraise=True).get_property(name)
 
     def submit(self) -> None:
         """
         Selenium API.
         Submits a form.
         """
-        self.wait_present(reraise=True).submit()
+        try:
+            self._present_element.submit()
+        except ElementException:
+            self.wait_present(reraise=True).submit()
 
     @property
     def tag_name(self) -> str:
@@ -1135,14 +1159,20 @@ class Element:
         Selenium API.
         This element's `tagName` property.
         """
-        return self.wait_present(reraise=True).tag_name
+        try:
+            return self._present_element.tag_name
+        except ElementException:
+            return self.wait_present(reraise=True).tag_name
 
     def value_of_css_property(self, property_name: Any) -> str:
         """
         Selenium API.
         The value of a CSS property.
         """
-        return self.wait_present(reraise=True).value_of_css_property(property_name)
+        try:
+            return self._present_element.value_of_css_property(property_name)
+        except ElementException:
+            return self.wait_present(reraise=True).value_of_css_property(property_name)
 
     def switch_to_frame(
             self,
