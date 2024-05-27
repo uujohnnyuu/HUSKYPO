@@ -1203,8 +1203,7 @@ class Element:
         which is an instance of ActionChains, 
         and then chain it with the original ActionChains methods.
         """
-        element = self.wait_present(reraise=True)
-        action = self._action.click(element)
+        action = self._action.click(self.present_element)
         if perform:
             action.perform()
         return self
@@ -1219,8 +1218,7 @@ class Element:
         which is an instance of ActionChains, 
         and then chain it with the original ActionChains methods.
         """
-        element = self.wait_present(reraise=True)
-        action = self._action.click_and_hold(element)
+        action = self._action.click_and_hold(self.present_element)
         if perform:
             action.perform()
         return self
@@ -1235,8 +1233,7 @@ class Element:
         which is an instance of ActionChains, 
         and then chain it with the original ActionChains methods.
         """
-        element = self.wait_present(reraise=True)
-        action = self._action.context_click(element)
+        action = self._action.context_click(self.present_element)
         if perform:
             action.perform()
         return self
@@ -1251,16 +1248,15 @@ class Element:
         which is an instance of ActionChains, 
         and then chain it with the original ActionChains methods.
         """
-        element = self.wait_present(reraise=True)
-        action = self._action.double_click(element)
+        action = self._action.double_click(self.present_element)
         if perform:
             action.perform()
         return self
 
     def drag_and_drop(self,
-                      target: Element | SeleniumWebElement,
-                      perform: bool = True
-                      ) -> Element:
+            target: Element | SeleniumWebElement,
+            perform: bool = True
+    ) -> Element:
         """
         Selenium ActionChains API.
         Holds down the left mouse button on the source element, then moves
@@ -1271,9 +1267,9 @@ class Element:
         which is an instance of ActionChains, 
         and then chain it with the original ActionChains methods.
         """
-        source = self.wait_present(reraise=True)
+        source = self.present_element
         if isinstance(target, Element):
-            target = target.wait_present(reraise=True)
+            target = target.present_element
         action = self._action.drag_and_drop(source, target)
         if perform:
             action.perform()
@@ -1299,8 +1295,7 @@ class Element:
         which is an instance of ActionChains, 
         and then chain it with the original ActionChains methods.
         """
-        element = self.wait_present(reraise=True)
-        action = self._action.drag_and_drop_by_offset(element, xoffset, yoffset)
+        action = self._action.drag_and_drop_by_offset(self.present_element, xoffset, yoffset)
         if perform:
             action.perform()
         return self
@@ -1315,8 +1310,7 @@ class Element:
         which is an instance of ActionChains, 
         and then chain it with the original ActionChains methods.
         """
-        element = self.wait_present(reraise=True)
-        action = self._action.move_to_element(element)
+        action = self._action.move_to_element(self.present_element)
         if perform:
             action.perform()
         return self
@@ -1341,8 +1335,7 @@ class Element:
         which is an instance of ActionChains, 
         and then chain it with the original ActionChains methods.
         """
-        element = self.wait_present(reraise=True)
-        action = self._action.move_to_element_with_offset(element, xoffset, yoffset)
+        action = self._action.move_to_element_with_offset(self.present_element, xoffset, yoffset)
         if perform:
             action.perform()
         return self
@@ -1357,8 +1350,7 @@ class Element:
         which is an instance of ActionChains, 
         and then chain it with the original ActionChains methods.
         """
-        element = self.wait_present(reraise=True)
-        action = self._action.release(element)
+        action = self._action.release(self.present_element)
         if perform:
             action.perform()
         return self
@@ -1380,8 +1372,7 @@ class Element:
         which is an instance of ActionChains, 
         and then chain it with the original ActionChains methods.
         """
-        element = self.wait_present(reraise=True)
-        action = self._action.send_keys_to_element(element, *keys_to_send)
+        action = self._action.send_keys_to_element(self.present_element, *keys_to_send)
         if perform:
             action.perform()
         return self
@@ -1397,8 +1388,7 @@ class Element:
         which is an instance of ActionChains, 
         and then chain it with the original ActionChains methods.
         """
-        element = self.wait_present(reraise=True)
-        action = self._action.scroll_to_element(element)
+        action = self._action.scroll_to_element(self.present_element)
         if perform:
             action.perform()
         return self
