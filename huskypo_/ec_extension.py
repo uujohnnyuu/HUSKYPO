@@ -12,12 +12,12 @@ from selenium.common.exceptions import StaleElementReferenceException
 from .typing import AppiumWebDriver, WebDriver, WebElement
 
 def visibility_of_element(
-        element: tuple[str, str] | WebElement,
+        mark: WebElement | tuple[str, str],
         index: int | None
 ) -> Callable[[WebDriver], WebElement | Literal[False]]:
 
     def _predicate(driver: WebDriver):
-        target = element
+        target = mark
         try:
             if isinstance(target, tuple):
                 if index is None:
@@ -38,7 +38,7 @@ def visibility_of_element(
     return _predicate
 
 def element_to_be_clickable(
-        element: tuple[str, str] | WebElement,
+        mark: WebElement | tuple[str, str],
         index: int | None
 ) -> Callable[[WebDriver], WebElement | Literal[False]]:
     """
@@ -49,7 +49,7 @@ def element_to_be_clickable(
     """
 
     def _predicate(driver: WebDriver):
-        target = element
+        target = mark
         try:
             if isinstance(target, tuple):
                 if index is None:
@@ -70,12 +70,12 @@ def element_to_be_clickable(
     return _predicate
 
 def element_to_be_selected(
-        element: tuple[str, str] | WebElement,
+        mark: WebElement | tuple[str, str],
         index: int | None
 ) -> Callable[[WebDriver], bool]:
 
     def _predicate(driver: WebDriver):
-        target = element
+        target = mark
         try:
             if isinstance(target, tuple):
                 if index is None:

@@ -107,22 +107,35 @@ class Element:
             self.remark = f'{self.value}' if self.index is None else f'({self.value})[{self.index}]'
 
     def __get__(self, instance: Page, owner):
-        # Dynamically obtain the page instance and
-        # execute the corresponding function only when needed.
+        """
+        Internal use.
+        Dynamically obtain the instance of Page and
+        execute the corresponding function only when needed.
+        """
         self._page = instance
         return self
 
     def __set__(self, instance: Page, value):
-        # Setting element attribute values at runtime,
-        # typically used for configuring dynamic elements.
+        """
+        Internal use.
+        Setting element attribute values at runtime,
+        typically used for configuring dynamic elements.
+        """
         self.__init__(*value)
 
     @property
     def driver(self) -> WebDriver:
+        """
+        Get driver from Page.
+        """
         return self._page._driver
 
     @property
-    def action(self) -> ActionChains:
+    def _action(self) -> ActionChains:
+        """
+        Internal use.
+        Get ActionChains object from Page.
+        """
         return self._page._action
 
     @property
@@ -134,6 +147,19 @@ class Element:
             raise ValueError("""'by' and 'value' cannot be None when performing element operations.
                              Please ensure both are provided with valid values.""")
         return (self.by, self.value)
+    
+    @property
+    def _mark(self):
+        """
+        Internal use.
+        Get WebElement if the element is not stale; otherwise, return the locator.
+        This will be called in wait_related functions.
+        """
+        try:
+            self._present_element.is_displayed()
+            return self._present_element
+        except ElementException:
+            return self.locator
 
     @property
     def initial_timeout(self):
@@ -144,7 +170,8 @@ class Element:
 
     def test_attributes(self):
         """
-        unit test
+        Unit test.
+        You can call this function to check the attributes are expected.
         """
         logstack.info(f'by              : {self.by}')
         logstack.info(f'value           : {self.value}')
@@ -206,15 +233,6 @@ class Element:
         - False: The element is still not present after timeout.
         """
         return self.wait_present(timeout, reraise)
-    
-    def _get_present_element(self):
-        try:
-            self._present_element.is_displayed()
-            logstack.info(f'✅ WAIT: Using present element "{self._present_element}".')
-            return self._present_element
-        except ElementException:
-            logstack.info(f'✅ WAIT: Using locator "{self.locator}".')
-            return self.locator
         
     def _wait_present(
             self,
@@ -231,18 +249,84 @@ class Element:
                 raise
             return False
         
+    def wait_not_present(
+            self,
+            timeout: int | float | None = None,
+            reraise: bool | None = None
+    ) -> bool:
+        """
+        Selenium and Appium API.
+        Wait for the element to be `NOT present`.
+
+        Args:
+        - timeout: Maximum time in seconds to wait for the element to become not present.
+        - reraise: True means reraising TimeoutException; vice versa.
+
+        Returns:
+        - True: The element is not present before timeout.
+        - False: The element is still present after timeout.
+        """
+        try:
+            self.wait(timeout).until_not(
+                ecex.presence_of_element_located(self.locator, self.index),
+                f'Wait for element {self.remark} to be not present timed out after {self._wait_timeout} seconds.')
+            return True
+        except TimeoutException:
+            if Timeout.reraise(reraise):
+                raise
+            return False
+        
     def _wait_visible(
             self,
             timeout: int | float | None = None,
             reraise: bool | None = None
     ) -> WebElement | Literal[False]:
-        element = self._get_present_element()
         try:
             self._visible_element = self.wait(timeout).until(
-                ecex.visibility_of_element(element, self.index),
+                ecex.visibility_of_element(self._mark, self.index),
                 f'Wait for element {self.remark} to be visible timed out after {self._wait_timeout} seconds.')
             self._present_element = self._visible_element
             return self._visible_element
+        except TimeoutException:
+            if Timeout.reraise(reraise):
+                raise
+            return False
+        
+    def wait_not_visible(
+            self,
+            timeout: int | float | None = None,
+            present: bool = True,
+            reraise: bool | None = None
+    ) -> bool:
+        """
+        Selenium and Appium API.
+        Wait for the element to be `not visible`.
+
+        Args:
+        - timeout: Maximum time in seconds to wait for the element to become not visible.
+        - present:
+            - True: Only accept not visible condition.
+            - False: Accept not present as a part of not visible condition.
+        - reraise: True means reraising TimeoutException; vice versa.
+
+        Returns:
+        - True: The element is not visible before the timeout.
+        - None: The element is not present before the timeout, and the present parameter is True.
+            This means that you accept only the element to be not visible, 
+            but now the element is not present,
+            so it will return None as the element status is not as expected.
+        - False: The element is still visible after the timeout.
+        """
+        try:
+            result = self.wait(timeout).until_not(
+                ecex.visibility_of_element(self._mark, self.index),
+                f'Wait for element {self.remark} to be not visible timed out after {self._wait_timeout} seconds.')
+            if result and present:
+                # result = True means it triggered NoSuchElementException.
+                # If present is also True, 
+                # we will return None because it does not match the expected state.
+                return None
+            return True
         except TimeoutException:
             if Timeout.reraise(reraise):
                 raise
@@ -253,13 +337,118 @@ class Element:
             timeout: int | float | None = None,
             reraise: bool | None = None
     ) -> WebElement | Literal[False]:
-        element = self._get_present_element()
         try:
             self._clickable_element = self.wait(timeout).until(
-                ecex.element_to_be_clickable(element, self.index),
+                ecex.element_to_be_clickable(self._mark, self.index),
                 f'Wait for element {self.remark} to be clickable timed out after {self._wait_timeout} seconds.')
             self._present_element = self._visible_element = self._clickable_element
             return self._clickable_element
+        except TimeoutException:
+            if Timeout.reraise(reraise):
+                raise
+            return False
+        
+    def _wait_not_clickable(
+            self,
+            timeout: int | float | None = None,
+            present: bool = True,
+            reraise: bool | None = None
+    ) -> bool:
+        """
+        Selenium and Appium API.
+        Wait for the element to be `not clickable`.
+
+        Args:
+        - timeout: Maximum time in seconds to wait for the element to become not clickable.
+        - present:
+            - True: Only accept not clickable as a condition.
+            - False: Accept not present as a part of not clickable condition.
+        - reraise: True means reraising TimeoutException; vice versa.
+
+        Returns:
+        - True: The element is not clickable before the timeout.
+        - None: The element is not present before the timeout, and the present parameter is True.
+            This means that you accept only the element to be not clickable, 
+            but now the element is not present,
+            so it will return None as the element status is not as expected.
+        - False: The element is still clickable after the timeout.
+        """
+        try:
+            result = self.wait(timeout).until_not(
+                ecex.element_to_be_clickable(self._mark, self.index),
+                f'Wait for element {self.remark} to be not clickable timed out after {self._wait_timeout} seconds.')
+            if result and present:
+                # result = True means it triggered NoSuchElementException.
+                # If present is also True, 
+                # we will return None because it does not match the expected state.
+                return None
+            return True
+        except TimeoutException:
+            if Timeout.reraise(reraise):
+                raise
+            return False
+        
+    def _wait_selected(
+            self,
+            timeout: int | float | None = None,
+            reraise: bool | None = None
+    ) -> bool:
+        """
+        Selenium and Appium API.
+        Wait for the element to be `selected`.
+
+        Args:
+        - timeout: Maximum time in seconds to wait for the element to become selected.
+        - reraise: True means reraising TimeoutException; vice versa.
+
+        Returns:
+        - True: The element is selected before timeout.
+        - False: The element is still not present or not selected after timeout.
+        """
+        try:
+            return self.wait(timeout).until(
+                ecex.element_to_be_selected(self._mark, self.index),
+                f'Wait for element {self.remark} to be selected timed out after {self._wait_timeout} seconds.')
+        except TimeoutException:
+            if Timeout.reraise(reraise):
+                raise
+            return False
+        
+    def wait_not_selected(
+            self,
+            timeout: int | float | None = None,
+            present: bool = True,
+            reraise: bool | None = None
+    ) -> bool:
+        """
+        Selenium and Appium API.
+        Wait for the element to be `not selected`.
+
+        Args:
+        - timeout: Maximum time in seconds to wait for the element to become not selected.
+        - present:
+            - True: Only accept not selected as a condition.
+            - False: Accept not present as a part of not selected condition.
+        - reraise: True means reraising TimeoutException; vice versa.
+
+        Returns:
+        - True: The element is not selected before the timeout.
+        - None: The element is not present before the timeout, and the present parameter is True.
+            This means that you accept only the element to be not selected, 
+            but now the element is not present,
+            so it will return None as the element status is not as expected.
+        - False: The element is still selected after the timeout.
+        """
+        try:
+            result = self.wait(timeout).until_not(
+                ecex.element_to_be_selected(self._mark, self.index),
+                f'Wait for element {self.remark} to be not selected timed out after {self._wait_timeout} seconds.')
+            if result and present:
+                # result = True means it triggered NoSuchElementException.
+                # If present is also True, 
+                # we will return None because it does not match the expected state.
+                return None
+            return True
         except TimeoutException:
             if Timeout.reraise(reraise):
                 raise
@@ -272,12 +461,9 @@ class Element:
         The text of the element when it is present.
         """
         try:
-            text = self._present_element.text
-            logstack.info(f'✅ TEXT: Using present element "{self._present_element}".')
+            return self._present_element.text
         except ElementException:
-            text = self._wait_present(reraise=True).text
-            logstack.info(f'✅ TEXT: Using wait present method.')
-            return text
+            return self._wait_present(reraise=True).text
 
     def _click(self) -> None:
         """
@@ -286,10 +472,8 @@ class Element:
         """
         try:
             self._clickable_element.click()
-            logstack.info(f'✅ CLICK: Using clickable element "{self._clickable_element}".')
         except ElementException:
             self._wait_clickable(reraise=True).click()
-            logstack.info(f'✅ CLICK: Using wait clickable method.')
 
     def wait_present(
             self,
@@ -1168,7 +1352,7 @@ class Element:
         and then chain it with the original ActionChains methods.
         """
         element = self.wait_present(reraise=True)
-        action = self.action.click(element)
+        action = self._action.click(element)
         if perform:
             action.perform()
         return self
@@ -1184,7 +1368,7 @@ class Element:
         and then chain it with the original ActionChains methods.
         """
         element = self.wait_present(reraise=True)
-        action = self.action.click_and_hold(element)
+        action = self._action.click_and_hold(element)
         if perform:
             action.perform()
         return self
@@ -1200,7 +1384,7 @@ class Element:
         and then chain it with the original ActionChains methods.
         """
         element = self.wait_present(reraise=True)
-        action = self.action.context_click(element)
+        action = self._action.context_click(element)
         if perform:
             action.perform()
         return self
@@ -1216,7 +1400,7 @@ class Element:
         and then chain it with the original ActionChains methods.
         """
         element = self.wait_present(reraise=True)
-        action = self.action.double_click(element)
+        action = self._action.double_click(element)
         if perform:
             action.perform()
         return self
@@ -1238,7 +1422,7 @@ class Element:
         source = self.wait_present(reraise=True)
         if isinstance(target, Element):
             target = target.wait_present(reraise=True)
-        action = self.action.drag_and_drop(source, target)
+        action = self._action.drag_and_drop(source, target)
         if perform:
             action.perform()
         return self
@@ -1264,7 +1448,7 @@ class Element:
         and then chain it with the original ActionChains methods.
         """
         element = self.wait_present(reraise=True)
-        action = self.action.drag_and_drop_by_offset(element, xoffset, yoffset)
+        action = self._action.drag_and_drop_by_offset(element, xoffset, yoffset)
         if perform:
             action.perform()
         return self
@@ -1280,7 +1464,7 @@ class Element:
         and then chain it with the original ActionChains methods.
         """
         element = self.wait_present(reraise=True)
-        action = self.action.move_to_element(element)
+        action = self._action.move_to_element(element)
         if perform:
             action.perform()
         return self
@@ -1306,7 +1490,7 @@ class Element:
         and then chain it with the original ActionChains methods.
         """
         element = self.wait_present(reraise=True)
-        action = self.action.move_to_element_with_offset(element, xoffset, yoffset)
+        action = self._action.move_to_element_with_offset(element, xoffset, yoffset)
         if perform:
             action.perform()
         return self
@@ -1322,7 +1506,7 @@ class Element:
         and then chain it with the original ActionChains methods.
         """
         element = self.wait_present(reraise=True)
-        action = self.action.release(element)
+        action = self._action.release(element)
         if perform:
             action.perform()
         return self
@@ -1345,7 +1529,7 @@ class Element:
         and then chain it with the original ActionChains methods.
         """
         element = self.wait_present(reraise=True)
-        action = self.action.send_keys_to_element(element, *keys_to_send)
+        action = self._action.send_keys_to_element(element, *keys_to_send)
         if perform:
             action.perform()
         return self
@@ -1362,7 +1546,7 @@ class Element:
         and then chain it with the original ActionChains methods.
         """
         element = self.wait_present(reraise=True)
-        action = self.action.scroll_to_element(element)
+        action = self._action.scroll_to_element(element)
         if perform:
             action.perform()
         return self
