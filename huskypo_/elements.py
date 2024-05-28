@@ -3,7 +3,14 @@
 # PyPI: https://pypi.org/project/huskypo/
 # GitHub: https://github.com/uujohnnyuu/huskyPO
 
-# TODO selenium 4.0 and appium 2.0 methods.
+# We do not store found elements within the Elements class 
+# because each element needs to be checked for staleness before use. 
+# The overall efficiency is not better than directly re-locating the elements. 
+# If there is a need for repeated use, 
+# you can construct a custom function or 
+# inherit from this class to define your own handling.
+ 
+# TODO Keep tracking selenium 4.0 and appium 2.0 new methods.
 from __future__ import annotations
 
 from typing import Literal

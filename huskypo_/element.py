@@ -3,7 +3,7 @@
 # PyPI: https://pypi.org/project/huskypo/
 # GitHub: https://github.com/uujohnnyuu/huskyPO
 
-# TODO selenium 4.0 and appium 2.0 methods.
+# TODO Keep tracking selenium 4.0 and appium 2.0 new methods.
 from __future__ import annotations
 
 import warnings
@@ -16,17 +16,18 @@ from selenium.webdriver.common.action_chains import ActionChains
 from selenium.webdriver.common.actions.wheel_input import ScrollOrigin
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.support import expected_conditions as ec
-from selenium.webdriver.support.select import Select
 from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support.select import Select
 
 from . import logstack
 from . import ec_extension as ecex
 from .config import Timeout
 from .by import ByAttribute
 from .page import Page
-from .typing import WebDriver, WebElement, SeleniumWebElement, AppiumWebElement, AppiumWebDriver
+from .typing import SeleniumWebElement, AppiumWebElement, AppiumWebDriver
+from .typing import WebDriver, WebElement
 
-ElementException = (StaleElementReferenceException, InvalidSessionIdException, AttributeError)
+ElementException = (AttributeError, StaleElementReferenceException, InvalidSessionIdException)
 
 IntCoordinate: TypeAlias = dict[str, int] | tuple[int, int, int, int]
 FloatCoordinate: TypeAlias = dict[str, float] | tuple[float, float, float, float]
@@ -39,12 +40,12 @@ from .by import SwipeAction as SA
 class Element:
 
     def __init__(
-            self,
-            by: str | None = None,
-            value: str | None = None,
-            index: int | None = None,
-            timeout: int | float | None = None,
-            remark: str | None = None):
+        self,
+        by: str | None = None,
+        value: str | None = None,
+        index: int | None = None,
+        timeout: int | float | None = None,
+        remark: str | None = None):
         """
         Initial Element attributes.
 
@@ -203,9 +204,9 @@ class Element:
             return None
 
     def find(
-            self,
-            timeout: int | float | None = None,
-            reraise: bool | None = None,
+        self,
+        timeout: int | float | None = None,
+        reraise: bool | None = None,
     ) -> WebElement | Literal[False]:
         """
         Selenium and Appium API.
@@ -230,10 +231,8 @@ class Element:
         """
         try:
             self._present_element.is_displayed()
-            logstack.info(f'✅ MARK: present_element: {self.present_element}')
             return self._present_element
         except ElementException:
-            logstack.info(f'✅ MARK: locator: {self.locator}')
             return self.locator
         
     @property
@@ -244,16 +243,14 @@ class Element:
         """
         try:
             self._present_element.is_displayed()
-            logstack.info(f'✅ PRESENT ELEMENT: inner: {self._present_element}')
             return self._present_element
         except ElementException:
-            logstack.info(f'✅ PRESENT ELEMENT: wait_present()')
             return self.wait_present(reraise=True)
         
     def wait_present(
-            self,
-            timeout: int | float | None = None,
-            reraise: bool | None = None
+        self,
+        timeout: int | float | None = None,
+        reraise: bool | None = None
     ) -> WebElement | Literal[False]:
         """
         Selenium and Appium API.
@@ -278,9 +275,9 @@ class Element:
             return False
         
     def wait_not_present(
-            self,
-            timeout: int | float | None = None,
-            reraise: bool | None = None
+        self,
+        timeout: int | float | None = None,
+        reraise: bool | None = None
     ) -> bool:
         """
         Selenium and Appium API.
@@ -305,9 +302,9 @@ class Element:
             return False
         
     def wait_visible(
-            self,
-            timeout: int | float | None = None,
-            reraise: bool | None = None
+        self,
+        timeout: int | float | None = None,
+        reraise: bool | None = None
     ) -> WebElement | Literal[False]:
         """
         Selenium and Appium API.
@@ -333,10 +330,10 @@ class Element:
             return False
         
     def wait_not_visible(
-            self,
-            timeout: int | float | None = None,
-            present: bool = True,
-            reraise: bool | None = None
+        self,
+        timeout: int | float | None = None,
+        present: bool = True,
+        reraise: bool | None = None
     ) -> bool:
         """
         Selenium and Appium API.
@@ -373,9 +370,9 @@ class Element:
             return False
         
     def wait_clickable(
-            self,
-            timeout: int | float | None = None,
-            reraise: bool | None = None
+        self,
+        timeout: int | float | None = None,
+        reraise: bool | None = None
     ) -> WebElement | Literal[False]:
         """
         Selenium and Appium API.
@@ -401,10 +398,10 @@ class Element:
             return False
         
     def wait_not_clickable(
-            self,
-            timeout: int | float | None = None,
-            present: bool = True,
-            reraise: bool | None = None
+        self,
+        timeout: int | float | None = None,
+        present: bool = True,
+        reraise: bool | None = None
     ) -> bool:
         """
         Selenium and Appium API.
@@ -441,9 +438,9 @@ class Element:
             return False
         
     def wait_selected(
-            self,
-            timeout: int | float | None = None,
-            reraise: bool | None = None
+        self,
+        timeout: int | float | None = None,
+        reraise: bool | None = None
     ) -> bool:
         """
         Selenium and Appium API.
@@ -467,10 +464,10 @@ class Element:
             return False
         
     def wait_not_selected(
-            self,
-            timeout: int | float | None = None,
-            present: bool = True,
-            reraise: bool | None = None
+        self,
+        timeout: int | float | None = None,
+        present: bool = True,
+        reraise: bool | None = None
     ) -> bool:
         """
         Selenium and Appium API.
@@ -729,14 +726,14 @@ class Element:
         return element.is_displayed() if element else False
 
     def swipe_by(
-            self,
-            offset: Coordinate = {'start_x': 0.5, 'start_y': 0.75, 'end_x': 0.5, 'end_y': 0.25},
-            area: Coordinate = {'x': 0.0, 'y': 0.0, 'width': 1.0, 'height': 1.0},
-            timeout: int | float = 3,
-            max_swipe: int = 10,
-            max_adjust: int = 2,
-            min_distance: int = 100,
-            duration: int = 1000
+        self,
+        offset: Coordinate = {'start_x': 0.5, 'start_y': 0.75, 'end_x': 0.5, 'end_y': 0.25},
+        area: Coordinate = {'x': 0.0, 'y': 0.0, 'width': 1.0, 'height': 1.0},
+        timeout: int | float = 3,
+        max_swipe: int = 10,
+        max_adjust: int = 2,
+        min_distance: int = 100,
+        duration: int = 1000
     ) -> Element:
         """
         Appium API.
@@ -811,14 +808,14 @@ class Element:
         return self
 
     def flick_by(
-            self,
-            offset: Coordinate = {'start_x': 0.5, 'start_y': 0.75, 'end_x': 0.5, 'end_y': 0.25},
-            area: Coordinate = {'x': 0.0, 'y': 0.0, 'width': 1.0, 'height': 1.0},
-            timeout: int | float = 3,
-            max_flick: int = 10,
-            max_adjust: int = 2,
-            min_distance: int = 100,
-            duration: int = 1000
+        self,
+        offset: Coordinate = {'start_x': 0.5, 'start_y': 0.75, 'end_x': 0.5, 'end_y': 0.25},
+        area: Coordinate = {'x': 0.0, 'y': 0.0, 'width': 1.0, 'height': 1.0},
+        timeout: int | float = 3,
+        max_flick: int = 10,
+        max_adjust: int = 2,
+        min_distance: int = 100,
+        duration: int = 1000
     ) -> Element:
         """
         Appium API.
@@ -894,9 +891,9 @@ class Element:
         return self
 
     def __get_coordinate(
-            self,
-            coordinate: Coordinate,
-            name: str
+        self,
+        coordinate: Coordinate,
+        name: str
     ) -> TupleCoordinate:
 
         # is dict or tuple
@@ -937,9 +934,9 @@ class Element:
         return area
 
     def __get_offset(self,
-                     offset: Coordinate,
-                     area: tuple[int, int, int, int]
-                     ) -> tuple[int, int, int, int]:
+        offset: Coordinate,
+        area: tuple[int, int, int, int]
+    ) -> tuple[int, int, int, int]:
 
         start_x, start_y, end_x, end_y = self.__get_coordinate(offset, 'offset')
 
@@ -955,12 +952,11 @@ class Element:
         return offset
 
     def __start_swiping_by(
-            self,
-            offset: tuple[int, int, int, int],
-            duration: int,
-            timeout: int | float,
-            max_swipe: int
-    ):
+        self,
+        offset: tuple[int, int, int, int],
+        duration: int,
+        timeout: int | float,
+        max_swipe: int):
         logstack._logging(f'🟢 Start swiping to element {self.remark}.')
         count = 0
         while not self.is_viewable(timeout):
@@ -973,11 +969,10 @@ class Element:
         return True
 
     def __start_flicking_by(
-            self,
-            offset: tuple[int, int, int, int],
-            timeout: int | float,
-            max_swipe: int
-    ):
+        self,
+        offset: tuple[int, int, int, int],
+        timeout: int | float,
+        max_swipe: int):
         logstack._logging(f'🟢 Start flicking to element {self.remark}.')
         count = 0
         while not self.is_viewable(timeout):
@@ -990,13 +985,12 @@ class Element:
         return True
 
     def __start_adjusting_by(
-            self,
-            offset: tuple[int, int, int, int],
-            area: tuple[int, int, int, int],
-            max_adjust: int,
-            min_distance: int,
-            duration: int
-    ):
+        self,
+        offset: tuple[int, int, int, int],
+        area: tuple[int, int, int, int],
+        max_adjust: int,
+        min_distance: int,
+        duration: int):
         def get_final_delta(delta):
             return int(math.copysign(min_distance, delta)) if abs(delta) < min_distance else delta
 
@@ -1071,10 +1065,10 @@ class Element:
             return self.wait_present(reraise=True).clear()
 
     def send_keys(
-            self,
-            *value,
-            click: bool = False,
-            clear: bool = False
+        self,
+        *value,
+        click: bool = False,
+        clear: bool = False
     ) -> WebElement | None:
         """
         Selenium and Appium API.
@@ -1179,9 +1173,9 @@ class Element:
             return self.wait_present(reraise=True).value_of_css_property(property_name)
 
     def switch_to_frame(
-            self,
-            timeout: int | float | None = None,
-            reraise: bool | None = None
+        self,
+        timeout: int | float | None = None,
+        reraise: bool | None = None
     ) -> bool:
         """
         Selenium API.
