@@ -1190,16 +1190,27 @@ class Element:
                 raise
             return False
 
-    # TODO rewrite description for it will return self.
     def action_click(self, perform: bool = True) -> Element:
         """
         Selenium ActionChains API.
         Clicks an element.
 
-        If you want to execute sequential ActionChains operations,
-        you can call `page.action` or `your_page.action`, 
-        which is an instance of ActionChains, 
-        and then chain it with the original ActionChains methods.
+        Args:
+        - perform: Default is True to perform the stored action immediately; 
+            otherwise, store the action to be performed later.
+
+        Usage::
+
+            # Basic usage
+            my_page.my_element.action_click()
+
+            # Chain with another method
+            my_page.my_element.scroll_to_element(False).action_click()
+            
+            # or
+            my_page.my_element1.scroll_to_element(False).action_click(False)
+            ...  # other process
+            my_page.perform()
         """
         action = self._action.click(self.present_element)
         if perform:
@@ -1211,10 +1222,22 @@ class Element:
         Selenium ActionChains API.
         Holds down the left mouse button on an element.
 
-        If you want to execute sequential ActionChains operations,
-        you can call `page.action` or `your_page.action`, 
-        which is an instance of ActionChains, 
-        and then chain it with the original ActionChains methods.
+        Args:
+        - perform: Default is True to perform the stored action immediately; 
+            otherwise, store the action to be performed later.
+
+        Usage::
+
+            # Basic usage
+            my_page.my_element.click_and_hold()
+
+            # Chain with another method
+            my_page.my_element.scroll_to_element(False).click_and_hold()
+            
+            # or
+            my_page.my_element1.scroll_to_element(False).click_and_hold(False)
+            ...  # other process
+            my_page.perform()
         """
         action = self._action.click_and_hold(self.present_element)
         if perform:
@@ -1226,10 +1249,22 @@ class Element:
         Selenium ActionChains API.
         Performs a context-click (right click) on an element.
 
-        If you want to execute sequential ActionChains operations,
-        you can call `page.action` or `your_page.action`, 
-        which is an instance of ActionChains, 
-        and then chain it with the original ActionChains methods.
+        Args:
+        - perform: Default is True to perform the stored action immediately; 
+            otherwise, store the action to be performed later.
+
+        Usage::
+
+            # Basic usage
+            my_page.my_element.context_click()
+
+            # Chain with another method
+            my_page.my_element.scroll_to_element(False).context_click()
+            
+            # or
+            my_page.my_element1.scroll_to_element(False).context_click(False)
+            ...  # other process
+            my_page.perform()
         """
         action = self._action.context_click(self.present_element)
         if perform:
@@ -1241,29 +1276,54 @@ class Element:
         Selenium ActionChains API.
         Double-clicks an element.
 
-        If you want to execute sequential ActionChains operations,
-        you can call `page.action` or `your_page.action`, 
-        which is an instance of ActionChains, 
-        and then chain it with the original ActionChains methods.
+        Args:
+        - perform: Default is True to perform the stored action immediately; 
+            otherwise, store the action to be performed later.
+
+        Usage::
+
+            # Basic usage
+            my_page.my_element.double_click()
+
+            # Chain with another method
+            my_page.my_element.scroll_to_element(False).double_click()
+            
+            # or
+            my_page.my_element1.scroll_to_element(False).double_click(False)
+            ...  # other process
+            my_page.perform()
         """
         action = self._action.double_click(self.present_element)
         if perform:
             action.perform()
         return self
 
-    def drag_and_drop(self,
-            target: Element | SeleniumWebElement,
-            perform: bool = True
+    def drag_and_drop(
+        self,
+        target: Element | SeleniumWebElement,
+        perform: bool = True
     ) -> Element:
         """
         Selenium ActionChains API.
-        Holds down the left mouse button on the source element, then moves
-        to the target element and releases the mouse button.
+        Holds down the left mouse button on the source element, 
+        then moves to the target element and releases the mouse button.
 
-        If you want to execute sequential ActionChains operations,
-        you can call `page.action` or `your_page.action`, 
-        which is an instance of ActionChains, 
-        and then chain it with the original ActionChains methods.
+        Args:
+        - perform: Default is True to perform the stored action immediately; 
+            otherwise, store the action to be performed later.
+
+        Usage::
+
+            # Basic usage
+            my_page.my_element1.drag_and_drop(my_page.my_element2)
+
+            # Chain with another method
+            my_page.my_element1.scroll_to_element(False).drag_and_drop(my_page.my_element2)
+            
+            # or
+            my_page.my_element1.scroll_to_element(False).drag_and_drop(my_page.my_element2, False)
+            ...  # other process
+            my_page.perform()
         """
         source = self.present_element
         if isinstance(target, Element):
@@ -1285,13 +1345,23 @@ class Element:
         then moves to the target offset and releases the mouse button.
 
         Args:
-        - xoffset: X offset to move to.
-        - yoffset: Y offset to move to.
+        - xoffset: X offset to move to, as a positive or negative integer.
+        - yoffset: Y offset to move to, as a positive or negative integer.
+        - perform: Default is True to perform the stored action immediately; 
+            otherwise, store the action to be performed later.
 
-        If you want to execute sequential ActionChains operations,
-        you can call `page.action` or `your_page.action`, 
-        which is an instance of ActionChains, 
-        and then chain it with the original ActionChains methods.
+        Usage::
+
+            # Basic usage
+            my_page.my_element.drag_and_drop_by_offset(100, 200)
+
+            # Chain with another method
+            my_page.my_element.scroll_to_element(False).drag_and_drop_by_offset(100, 200)
+            
+            # or
+            my_page.my_element.scroll_to_element(False).drag_and_drop_by_offset(100, 200, False)
+            ...  # other process
+            my_page.perform()
         """
         action = self._action.drag_and_drop_by_offset(self.present_element, xoffset, yoffset)
         if perform:
@@ -1303,10 +1373,22 @@ class Element:
         Selenium ActionChains API.
         Moving the mouse to the middle of an element.
 
-        If you want to execute sequential ActionChains operations,
-        you can call `page.action` or `your_page.action`, 
-        which is an instance of ActionChains, 
-        and then chain it with the original ActionChains methods.
+        Args:
+        - perform: Default is True to perform the stored action immediately; 
+            otherwise, store the action to be performed later.
+
+        Usage::
+
+            # Basic usage
+            my_page.my_element.move_to_element()
+
+            # Chain with another method
+            my_page.my_element.scroll_to_element(False).move_to_element()
+            
+            # or
+            my_page.my_element.scroll_to_element(False).move_to_element(False)
+            ...  # other process
+            my_page.perform()
         """
         action = self._action.move_to_element(self.present_element)
         if perform:
@@ -1327,11 +1409,21 @@ class Element:
         Args:
         - xoffset: X offset to move to, as a positive or negative integer.
         - yoffset: Y offset to move to, as a positive or negative integer.
+        - perform: Default is True to perform the stored action immediately; 
+            otherwise, store the action to be performed later.
 
-        If you want to execute sequential ActionChains operations,
-        you can call `page.action` or `your_page.action`, 
-        which is an instance of ActionChains, 
-        and then chain it with the original ActionChains methods.
+        Usage::
+
+            # Basic usage
+            my_page.my_element.move_to_element_with_offset(100, 200)
+
+            # Chain with another method
+            my_page.my_element.scroll_to_element(False).move_to_element_with_offset(100, 200)
+            
+            # or
+            my_page.my_element.scroll_to_element(False).move_to_element_with_offset(100, 200, False)
+            ...  # other process
+            my_page.perform()
         """
         action = self._action.move_to_element_with_offset(self.present_element, xoffset, yoffset)
         if perform:
@@ -1343,33 +1435,52 @@ class Element:
         Selenium ActionChains API.
         Releasing a held mouse button on an element.
 
-        If you want to execute sequential ActionChains operations,
-        you can call `page.action` or `your_page.action`, 
-        which is an instance of ActionChains, 
-        and then chain it with the original ActionChains methods.
+        Args:
+        - perform: Default is True to perform the stored action immediately; 
+            otherwise, store the action to be performed later.
+
+        Usage::
+
+            # Basic usage
+            my_page.my_element.release()
+
+            # Chain with another method
+            my_page.my_element.click_and_hold(False).release()
+            
+            # or
+            my_page.my_element.click_and_hold(False).release(False)
+            ...  # other process
+            my_page.perform()
         """
         action = self._action.release(self.present_element)
         if perform:
             action.perform()
         return self
 
-    def send_keys_to_element(
-        self,
-        *keys_to_send: str,
-        perform: bool = True
-    ) -> Element:
+    def send_keys_to_element(self, perform: bool = True, *keys_to_send: str) -> Element:
         """
         Selenium ActionChains API.
-        Sends keys to an element.
+        Sends keys to an element
 
         Args:
+        - perform: Default is True to perform the stored action immediately; 
+            otherwise, store the action to be performed later.
         - keys_to_send: The keys to send. Modifier keys constants can be found in the 'Keys' class.
 
-        If you want to execute sequential ActionChains operations,
-        you can call `page.action` or `your_page.action`, 
-        which is an instance of ActionChains, 
-        and then chain it with the original ActionChains methods.
+        Usage::
+
+            # Basic usage
+            my_page.my_element.send_keys_to_element(True, Keys.ENTER)
+
+            # Chain with another method
+            my_page.my_element.scroll_to_element(False).send_keys_to_element(True, Keys.ENTER)
+            
+            # or
+            my_page.my_element.scroll_to_element(False).send_keys_to_element(False, Keys.ENTER)
+            ...  # other process
+            my_page.perform()
         """
+        # TODO Need to check the perform position.
         action = self._action.send_keys_to_element(self.present_element, *keys_to_send)
         if perform:
             action.perform()
@@ -1381,22 +1492,35 @@ class Element:
         If the element is outside the viewport,
         scrolls the bottom of the element to the bottom of the viewport.
 
-        If you want to execute sequential ActionChains operations,
-        you can call `page.action` or `your_page.action`, 
-        which is an instance of ActionChains, 
-        and then chain it with the original ActionChains methods.
+        Args:
+        - perform: Default is True to perform the stored action immediately; 
+            otherwise, store the action to be performed later.
+
+        Usage::
+
+            # Basic usage
+            my_page.my_element.scroll_to_element()
+
+            # Chain with another method
+            my_page.my_element.scroll_to_element(False).action_click()
+            
+            # or
+            my_page.my_element1.scroll_to_element(False).action_click(False)
+            ...  # other process
+            my_page.perform()
         """
         action = self._action.scroll_to_element(self.present_element)
         if perform:
             action.perform()
         return self
 
+    # TODO how to design as app swipe?
     def scroll_from_element(
             self, 
-            x_offset: int = 0, 
-            y_offset: int = 0,
-            delta_x: int = 0, 
-            delta_y: int = 0,
+            start_x: int = 0, 
+            start_y: int = 0,
+            end_x: int = 0, 
+            end_y: int = 0,
             perform: bool = True
     ):
         """
@@ -1411,8 +1535,25 @@ class Element:
         - y_offset: from origin element center, a negative value offset up.
         - delta_x: Distance along X axis to scroll using the wheel. A negative value scrolls left.
         - delta_y: Distance along Y axis to scroll using the wheel. A negative value scrolls up.
+        - perform: Default is True to perform the stored action immediately; 
+            otherwise, store the action to be performed later.
+
+        Usage::
+
+            # Basic usage
+            my_page.my_element.scroll_from_element(100, 200, -50, -100)
+
+            # Chain with another method
+            my_page.my_element.scroll_to_element(False).action_click()
+            
+            # or
+            my_page.my_element1.scroll_to_element(False).action_click(False)
+            ...  # other process
+            my_page.perform()
         """
-        scroll_origin = ScrollOrigin.from_element(self.present_element, x_offset, y_offset)
+        delta_x = end_x - start_x
+        delta_y = end_y - start_y
+        scroll_origin = ScrollOrigin.from_element(self.present_element, start_x, start_y)
         action = self._action.scroll_from_origin(scroll_origin, delta_x, delta_y)
         if perform:
             action.perform()
@@ -1632,17 +1773,17 @@ class Element:
             self.wait_present(reraise=True).send_keys(Keys.SPACE)
 
     def swipe_into_view(
-            self,
-            direction: str = SA.V,
-            border: dict | tuple = {'left': 0, 'right': 100, 'top': 0, 'bottom': 100},
-            start: int = 75,
-            end: int = 25,
-            fix: bool | int = False,
-            timeout: int | float = 3,
-            max_swipe: int = 10,
-            max_adjust: int = 2,
-            min_distance: int = 100,
-            duration: int = 1000
+        self,
+        direction: str = SA.V,
+        border: dict | tuple = {'left': 0, 'right': 100, 'top': 0, 'bottom': 100},
+        start: int = 75,
+        end: int = 25,
+        fix: bool | int = False,
+        timeout: int | float = 3,
+        max_swipe: int = 10,
+        max_adjust: int = 2,
+        min_distance: int = 100,
+        duration: int = 1000
     ) -> Element:
         """
         Appium API.
@@ -1726,10 +1867,9 @@ class Element:
         return self
 
     def __get_border(
-            self,
-            direction: str,
-            border: dict[str, int] | tuple[int, int, int, int]
-    ):
+        self,
+        direction: str,
+        border: dict[str, int] | tuple[int, int, int, int]):
         """
         Usage::
 
@@ -1753,16 +1893,15 @@ class Element:
         return border
 
     def __get_range(
-            self,
-            direction: str,
-            left: int,
-            right: int,
-            top: int,
-            bottom: int,
-            start: int,
-            end: int,
-            fix: bool | int = False
-    ):
+        self,
+        direction: str,
+        left: int,
+        right: int,
+        top: int,
+        bottom: int,
+        start: int,
+        end: int,
+        fix: bool | int = False):
         """
         Usage::
 
@@ -1808,15 +1947,14 @@ class Element:
         return coordinate
 
     def __start_swiping(
-            self,
-            sx: int,
-            sy: int,
-            ex: int,
-            ey: int,
-            duration: int,
-            timeout: int | float,
-            max_swipe: int
-    ):
+        self,
+        sx: int,
+        sy: int,
+        ex: int,
+        ey: int,
+        duration: int,
+        timeout: int | float,
+        max_swipe: int):
         """
         Return viewable or not.
         """
@@ -1832,19 +1970,18 @@ class Element:
         return True
 
     def __start_adjusting(
-            self,
-            left: int,
-            right: int,
-            top: int,
-            bottom: int,
-            sx: int,
-            sy: int,
-            ex: int,
-            ey: int,
-            max_adjust: int,
-            min_distance: int,
-            duration: int
-    ):
+        self,
+        left: int,
+        right: int,
+        top: int,
+        bottom: int,
+        sx: int,
+        sy: int,
+        ex: int,
+        ey: int,
+        max_adjust: int,
+        min_distance: int,
+        duration: int):
         """
         Start adjusting.
         """

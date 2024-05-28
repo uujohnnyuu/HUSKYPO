@@ -543,6 +543,42 @@ class Page:
 
         """
         return self.driver.execute_async_script(script, *args)
+    
+    # TODO ActionChains not related to element.
+    def perform(self):
+        """
+        Selenium ActionChains API.
+        Performs all stored actions.
+        once called, it will execute all stored actions in page.
+
+        Usage::
+
+            # Basic usage. Execute element actions.
+            my_page.my_element.scroll_to_element(False).action_click()
+
+            # If you want to call perform explicitly:
+            my_page.my_element1.scroll_to_element(False).action_click(False)
+            my_page.my_element2.drag_and_drop(my_page.element3, False)
+            my_page.perform()
+        """
+        return self.action.perform()
+    
+    def reset_actions(self):
+        """
+        Selenium ActionChains API.
+        Clears actions that are already stored in object of Page.
+        once called, it will reset all stored actions in page.
+
+        Usage::
+
+            # The stored actions.
+            my_page.my_element1.scroll_to_element(False).action_click(False)
+            my_page.my_element2.click_and_hold(False)
+
+            # Reset all action calls made by my_page.
+            my_page.reset_actions()
+        """
+        return self.action.reset_actions()
 
     def tap(self, positions: list[tuple[int, int]], duration: int | None = None) -> AppiumWebDriver:
         """
