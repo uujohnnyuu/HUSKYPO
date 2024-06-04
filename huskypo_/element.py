@@ -1514,13 +1514,12 @@ class Element:
             action.perform()
         return self
 
-    # TODO how to design as app swipe?
     def scroll_from_element(
             self, 
-            start_x: int = 0, 
-            start_y: int = 0,
-            end_x: int = 0, 
-            end_y: int = 0,
+            x_offset: int = 0, 
+            y_offset: int = 0,
+            delta_x: int = 0, 
+            delta_y: int = 0,
             perform: bool = True
     ):
         """
@@ -1551,21 +1550,28 @@ class Element:
             ...  # other process
             my_page.perform()
         """
-        delta_x = end_x - start_x
-        delta_y = end_y - start_y
-        scroll_origin = ScrollOrigin.from_element(self.present_element, start_x, start_y)
+        scroll_origin = ScrollOrigin.from_element(self.present_element, x_offset, y_offset)
         action = self._action.scroll_from_origin(scroll_origin, delta_x, delta_y)
         if perform:
             action.perform()
         return self
-
+    
+    # TODO select reuse method
+    @property
+    def select(self):
+        self._select = Select(self.present_element)
+        return self._select
+    
     @property
     def options(self) -> list[SeleniumWebElement]:
         """
         Selenium Select API.
         Returns a list of all options belonging to this select tag.
         """
-        return Select(self.present_element).options
+        try:
+            self._select.options
+        except ElementException:
+            self.select.options
 
     @property
     def all_selected_options(self) -> list[SeleniumWebElement]:
@@ -1573,7 +1579,10 @@ class Element:
         Selenium Select API.
         Returns a list of all selected options belonging to this select tag.
         """
-        return Select(self.present_element).all_selected_options
+        try:
+            self._select.all_selected_options
+        except ElementException:
+            self.select.all_selected_options
 
     @property
     def first_selected_option(self) -> SeleniumWebElement:
@@ -1581,7 +1590,10 @@ class Element:
         Selenium Select API.
         The first selected option in this select tag (or the currently selected option in a normal select)
         """
-        return Select(self.present_element).first_selected_option
+        try:
+            self._select.first_selected_option
+        except ElementException:
+            self.select.first_selected_option
 
     def select_by_value(self, value: str) -> None:
         """
@@ -1594,7 +1606,10 @@ class Element:
         Args:
         - value: The value to match against
         """
-        Select(self.present_element).select_by_value(value)
+        try:
+            self._select.select_by_value(value)
+        except ElementException:
+            self.select.select_by_value(value)
 
     def select_by_index(self, index: int) -> None:
         """
@@ -1607,7 +1622,10 @@ class Element:
         index - The option at this index will be selected
         throws NoSuchElementException If there is no option with specified index in SELECT
         """
-        Select(self.present_element).select_by_index(index)
+        try:
+            self._select.select_by_index(index)
+        except ElementException:
+            self.select.select_by_index(index)
 
     def select_by_visible_text(self, text: str) -> None:
         """
@@ -1621,7 +1639,10 @@ class Element:
         text - The visible text to match against
         throws NoSuchElementException If there is no option with specified text in SELECT
         """
-        Select(self.present_element).select_by_visible_text(text)
+        try:
+            self._select.select_by_visible_text(text)
+        except ElementException:
+            self.select.select_by_visible_text(text)
 
     def deselect_all(self) -> None:
         """
@@ -1629,7 +1650,10 @@ class Element:
         Clear all selected entries.
         This is only valid when the SELECT supports multiple selections.
         """
-        Select(self.present_element).deselect_all()
+        try:
+            self._select.deselect_all()
+        except ElementException:
+            self.select.deselect_all()
 
     def deselect_by_value(self, value: str) -> None:
         """
@@ -1640,7 +1664,10 @@ class Element:
         Args:
         - value: The value to match against
         """
-        Select(self.present_element).deselect_by_value(value)
+        try:
+            self._select.deselect_by_value(value)
+        except ElementException:
+            self.select.deselect_by_value(value)
 
     def deselect_by_index(self, index: int) -> None:
         """
@@ -1652,7 +1679,10 @@ class Element:
         Args:
         - index: The option at this index will be deselected
         """
-        Select(self.present_element).deselect_by_index(index)
+        try:
+            self._select.deselect_by_index(index)
+        except ElementException:
+            self.select.deselect_by_index(index)
 
     def deselect_by_visible_text(self, text: str) -> None:
         """
@@ -1664,7 +1694,10 @@ class Element:
         Args:
         - text: The visible text to match against
         """
-        Select(self.present_element).deselect_by_visible_text(text)
+        try:
+            self._select.deselect_by_visible_text(text)
+        except ElementException:
+            self.select.deselect_by_visible_text(text)
 
     @property
     def location_in_view(self) -> dict[str, int]:
