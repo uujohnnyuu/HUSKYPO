@@ -1565,11 +1565,12 @@ class Element:
     @property
     def select(self):
         try:
+            result = self.__select
             logstack.info('✅ self.__select')
-            return self.__select
         except ElementException:
+            result = self._select
             logstack.info('✅ self._select')
-            return self._select
+        return result
     
     @property
     def options(self) -> list[SeleniumWebElement]:
