@@ -1368,38 +1368,93 @@ class Element:
         """
         self._action.drag_and_drop_by_offset(self.present_element, xoffset, yoffset)
         return self
-
-    # TODO key_down, key_up
-    def key_down(self, value: str):
+    
+    def hotkey(self, *value: str):
         """
-        Sends target element a key press only, without releasing it. 
-        Should only be used with modifier keys (Control, Alt and Shift).
+        Sends hotkey to target element.
 
         Args:
-        - value: The modifier key to send. Values are defined in `Keys` class.
+        - value: The combination of keys.
 
         Usage::
 
-            # copy(ctrl+c)
-            my_page.my_element.key_down(Keys.CONTROL).send_keys_to_element('c').key_up(Keys.CONTROL).perform()
-        """
-        self._action.key_down(value, self.present_element)
-        return self
+            # copy(control+c)
+            my_page.my_element.hotkey(Keys.CONTROL, 'c').perform()
 
-    def key_up(self, value: str):
+            # previous application(command+shift+tab)
+            my_page.my_element.hotkey(Keys.COMMAND, Keys.SHIFT, Keys.TAB).perform()
         """
-        Releases a modifier key (Control, Alt and Shift).
+        down = value[:-1]
+        send = value[-1]
+
+        # key_down, first to focus target element.
+        self._action.key_down(down[0], self.present_element)
+        for key in down[1:]:
+            self._action.key_down(key)
+        
+        # send_keys
+        self._action.send_keys(send)
+
+        # key_up
+        for key in down[::-1]:
+            self._action.key_up(key)
+
+        return self
+    
+    # TODO key_down, send_keys, key_up
+    # If it is better to Page?
+    def key_down(self, focus: bool = False):
+        pass
+
+    def key_up(self):
+        pass
+    
+    def action_send_keys(self, *keys_to_send: str):
+        """
+        Sends keys to current focused element.
+        Note that it should have focused element first.
 
         Args:
-        - value: The modifier key to send. Values are defined in `Keys` class.
+        - keys_to_send: The keys to send. Modifier keys constants can be found in the 'Keys' class.
 
         Usage::
 
-            # copy(ctrl+c)
-            my_page.my_element.key_down(Keys.CONTROL).send_keys_to_element('c').key_up(Keys.CONTROL).perform()
+            # Combine with key_down and key_up method
+            my_page.my_element.key_down(Keys.COMMAND).action_send_keys('a').key_up(Keys.COMMAND).perform()
+            
+            # Send keys to focused element
+            # This is recommend to use send_keys_to_element() instead.
+            my_page.my_element.action_click()  # Need to have focused element first.
+            my_page.my_element.action_send_keys('my_keys').perform()
         """
-        self._action.key_up(value, self.present_element)
+        self._action.send_keys(*keys_to_send)
         return self
+    
+    def send_keys_to_element(self, *keys_to_send: str) -> Element:
+        """
+        Selenium ActionChains API.
+        Sends keys to an element.
+
+        Args:
+        - keys_to_send: The keys to send. Modifier keys constants can be found in the 'Keys' class.
+
+        Usage::
+
+            # Basic usage
+            my_page.my_element.send_keys_to_element(Keys.ENTER)
+
+            # Chain with another method
+            my_page.my_element.scroll_to_element(False).send_keys_to_element(Keys.ENTER)
+            
+            # or
+            my_page.my_element.scroll_to_element(False).send_keys_to_element(Keys.ENTER)
+            ...  # other process
+            my_page.perform()
+        """
+        self._action.send_keys_to_element(self.present_element, *keys_to_send)
+        return self
+    
+    # TODO remove perform
 
     def move_to_element(self, perform: bool = True) -> Element:
         """
@@ -1491,56 +1546,6 @@ class Element:
         return self
     
     # TODO: pause
-
-    def send_keys_to_element(self, *keys_to_send: str) -> Element:
-        """
-        Selenium ActionChains API.
-        Sends keys to an element and NOT perform.
-        If you want to perform the action, use `send_keys_to_element_then_perform()`.
-
-        Args:
-        - keys_to_send: The keys to send. Modifier keys constants can be found in the 'Keys' class.
-
-        Usage::
-
-            # Basic usage
-            my_page.my_element.send_keys_to_element(Keys.ENTER)
-
-            # Chain with another method
-            my_page.my_element.scroll_to_element(False).send_keys_to_element(Keys.ENTER)
-            
-            # or
-            my_page.my_element.scroll_to_element(False).send_keys_to_element(Keys.ENTER)
-            ...  # other process
-            my_page.perform()
-        """
-        self._action.send_keys_to_element(self.present_element, *keys_to_send)
-        return self
-    
-    def send_keys_to_element_then_perform(self, *keys_to_send: str) -> Element:
-        """
-        Selenium ActionChains API.
-        Sends keys to an element then perform.
-        If you DON'T want to perform the action, use `send_keys_to_element()`.
-
-        Args:
-        - keys_to_send: The keys to send. Modifier keys constants can be found in the 'Keys' class.
-
-        Usage::
-
-            # Basic usage
-            my_page.my_element.send_keys_to_element(Keys.ENTER)
-
-            # Chain with another method
-            my_page.my_element.scroll_to_element(False).send_keys_to_element(Keys.ENTER)
-            
-            # or
-            my_page.my_element.scroll_to_element(False).send_keys_to_element(Keys.ENTER)
-            ...  # other process
-            my_page.perform()
-        """
-        self._action.send_keys_to_element(self.present_element, *keys_to_send).perform()
-        return self
 
     def scroll_to_element(self, perform: bool = True) -> Element:
         """
