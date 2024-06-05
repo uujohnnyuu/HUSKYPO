@@ -87,53 +87,6 @@ class Page:
         except AttributeError:
             return None
 
-    def scroll_by_amount(self, delta_x: int, delta_y: int, perform: bool = True):
-        """
-        Scrolls by provided amounts with the origin in the top left corner of the viewport.
-
-        Args:
-        - delta_x: Distance along X axis to scroll using the wheel. A negative value scrolls left.
-        - delta_y: Distance along Y axis to scroll using the wheel. A negative value scrolls up.
-        """
-        action = self.action.scroll_by_amount(delta_x, delta_y)
-        if perform:
-             action.perform()
-        return action
-
-    def scroll_origin(self, x_offset: int = 0, y_offset: int = 0) -> ScrollOrigin:
-        """
-        Get the scroll originates by viewport left top plus provided offsets.
-        This function should be used with `scroll_from_origin`.
-
-        Args:
-        - x_offset: from origin viewport, a negative value offset left.
-        - y_offset: from origin viewport, a negative value offset up.
-        """
-        return ScrollOrigin.from_viewport(x_offset, y_offset)
-    
-    def scroll_from_origin(
-            self, 
-            scroll_origin: ScrollOrigin, 
-            delta_x: int, 
-            delta_y: int,
-            perform: bool = True):
-        """
-        Scrolls by provided amount based on a provided origin. The scroll origin is either the center of an element or the upper left of the viewport plus any offsets. If the origin is an element, and the element is not in the viewport, the bottom of the element will first be scrolled to the bottom of the viewport.
-
-        Args:
-
-        origin: Where scroll originates (viewport or element center) plus provided offsets.
-        delta_x: Distance along X axis to scroll using the wheel. A negative value scrolls left.
-        delta_y: Distance along Y axis to scroll using the wheel. A negative value scrolls up.
-        :Raises: If the origin with offset is outside the viewport.
-
-        MoveTargetOutOfBoundsException - If the origin with offset is outside the viewport.
-        """
-        action = self.action.scroll_from_origin(scroll_origin, delta_x, delta_y)
-        if perform:
-            action.perform()
-        return action
-
     def get(self, url: str) -> None:
         """
         Loads a web page in the current browser session.
@@ -579,6 +532,65 @@ class Page:
             my_page.reset_actions()
         """
         return self.action.reset_actions()
+    
+    # TODO
+    # action_click()
+    # click_and_hold()
+    # context_click()
+    # double_click()
+    # key_down()
+    # key_up()
+    # move_by_offset()
+    # pause()
+    # release()
+    # send_keys()
+    
+    def scroll_by_amount(self, delta_x: int, delta_y: int, perform: bool = True):
+        """
+        Scrolls by provided amounts with the origin in the top left corner of the viewport.
+
+        Args:
+        - delta_x: Distance along X axis to scroll using the wheel. A negative value scrolls left.
+        - delta_y: Distance along Y axis to scroll using the wheel. A negative value scrolls up.
+        """
+        action = self.action.scroll_by_amount(delta_x, delta_y)
+        if perform:
+             action.perform()
+        return action
+
+    def scroll_origin(self, x_offset: int = 0, y_offset: int = 0) -> ScrollOrigin:
+        """
+        Get the scroll originates by viewport left top plus provided offsets.
+        This function should be used with `scroll_from_origin`.
+
+        Args:
+        - x_offset: from origin viewport, a negative value offset left.
+        - y_offset: from origin viewport, a negative value offset up.
+        """
+        return ScrollOrigin.from_viewport(x_offset, y_offset)
+    
+    def scroll_from_origin(
+            self, 
+            scroll_origin: ScrollOrigin, 
+            delta_x: int, 
+            delta_y: int,
+            perform: bool = True):
+        """
+        Scrolls by provided amount based on a provided origin. The scroll origin is either the center of an element or the upper left of the viewport plus any offsets. If the origin is an element, and the element is not in the viewport, the bottom of the element will first be scrolled to the bottom of the viewport.
+
+        Args:
+
+        origin: Where scroll originates (viewport or element center) plus provided offsets.
+        delta_x: Distance along X axis to scroll using the wheel. A negative value scrolls left.
+        delta_y: Distance along Y axis to scroll using the wheel. A negative value scrolls up.
+        :Raises: If the origin with offset is outside the viewport.
+
+        MoveTargetOutOfBoundsException - If the origin with offset is outside the viewport.
+        """
+        action = self.action.scroll_from_origin(scroll_origin, delta_x, delta_y)
+        if perform:
+            action.perform()
+        return action
 
     def tap(self, positions: list[tuple[int, int]], duration: int | None = None) -> AppiumWebDriver:
         """

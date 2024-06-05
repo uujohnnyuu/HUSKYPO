@@ -1189,96 +1189,117 @@ class Element:
             if Timeout.reraise(reraise):
                 raise
             return False
+        
+    def perform(self):
+        """
+        Selenium ActionChains API.
+        Performs all stored actions.
+        once called, it will execute all stored actions in page.
 
-    def action_click(self, perform: bool = True) -> Element:
+        Usage::
+
+            # Basic usage. Execute element actions.
+            my_page.my_element.scroll_to_element().action_click().perform()
+
+            # Multiple actions to call, set perform to the last action.
+            # This will execute all actions in my_page not just my_page.my_element2.
+            my_page.my_element1.scroll_to_element().action_click()
+            my_page.my_element2.drag_and_drop(my_page.element3).perform()
+
+            # As above, it is the same to call perform by page, which is more clear:
+            my_page.my_element1.scroll_to_element().action_click()
+            my_page.my_element2.drag_and_drop(my_page.element3)
+            my_page.perform()
+        """
+        return self._action.perform()
+    
+    def reset_actions(self):
+        """
+        Selenium ActionChains API.
+        Clears actions that are already stored in object of Page.
+        once called, it will reset all stored actions in page.
+
+        Usage::
+
+            # Reset the stored actions by the last reset_actions.
+            my_page.my_element1.scroll_to_element().action_click()
+            my_page.my_element2.click_and_hold().reset_actions()
+
+            # There is a better one structure,
+            # reset all action calls made by my_page.
+            my_page.my_element1.scroll_to_element().action_click()
+            my_page.my_element2.click_and_hold()
+            my_page.reset_actions()
+        """
+        return self._action.reset_actions()
+
+    def action_click(self) -> Element:
         """
         Selenium ActionChains API.
         Clicks an element.
 
-        Args:
-        - perform: Default is True to perform the stored action immediately; 
-            otherwise, store the action to be performed later.
-
         Usage::
 
             # Basic usage
-            my_page.my_element.action_click()
+            my_page.my_element.action_click().perform()
 
             # Chain with another method
-            my_page.my_element.scroll_to_element(False).action_click()
+            my_page.my_element.scroll_to_element().action_click().perform()
             
             # or
-            my_page.my_element1.scroll_to_element(False).action_click(False)
+            my_page.my_element1.scroll_to_element().action_click()
             ...  # other process
             my_page.perform()
         """
-        action = self._action.click(self.present_element)
-        if perform:
-            action.perform()
+        self._action.click(self.present_element)
         return self
 
-    def click_and_hold(self, perform: bool = True) -> Element:
+    def click_and_hold(self) -> Element:
         """
         Selenium ActionChains API.
         Holds down the left mouse button on an element.
 
-        Args:
-        - perform: Default is True to perform the stored action immediately; 
-            otherwise, store the action to be performed later.
-
         Usage::
 
             # Basic usage
-            my_page.my_element.click_and_hold()
+            my_page.my_element.click_and_hold().perform()
 
             # Chain with another method
-            my_page.my_element.scroll_to_element(False).click_and_hold()
+            my_page.my_element.scroll_to_element().click_and_hold().perform()
             
             # or
-            my_page.my_element1.scroll_to_element(False).click_and_hold(False)
+            my_page.my_element1.scroll_to_element().click_and_hold()
             ...  # other process
             my_page.perform()
         """
-        action = self._action.click_and_hold(self.present_element)
-        if perform:
-            action.perform()
+        self._action.click_and_hold(self.present_element)
         return self
 
-    def context_click(self, perform: bool = True) -> Element:
+    def context_click(self) -> Element:
         """
         Selenium ActionChains API.
         Performs a context-click (right click) on an element.
 
-        Args:
-        - perform: Default is True to perform the stored action immediately; 
-            otherwise, store the action to be performed later.
-
         Usage::
 
             # Basic usage
-            my_page.my_element.context_click()
+            my_page.my_element.context_click().perform()
 
             # Chain with another method
-            my_page.my_element.scroll_to_element(False).context_click()
+            my_page.my_element.scroll_to_element().context_click().perform()
             
             # or
-            my_page.my_element1.scroll_to_element(False).context_click(False)
+            my_page.my_element1.scroll_to_element().context_click()
             ...  # other process
             my_page.perform()
         """
-        action = self._action.context_click(self.present_element)
-        if perform:
-            action.perform()
+        self._action.context_click(self.present_element)
         return self
 
-    def double_click(self, perform: bool = True) -> Element:
+    def double_click(self) -> Element:
         """
         Selenium ActionChains API.
         Double-clicks an element.
-
-        Args:
-        - perform: Default is True to perform the stored action immediately; 
-            otherwise, store the action to be performed later.
 
         Usage::
 
@@ -1286,59 +1307,43 @@ class Element:
             my_page.my_element.double_click()
 
             # Chain with another method
-            my_page.my_element.scroll_to_element(False).double_click()
+            my_page.my_element.scroll_to_element().double_click()
             
             # or
-            my_page.my_element1.scroll_to_element(False).double_click(False)
+            my_page.my_element1.scroll_to_element().double_click()
             ...  # other process
             my_page.perform()
         """
-        action = self._action.double_click(self.present_element)
-        if perform:
-            action.perform()
-        return self
+        self._action.double_click(self.present_element)
 
-    def drag_and_drop(
-        self,
-        target: Element | SeleniumWebElement,
-        perform: bool = True
-    ) -> Element:
+    def drag_and_drop(self, target: Element | SeleniumWebElement) -> Element:
         """
         Selenium ActionChains API.
         Holds down the left mouse button on the source element, 
         then moves to the target element and releases the mouse button.
 
         Args:
-        - perform: Default is True to perform the stored action immediately; 
-            otherwise, store the action to be performed later.
+        - target: The element to mouse up. Allowing Element or WebElement type.
 
         Usage::
 
             # Basic usage
-            my_page.my_element1.drag_and_drop(my_page.my_element2)
+            my_page.my_element1.drag_and_drop(my_page.my_element2).perform()
 
             # Chain with another method
-            my_page.my_element1.scroll_to_element(False).drag_and_drop(my_page.my_element2)
+            my_page.my_element1.scroll_to_element().drag_and_drop(my_page.my_element2).perform()
             
             # or
-            my_page.my_element1.scroll_to_element(False).drag_and_drop(my_page.my_element2, False)
+            my_page.my_element1.scroll_to_element().drag_and_drop(my_page.my_element2)
             ...  # other process
             my_page.perform()
         """
-        source = self.present_element
         if isinstance(target, Element):
             target = target.present_element
-        action = self._action.drag_and_drop(source, target)
-        if perform:
-            action.perform()
+        self._action.drag_and_drop(self.present_element, target)
         return self
 
-    def drag_and_drop_by_offset(
-        self,
-        xoffset: int,
-        yoffset: int,
-        perform: bool = True
-    ) -> Element:
+    def drag_and_drop_by_offset(self, xoffset: int, yoffset: int) -> Element:
         """
         Selenium ActionChains API.
         Holds down the left mouse button on the source element,
@@ -1347,25 +1352,53 @@ class Element:
         Args:
         - xoffset: X offset to move to, as a positive or negative integer.
         - yoffset: Y offset to move to, as a positive or negative integer.
-        - perform: Default is True to perform the stored action immediately; 
-            otherwise, store the action to be performed later.
 
         Usage::
 
             # Basic usage
-            my_page.my_element.drag_and_drop_by_offset(100, 200)
+            my_page.my_element.drag_and_drop_by_offset(100, 200).perform()
 
             # Chain with another method
-            my_page.my_element.scroll_to_element(False).drag_and_drop_by_offset(100, 200)
+            my_page.my_element.scroll_to_element().drag_and_drop_by_offset(100, 200).perform()
             
             # or
-            my_page.my_element.scroll_to_element(False).drag_and_drop_by_offset(100, 200, False)
+            my_page.my_element.scroll_to_element().drag_and_drop_by_offset(100, 200)
             ...  # other process
             my_page.perform()
         """
-        action = self._action.drag_and_drop_by_offset(self.present_element, xoffset, yoffset)
-        if perform:
-            action.perform()
+        self._action.drag_and_drop_by_offset(self.present_element, xoffset, yoffset)
+        return self
+
+    # TODO key_down, key_up
+    def key_down(self, value: str):
+        """
+        Sends target element a key press only, without releasing it. 
+        Should only be used with modifier keys (Control, Alt and Shift).
+
+        Args:
+        - value: The modifier key to send. Values are defined in `Keys` class.
+
+        Usage::
+
+            # copy(ctrl+c)
+            my_page.my_element.key_down(Keys.CONTROL).send_keys_to_element('c').key_up(Keys.CONTROL).perform()
+        """
+        self._action.key_down(value, self.present_element)
+        return self
+
+    def key_up(self, value: str):
+        """
+        Releases a modifier key (Control, Alt and Shift).
+
+        Args:
+        - value: The modifier key to send. Values are defined in `Keys` class.
+
+        Usage::
+
+            # copy(ctrl+c)
+            my_page.my_element.key_down(Keys.CONTROL).send_keys_to_element('c').key_up(Keys.CONTROL).perform()
+        """
+        self._action.key_up(value, self.present_element)
         return self
 
     def move_to_element(self, perform: bool = True) -> Element:
@@ -1456,33 +1489,57 @@ class Element:
         if perform:
             action.perform()
         return self
+    
+    # TODO: pause
 
-    def send_keys_to_element(self, perform: bool = True, *keys_to_send: str) -> Element:
+    def send_keys_to_element(self, *keys_to_send: str) -> Element:
         """
         Selenium ActionChains API.
-        Sends keys to an element
+        Sends keys to an element and NOT perform.
+        If you want to perform the action, use `send_keys_to_element_then_perform()`.
 
         Args:
-        - perform: Default is True to perform the stored action immediately; 
-            otherwise, store the action to be performed later.
         - keys_to_send: The keys to send. Modifier keys constants can be found in the 'Keys' class.
 
         Usage::
 
             # Basic usage
-            my_page.my_element.send_keys_to_element(True, Keys.ENTER)
+            my_page.my_element.send_keys_to_element(Keys.ENTER)
 
             # Chain with another method
-            my_page.my_element.scroll_to_element(False).send_keys_to_element(True, Keys.ENTER)
+            my_page.my_element.scroll_to_element(False).send_keys_to_element(Keys.ENTER)
             
             # or
-            my_page.my_element.scroll_to_element(False).send_keys_to_element(False, Keys.ENTER)
+            my_page.my_element.scroll_to_element(False).send_keys_to_element(Keys.ENTER)
             ...  # other process
             my_page.perform()
         """
-        action = self._action.send_keys_to_element(self.present_element, *keys_to_send)
-        if perform:
-            action.perform()
+        self._action.send_keys_to_element(self.present_element, *keys_to_send)
+        return self
+    
+    def send_keys_to_element_then_perform(self, *keys_to_send: str) -> Element:
+        """
+        Selenium ActionChains API.
+        Sends keys to an element then perform.
+        If you DON'T want to perform the action, use `send_keys_to_element()`.
+
+        Args:
+        - keys_to_send: The keys to send. Modifier keys constants can be found in the 'Keys' class.
+
+        Usage::
+
+            # Basic usage
+            my_page.my_element.send_keys_to_element(Keys.ENTER)
+
+            # Chain with another method
+            my_page.my_element.scroll_to_element(False).send_keys_to_element(Keys.ENTER)
+            
+            # or
+            my_page.my_element.scroll_to_element(False).send_keys_to_element(Keys.ENTER)
+            ...  # other process
+            my_page.perform()
+        """
+        self._action.send_keys_to_element(self.present_element, *keys_to_send).perform()
         return self
 
     def scroll_to_element(self, perform: bool = True) -> Element:
