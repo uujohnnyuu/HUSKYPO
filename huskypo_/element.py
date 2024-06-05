@@ -230,7 +230,7 @@ class Element:
         This will be called in wait_related functions.
         """
         try:
-            self._present_element.is_displayed()
+            self._present_element.is_enabled()
             return self._present_element
         except ElementException:
             return self.locator
@@ -242,7 +242,7 @@ class Element:
         otherwise, execute the wait_present to re-find it.
         """
         try:
-            self._present_element.is_displayed()
+            self._present_element.is_enabled()
             return self._present_element
         except ElementException:
             return self.wait_present(reraise=True)
@@ -516,7 +516,7 @@ class Element:
         - False: The element is still not present after timeout.
         """
         try:
-            self._present_element.is_displayed()
+            self._present_element.is_enabled()
             return True
         except ElementException:
             return True if self.wait_present(timeout, False) else False
@@ -1480,7 +1480,6 @@ class Element:
             ...  # other process
             my_page.perform()
         """
-        # TODO Need to check the perform position.
         action = self._action.send_keys_to_element(self.present_element, *keys_to_send)
         if perform:
             action.perform()
@@ -1556,21 +1555,17 @@ class Element:
             action.perform()
         return self
     
-    # TODO select reuse method
     @property
-    def _select(self):
-        self.__select = Select(self.present_element)
-        return self.__select
+    def _select_property(self) -> Select:
+        self._select_object = Select(self.present_element)
+        return self._select_object
     
     @property
-    def select(self):
+    def select(self) -> Select:
         try:
-            result = self.__select
-            logstack.info('✅ self.__select')
+            return self._select_object
         except ElementException:
-            result = self._select
-            logstack.info('✅ self._select')
-        return result
+            return self._select_property
     
     @property
     def options(self) -> list[SeleniumWebElement]:
@@ -1703,7 +1698,7 @@ class Element:
 
     def select_all(self) -> None:
         """
-        Selenium API
+        Selenium API, this is NOT Select relative function.
         Send keys "COMMAND/CONTROL + A" to the element.
         """
         first = Keys.COMMAND if platform.system().lower() == "darwin" else Keys.CONTROL
