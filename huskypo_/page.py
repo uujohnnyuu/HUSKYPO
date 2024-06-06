@@ -336,14 +336,17 @@ class Page:
         else:
             return self.driver.set_window_rect(int(x), int(y), int(width), int(height))
 
-    def get_window_rect(self) -> dict[str, int]:
+    def get_window_rect(self) -> dict:
         """
         Gets the x, y coordinates of the window as well as height and width of the current window.
 
-        Return: {'x': int, 'y': int, 'width': int, 'height': int}
+        Return is rearranged, for example: 
+        {'x': 0, 'y': 0, 'width': 500, 'height': 250}
+
+        Note that the value type is the same as official.
         """
         rect = self.driver.get_window_rect()
-        return {key: rect[key] for key in ('x', 'y', 'width', 'height')}
+        return {'x': rect['x'], 'y': rect['y'], 'width': rect['width'], 'height': rect['height']}
 
     def set_window_position(
             self,
@@ -497,7 +500,6 @@ class Page:
         """
         return self.driver.execute_async_script(script, *args)
     
-    # TODO ActionChains not related to element.
     def perform(self):
         """
         Selenium ActionChains API.
@@ -506,12 +508,9 @@ class Page:
 
         Usage::
 
-            # Basic usage. Execute element actions.
-            my_page.my_element.scroll_to_element(False).action_click()
-
-            # If you want to call perform explicitly:
-            my_page.my_element1.scroll_to_element(False).action_click(False)
-            my_page.my_element2.drag_and_drop(my_page.element3, False)
+            # Perform all saved actions:
+            my_page.my_element1.scroll_to_element().action_click()
+            my_page.my_element2.drag_and_drop(my_page.element3)
             my_page.perform()
         """
         return self.action.perform()
@@ -524,11 +523,9 @@ class Page:
 
         Usage::
 
-            # The stored actions.
-            my_page.my_element1.scroll_to_element(False).action_click(False)
-            my_page.my_element2.click_and_hold(False)
-
-            # Reset all action calls made by my_page.
+            # Reset all saved actions:
+            my_page.my_element1.scroll_to_element().action_click()
+            my_page.my_element2.drag_and_drop(my_page.element3)
             my_page.reset_actions()
         """
         return self.action.reset_actions()

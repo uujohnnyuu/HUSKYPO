@@ -4,7 +4,7 @@
 # GitHub: https://github.com/uujohnnyuu/huskyPO
 
 # TODO Keep tracking selenium 4.0 and appium 2.0 new methods.
-# TODO clear, sned_keys, submit, does these need to wait until clickable?
+# TODO It still need to confirm whether "clear", "sned_keys", "submit" need to wait until clickable.
 from __future__ import annotations
 
 import warnings
@@ -181,7 +181,6 @@ class Element:
 
     def wait(self, timeout: int | float | None = None) -> WebDriverWait:
         """
-        Selenium and Appium API.
         Packing WebDriverWait(driver, timeout) to accept only the timeout parameter.
         If you sets a timeout in here, it takes precedence;
         otherwise, it defaults to the timeout set for the element.
@@ -210,7 +209,6 @@ class Element:
         reraise: bool | None = None,
     ) -> WebElement | Literal[False]:
         """
-        Selenium and Appium API.
         Wait for the element to be `present`.
 
         Args:
@@ -254,7 +252,6 @@ class Element:
         reraise: bool | None = None
     ) -> WebElement | Literal[False]:
         """
-        Selenium and Appium API.
         Wait for the element to be `present`.
 
         Args:
@@ -281,7 +278,6 @@ class Element:
         reraise: bool | None = None
     ) -> bool:
         """
-        Selenium and Appium API.
         Wait for the element to be `NOT present`.
 
         Args:
@@ -308,7 +304,6 @@ class Element:
         reraise: bool | None = None
     ) -> WebElement | Literal[False]:
         """
-        Selenium and Appium API.
         Wait for the element to be `visible`.
 
         Args:
@@ -337,7 +332,6 @@ class Element:
         reraise: bool | None = None
     ) -> bool:
         """
-        Selenium and Appium API.
         Wait for the element to be `not visible`.
 
         Args:
@@ -376,7 +370,6 @@ class Element:
         reraise: bool | None = None
     ) -> WebElement | Literal[False]:
         """
-        Selenium and Appium API.
         Wait for the element to be `clickable`.
 
         Args:
@@ -405,7 +398,6 @@ class Element:
         reraise: bool | None = None
     ) -> bool:
         """
-        Selenium and Appium API.
         Wait for the element to be `not clickable`.
 
         Args:
@@ -444,7 +436,6 @@ class Element:
         reraise: bool | None = None
     ) -> bool:
         """
-        Selenium and Appium API.
         Wait for the element to be `selected`.
 
         Args:
@@ -471,7 +462,6 @@ class Element:
         reraise: bool | None = None
     ) -> bool:
         """
-        Selenium and Appium API.
         Wait for the element to be `not selected`.
 
         Args:
@@ -506,7 +496,6 @@ class Element:
 
     def is_present(self, timeout: int | float | None = None) -> bool:
         """
-        Selenium and Appium API.
         Whether the element is present.
 
         Args:
@@ -524,7 +513,6 @@ class Element:
 
     def is_visible(self) -> bool:
         """
-        Selenium and Appium API.
         Whether the element is visible.
         """
         try:
@@ -534,7 +522,6 @@ class Element:
 
     def is_enabled(self) -> bool:
         """
-        Selenium and Appium API.
         Whether the element is enabled.
         """
         try:
@@ -544,7 +531,6 @@ class Element:
 
     def is_clickable(self) -> bool:
         """
-        Selenium and Appium API.
         Whether the element is clickable.
         """
         try:
@@ -555,7 +541,6 @@ class Element:
 
     def is_selected(self) -> bool:
         """
-        Selenium and Appium API.
         Whether the element is selected.
         """
         try:
@@ -566,7 +551,6 @@ class Element:
     @property
     def text(self) -> str:
         """
-        Selenium and Appium API.
         The text of the element when it is present.
         """
         try:
@@ -577,7 +561,6 @@ class Element:
     @property
     def visible_text(self) -> str:
         """
-        Selenium and Appium API.
         The text of the element when it is visible.
         """
         try:
@@ -586,13 +569,15 @@ class Element:
             return self.wait_visible(reraise=True).text
 
     @property
-    def rect(self) -> dict[str, int]:
+    def rect(self) -> dict:
         """
-        Selenium and Appium API.
         A dictionary with the size and location of the element when it is present.
 
-        Return:
-        - We rearrange it as {'x': int, 'y': int, 'width': int, 'height': int}
+        Return is rearranged, for example:
+        {'x': 10, 'y': 15, 'width': 100, 'height': 200}
+
+        Note that the official rect may have decimals; 
+        We remain consistent with the official standards.
         """
         try:
             rect = self._present_element.rect
@@ -603,10 +588,13 @@ class Element:
     @property
     def location(self) -> dict[str, int]:
         """
-        Selenium and Appium API.
         The location of the element when it is present in the renderable canvas.
 
-        Return: {'x': int, 'y': int}
+        Return is the same as official: 
+        {'x': int, 'y': int}
+
+        Note that the official location has been rounded,
+        so the x, y may be different with rect.
         """
         try:
             return self._present_element.location
@@ -616,11 +604,13 @@ class Element:
     @property
     def size(self) -> dict[str, int]:
         """
-        Selenium and Appium API.
         The size of the element when it is present.
 
-        Return:
-        - we rearrange it to: {'width': int, 'height': int}
+        Return is rearranged, for example:
+        - {'width': 200, 'height': 100}
+
+        Note that the official size may have decimals; 
+        We remain consistent with the official standards.
         """
         try:
             size = self._present_element.size
@@ -631,28 +621,28 @@ class Element:
     @property
     def border(self) -> dict[str, int]:
         """
-        Selenium and Appium API.
         The border of the element when it is present.
 
-        Return: {'left': int, 'right': int, 'top': int, 'bottom': int}
+        Return is rounded down: 
+        - {'left': int, 'right': int, 'top': int, 'bottom': int}
         """
         try:
             rect = self._present_element.rect
         except ElementException:
             rect = self.wait_present(reraise=True).rect
-        left = rect['x']
-        right = left + rect['width']
-        top = rect['y']
-        bottom = top + rect['height']
+        left = int(rect['x'])
+        right = int(rect['x'] + rect['width'])
+        top = int(rect['y'])
+        bottom = int(rect['y'] + rect['height'])
         return {'left': left, 'right': right, 'top': top, 'bottom': bottom}
 
     @property
     def center(self) -> dict[str, int]:
         """
-        Selenium and Appium API.
         The center location of the element when it is present.
 
-        Return: {'x': int, 'y': int}
+        Return is rounded down: 
+        - {'x': int, 'y': int}
         """
         try:
             rect = self._present_element.rect
@@ -664,7 +654,6 @@ class Element:
 
     def click(self) -> Element:
         """
-        Selenium and Appium API.
         Click the element when it is clickable.
         """
         try:
@@ -925,8 +914,8 @@ class Element:
 
         if isinstance(area_width, float):
             window_x, window_y, window_width, window_height = self._page.get_window_rect().values()
-            area_x = window_x + int(window_width * area_x)
-            area_y = window_y + int(window_height * area_y)
+            area_x = int(window_x + window_width * area_x)
+            area_y = int(window_y + window_height * area_y)
             area_width = int(window_width * area_width)
             area_height = int(window_height * area_height)
 
@@ -943,10 +932,10 @@ class Element:
 
         if isinstance(start_x, float):
             area_x, area_y, area_width, area_height = area
-            start_x = area_x + int(area_width * start_x)
-            start_y = area_y + int(area_height * start_y)
-            end_x = area_x + int(area_width * end_x)
-            end_y = area_y + int(area_height * end_y)
+            start_x = int(area_x + area_width * start_x)
+            start_y = int(area_y + area_height * start_y)
+            end_x = int(area_x + area_width * end_x)
+            end_y = int(area_y + area_height * end_y)
 
         offset = (start_x, start_y, end_x, end_y)
         logstack._logging(f'🟢 offset: {offset}')
@@ -1053,12 +1042,13 @@ class Element:
 
     def clear(self) -> Element:
         """
-        Selenium and Appium API.
         Clear the text of the field type element.
 
-        Returns:
-        - None: Selenium.
-        - WebElement: Appium.
+        Usage::
+
+            my_page.my_element.clear()
+            my_page.my_element.clear().send_keys('my_text')
+            my_page.my_element.click().clear().send_keys('my_text')
         """
         try:
             try:
@@ -1074,11 +1064,16 @@ class Element:
 
     def send_keys(self, *value) -> Element:
         """
-        Selenium and Appium API.
         Simulates typing into the element.
 
         Args:
         - value: The texts or keys to typing.
+
+        Usage::
+
+            my_page.my_element.send_keys('my_text')
+            my_page.my_element.clear().send_keys('my_text')
+            my_page.my_element.click().clear().send_keys('my_text')
         """
         try:
             try:
@@ -1092,10 +1087,8 @@ class Element:
                 self.wait_present(reraise=True).send_keys(*value)
         return self
 
-    def get_attribute(self, name: Any | str) -> str | dict | None | Any:
+    def get_attribute(self, name: Any | str) -> Any | str | dict | None:
         """
-        Selenium and Appium API.
-
         This method will first try to return the value of a property with the
         given name. If a property with that name doesn't exist, it returns the
         value of the attribute with the same name. If there's no attribute with
@@ -1124,9 +1117,8 @@ class Element:
         except ElementException:
             return self.wait_present(reraise=True).get_attribute(name)
 
-    def get_property(self, name: Any) -> WebElement | bool | dict | str | Any:
+    def get_property(self, name: Any) -> str | bool | WebElement | dict:
         """
-        Selenium and Appium API.
         Gets the given property of the element.
 
         Args:
@@ -1379,10 +1371,11 @@ class Element:
     
     def hotkey(self, *value: str):
         """
+        Selenium ActionChains API.
         Sends hotkey to target element.
 
         Args:
-        - value: The combination of keys.
+        - value: The combination of hotkey.
 
         Usage::
 
@@ -1392,25 +1385,20 @@ class Element:
             # switch to previous application(command+shift+tab)
             my_page.my_element.hotkey(Keys.COMMAND, Keys.SHIFT, Keys.TAB).perform()
         """
-        down = value[:-1]
-        send = value[-1]
-
         # key_down, first to focus target element.
-        self._action.key_down(down[0], self.present_element)
-        for key in down[1:]:
+        self._action.key_down(value[0], self.present_element)
+        for key in value[1:-1]:
             self._action.key_down(key)
-        
         # send_keys
-        self._action.send_keys(send)
-
+        self._action.send_keys(value[-1])
         # key_up
-        for key in down[::-1]:
+        for key in value[-2::-1]:
             self._action.key_up(key)
-
         return self
     
     def key_down(self, value: str, focus: bool = True):
         """
+        Selenium ActionChains API.
         Sends a key press only, without releasing it. 
         Should only be used with modifier keys (Control, Alt and Shift).
         If you want to perform a hotkey process, 
@@ -1433,6 +1421,7 @@ class Element:
 
     def key_up(self, value: str, focus: bool = False):
         """
+        Selenium ActionChains API.
         Releases a modifier key.
         Should only be used with modifier keys (Control, Alt and Shift).
         If you want to perform a hotkey process, 
@@ -1457,6 +1446,7 @@ class Element:
     
     def action_send_keys(self, *keys_to_send: str):
         """
+        Selenium ActionChains API.
         Sends keys to current focused element.
         Note that it should have focused element first.
 
@@ -1582,7 +1572,7 @@ class Element:
 
     def scroll_to_element(self) -> Element:
         """
-        Selenium API.
+        Selenium ActionChains API.
         If the element is outside the viewport,
         scrolls the bottom of the element to the bottom of the viewport.
 
@@ -1642,9 +1632,14 @@ class Element:
         return self
     
     @property
-    def select(self) -> Select:
-        self._select = Select(self.present_element)
-        return self._select
+    def _select_property(self) -> Select:
+        """
+        Internal use. Selenium Select API.
+        Get the select object of the element,
+        and calling self._select_object to re-use it.
+        """
+        self._select_object = Select(self.present_element)
+        return self._select_object
     
     @property
     def options(self) -> list[SeleniumWebElement]:
@@ -1653,9 +1648,9 @@ class Element:
         Returns a list of all options belonging to this select tag.
         """
         try:
-            self._select.options
+            self._select_object.options
         except ElementException:
-            self.select.options
+            self._select_property.options
 
     @property
     def all_selected_options(self) -> list[SeleniumWebElement]:
@@ -1664,20 +1659,21 @@ class Element:
         Returns a list of all selected options belonging to this select tag.
         """
         try:
-            self._select.all_selected_options
+            self._select_object.all_selected_options
         except ElementException:
-            self.select.all_selected_options
+            self._select_property.all_selected_options
 
     @property
     def first_selected_option(self) -> SeleniumWebElement:
         """
         Selenium Select API.
-        The first selected option in this select tag (or the currently selected option in a normal select)
+        The first selected option in this select tag,
+        or the currently selected option in a normal select.
         """
         try:
-            self._select.first_selected_option
+            self._select_object.first_selected_option
         except ElementException:
-            self.select.first_selected_option
+            self._select_property.first_selected_option
 
     def select_by_value(self, value: str) -> None:
         """
@@ -1691,42 +1687,42 @@ class Element:
         - value: The value to match against
         """
         try:
-            self._select.select_by_value(value)
+            self._select_object.select_by_value(value)
         except ElementException:
-            self.select.select_by_value(value)
+            self._select_property.select_by_value(value)
 
     def select_by_index(self, index: int) -> None:
         """
-        Selenium API.
+        Selenium Select API.
         Select the option at the given index.
 
         This is done by examining the "index" attribute of an element, and not merely by counting.
 
-        :Args:
-        index - The option at this index will be selected
-        throws NoSuchElementException If there is no option with specified index in SELECT
+        Args:
+        - index: The option at this index will be selected
+            throws NoSuchElementException If there is no option with specified index in SELECT
         """
         try:
-            self._select.select_by_index(index)
+            self._select_object.select_by_index(index)
         except ElementException:
-            self.select.select_by_index(index)
+            self._select_property.select_by_index(index)
 
     def select_by_visible_text(self, text: str) -> None:
         """
-        Selenium API.
+        Selenium Select API.
         Select all options that display text matching the argument.
 
         That is, when given "Bar" this would select an option like:
         <option value="foo">Bar</option>
 
-        :Args:
-        text - The visible text to match against
-        throws NoSuchElementException If there is no option with specified text in SELECT
+        Args:
+        - text: The visible text to match against
+            throws NoSuchElementException If there is no option with specified text in SELECT
         """
         try:
-            self._select.select_by_visible_text(text)
+            self._select_object.select_by_visible_text(text)
         except ElementException:
-            self.select.select_by_visible_text(text)
+            self._select_property.select_by_visible_text(text)
 
     def deselect_all(self) -> None:
         """
@@ -1735,23 +1731,24 @@ class Element:
         This is only valid when the SELECT supports multiple selections.
         """
         try:
-            self._select.deselect_all()
+            self._select_object.deselect_all()
         except ElementException:
-            self.select.deselect_all()
+            self._select_property.deselect_all()
 
     def deselect_by_value(self, value: str) -> None:
         """
         Selenium Select API.
-        Deselect all options that have a value matching the argument. That is, when given "foo" this would deselect an option like:
+        Deselect all options that have a value matching the argument. 
+        That is, when given "foo" this would deselect an option like:
         <option value="foo">Bar</option>
 
         Args:
         - value: The value to match against
         """
         try:
-            self._select.deselect_by_value(value)
+            self._select_object.deselect_by_value(value)
         except ElementException:
-            self.select.deselect_by_value(value)
+            self._select_property.deselect_by_value(value)
 
     def deselect_by_index(self, index: int) -> None:
         """
@@ -1764,9 +1761,9 @@ class Element:
         - index: The option at this index will be deselected
         """
         try:
-            self._select.deselect_by_index(index)
-        except:
-            self.select.deselect_by_index(index)
+            self._select_object.deselect_by_index(index)
+        except ElementException:
+            self._select_property.deselect_by_index(index)
 
     def deselect_by_visible_text(self, text: str) -> None:
         """
@@ -1779,16 +1776,18 @@ class Element:
         - text: The visible text to match against
         """
         try:
-            self._select.deselect_by_visible_text(text)
+            self._select_object.deselect_by_visible_text(text)
         except ElementException:
-            self.select.deselect_by_visible_text(text)
+            self._select_property.deselect_by_visible_text(text)
 
     @property
     def location_in_view(self) -> dict[str, int]:
         """
         Appium API.
         Retrieve the location (coordination) of the element relative to the view when it is present.
-        Return: {'x': int, 'y': int}
+
+        Return is the same as official: 
+        {'x': int, 'y': int}
         """
         try:
             return self._present_element.location_in_view
@@ -1802,6 +1801,11 @@ class Element:
 
         Args:
         - text: The text to input.
+
+        Usage::
+
+            my_page.my_element.input('123 456')
+            my_page.my_element.input('123').space().input('456')
         """
         try:
             self._present_element.send_keys(text)
@@ -1813,6 +1817,10 @@ class Element:
         """
         Selenium API
         Send keys ENTER to the element.
+
+        Usage::
+
+            my_page.my_element.input('123 456').enter()
         """
         try:
             self._present_element.send_keys(Keys.ENTER)
@@ -1824,6 +1832,10 @@ class Element:
         """
         Selenium API, this is NOT Select relative function.
         Send keys "COMMAND/CONTROL + A" to the element.
+
+        Usage::
+
+            my_page.my_element.select_all().copy()
         """
         first = Keys.COMMAND if platform.system().lower() == "darwin" else Keys.CONTROL
         try:
@@ -1836,6 +1848,11 @@ class Element:
         """
         Selenium API
         Send keys "COMMAND/CONTROL + X" to the element.
+
+        Usage::
+
+            my_page.my_element1.cut()
+            my_page.my_element2.paste()
         """
         first = Keys.COMMAND if platform.system().lower() == "darwin" else Keys.CONTROL
         try:
@@ -1848,6 +1865,11 @@ class Element:
         """
         Selenium API
         Send keys "COMMAND/CONTROL + C" to the element.
+
+        Usage::
+
+            my_page.my_element1.copy()
+            my_page.my_element2.paste()
         """
         first = Keys.COMMAND if platform.system().lower() == "darwin" else Keys.CONTROL
         try:
@@ -1860,6 +1882,11 @@ class Element:
         """
         Selenium API
         Send keys "COMMAND/CONTROL + V" to the element.
+
+        Usage::
+
+            my_page.my_element1.copy()
+            my_page.my_element2.paste()
         """
         first = Keys.COMMAND if platform.system().lower() == "darwin" else Keys.CONTROL
         try:
@@ -1867,49 +1894,149 @@ class Element:
         except ElementException:
             self.wait_present(reraise=True).send_keys(first, 'v')
         return self
+    
+    def arrow_left(self, times: int = 1) -> Element:
+        """
+        Selenium API
+        Send keys "ARROW_LEFT" to the element.
 
-    def backspace(self) -> Element:
+        Args:
+        - times: The input times of key.
+
+        Usage::
+
+            my_page.my_element.arrow_left(3)
+        """
+        try:
+            self._present_element.send_keys(Keys.ARROW_LEFT * times)
+        except ElementException:
+            self.wait_present(reraise=True).send_keys(Keys.ARROW_LEFT * times)
+        return self
+    
+    def arrow_right(self, times: int = 1) -> Element:
+        """
+        Selenium API
+        Send keys "ARROW_RIGHT" to the element.
+
+        Args:
+        - times: The input times of key.
+
+        Usage::
+
+            my_page.my_element.arrow_right(3)
+        """
+        try:
+            self._present_element.send_keys(Keys.ARROW_RIGHT * times)
+        except ElementException:
+            self.wait_present(reraise=True).send_keys(Keys.ARROW_RIGHT * times)
+        return self
+    
+    def arrow_up(self, times: int = 1) -> Element:
+        """
+        Selenium API
+        Send keys "ARROW_UP" to the element.
+
+        Args:
+        - times: The input times of key.
+
+        Usage::
+
+            my_page.my_element.arrow_up(3)
+        """
+        try:
+            self._present_element.send_keys(Keys.ARROW_UP * times)
+        except ElementException:
+            self.wait_present(reraise=True).send_keys(Keys.ARROW_UP * times)
+        return self
+    
+    def arrow_down(self, times: int = 1) -> Element:
+        """
+        Selenium API
+        Send keys "ARROW_DOWN" to the element.
+
+        Args:
+        - times: The input times of key.
+
+        Usage::
+
+            my_page.my_element.arrow_down(3)
+        """
+        try:
+            self._present_element.send_keys(Keys.ARROW_DOWN * times)
+        except ElementException:
+            self.wait_present(reraise=True).send_keys(Keys.ARROW_DOWN * times)
+        return self
+
+    def backspace(self, times: int = 1) -> Element:
         """
         Selenium API
         Send keys BACKSPACE to the element.
+
+        Args:
+        - times: The input times of key.
+
+        Usage::
+
+            my_page.my_element.backspace(3).input('123456').enter()
         """
         try:
-            self._present_element.send_keys(Keys.BACKSPACE)
+            self._present_element.send_keys(Keys.BACKSPACE * times)
         except ElementException:
-            self.wait_present(reraise=True).send_keys(Keys.BACKSPACE)
+            self.wait_present(reraise=True).send_keys(Keys.BACKSPACE * times)
         return self
 
-    def delete(self) -> Element:
+    def delete(self, times: int = 1) -> Element:
         """
         Selenium API
         Send keys DELETE to the element.
+
+        Args:
+        - times: The input times of key.
+
+        Usage::
+
+            my_page.my_element.delete(3)
         """
         try:
-            self._present_element.send_keys(Keys.DELETE)
+            self._present_element.send_keys(Keys.DELETE * times)
         except ElementException:
-            self.wait_present(reraise=True).send_keys(Keys.DELETE)
+            self.wait_present(reraise=True).send_keys(Keys.DELETE * times)
         return self
 
-    def tab(self) -> Element:
+    def tab(self, times: int = 1) -> Element:
         """
         Selenium API
         Send keys TAB to the element.
+
+        Args:
+        - times: The input times of key.
+
+        Usage::
+
+            my_page.my_element.tab(2)
         """
         try:
-            self._present_element.send_keys(Keys.TAB)
+            self._present_element.send_keys(Keys.TAB * times)
         except ElementException:
-            self.wait_present(reraise=True).send_keys(Keys.TAB)
+            self.wait_present(reraise=True).send_keys(Keys.TAB * times)
         return self
 
-    def space(self) -> Element:
+    def space(self, times: int = 1) -> Element:
         """
         Selenium API
         Send keys SPACE to the element.
+
+        Args:
+        - times: The input times of key.
+
+        Usage::
+
+            my_page.my_element.space(4)
         """
         try:
-            self._present_element.send_keys(Keys.SPACE)
+            self._present_element.send_keys(Keys.SPACE * times)
         except ElementException:
-            self.wait_present(reraise=True).send_keys(Keys.SPACE)
+            self.wait_present(reraise=True).send_keys(Keys.SPACE * times)
         return self
 
     def swipe_into_view(
