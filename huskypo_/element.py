@@ -4,6 +4,7 @@
 # GitHub: https://github.com/uujohnnyuu/huskyPO
 
 # TODO Keep tracking selenium 4.0 and appium 2.0 new methods.
+# TODO clear, sned_keys, submit, does these need to wait until clickable?
 from __future__ import annotations
 
 import warnings
@@ -661,7 +662,7 @@ class Element:
         y = int(rect['y'] + rect['height'] / 2)
         return {'x': x, 'y': y}
 
-    def click(self) -> None:
+    def click(self) -> Element:
         """
         Selenium and Appium API.
         Click the element when it is clickable.
@@ -670,8 +671,9 @@ class Element:
             self._clickable_element.click()
         except ElementException:
             self.wait_clickable(reraise=True).click()
+        return self
 
-    def tap(self, duration: int | None = None) -> None:
+    def tap(self, duration: int | None = None) -> Element:
         """
         Appium API.
         Tap the center location of the element when it is present.
@@ -684,6 +686,7 @@ class Element:
         """
         center = tuple(self.center.values())
         self.driver.tap([center], duration)
+        return self
 
     def app_drag_and_drop(self, target: Element | AppiumWebElement) -> AppiumWebDriver:
         """
@@ -693,10 +696,9 @@ class Element:
         Args:
             target: the element to drag to
         """
-        source = self.present_element
         if isinstance(target, Element):
             target = target.present_element
-        return self.driver.drag_and_drop(source, target)
+        return self.driver.drag_and_drop(self.present_element, target)
 
     def app_scroll(self, target: Element | AppiumWebElement, duration: int | None = None) -> AppiumWebDriver:
         """
@@ -708,10 +710,9 @@ class Element:
             duration: defines speed of scroll action when moving to target.
                 Default is 600 ms for W3C spec.
         """
-        source = self.present_element
         if isinstance(target, Element):
             target = target.present_element
-        return self.driver.scroll(source, target, duration)
+        return self.driver.scroll(self.present_element, target, duration)
 
     def is_viewable(self, timeout: int | float | None = None) -> bool:
         """
@@ -1050,7 +1051,7 @@ class Element:
 
             self.driver.swipe(start_x, start_y, end_x, end_y, duration)
 
-    def clear(self) -> WebElement | None:
+    def clear(self) -> Element:
         """
         Selenium and Appium API.
         Clear the text of the field type element.
@@ -1060,36 +1061,36 @@ class Element:
         - WebElement: Appium.
         """
         try:
-            return self._present_element.clear()
-        except ElementException:
-            return self.wait_present(reraise=True).clear()
+            try:
+                self._clickable_element.clear()
+            except ElementException:
+                self.wait_clickable(reraise=True).clear()
+        except TimeoutException:
+            try:
+                self._present_element.clear()
+            except ElementException:
+                self.wait_present(reraise=True).clear()
+        return self
 
-    def send_keys(
-        self,
-        *value,
-        click: bool = False,
-        clear: bool = False
-    ) -> WebElement | None:
+    def send_keys(self, *value) -> Element:
         """
         Selenium and Appium API.
         Simulates typing into the element.
 
         Args:
         - value: The texts or keys to typing.
-        - click: Whether performing a click before typing.
-        - clear: Whether Removing the typed text of the element before typing.
-        - click and clear: If both are True, it will click first and then clear the text.
-
-        Returns:
-        - None: Selenium
-        - WebElement: Appium
         """
-        element = self.present_element
-        if click:
-            element.click()
-        if clear:
-            element.clear()
-        return element.send_keys(*value)
+        try:
+            try:
+                self._clickable_element.send_keys(*value)
+            except ElementException:
+                self.wait_clickable(reraise=True).send_keys(*value)
+        except TimeoutException:
+            try:
+                self._present_element.send_keys(*value)
+            except ElementException:
+                self.wait_present(reraise=True).send_keys(*value)
+        return self
 
     def get_attribute(self, name: Any | str) -> str | dict | None | Any:
         """
@@ -1147,9 +1148,15 @@ class Element:
         Submits a form.
         """
         try:
-            self._present_element.submit()
-        except ElementException:
-            self.wait_present(reraise=True).submit()
+            try:
+                self._clickable_element.submit()
+            except ElementException:
+                self.wait_clickable(reraise=True).submit()
+        except TimeoutException:
+            try:
+                self._present_element.submit()
+            except ElementException:
+                self.wait_present(reraise=True).submit()
 
     @property
     def tag_name(self) -> str:
@@ -1190,7 +1197,7 @@ class Element:
                 raise
             return False
         
-    def perform(self):
+    def perform(self) -> None:
         """
         Selenium ActionChains API.
         Performs all stored actions.
@@ -1211,9 +1218,9 @@ class Element:
             my_page.my_element2.drag_and_drop(my_page.element3)
             my_page.perform()
         """
-        return self._action.perform()
+        self._action.perform()
     
-    def reset_actions(self):
+    def reset_actions(self) -> None:
         """
         Selenium ActionChains API.
         Clears actions that are already stored in object of Page.
@@ -1231,7 +1238,7 @@ class Element:
             my_page.my_element2.click_and_hold()
             my_page.reset_actions()
         """
-        return self._action.reset_actions()
+        self._action.reset_actions()
 
     def action_click(self) -> Element:
         """
@@ -1315,6 +1322,7 @@ class Element:
             my_page.perform()
         """
         self._action.double_click(self.present_element)
+        return self
 
     def drag_and_drop(self, target: Element | SeleniumWebElement) -> Element:
         """
@@ -1381,7 +1389,7 @@ class Element:
             # copy(control+c)
             my_page.my_element.hotkey(Keys.CONTROL, 'c').perform()
 
-            # previous application(command+shift+tab)
+            # switch to previous application(command+shift+tab)
             my_page.my_element.hotkey(Keys.COMMAND, Keys.SHIFT, Keys.TAB).perform()
         """
         down = value[:-1]
@@ -1401,13 +1409,51 @@ class Element:
 
         return self
     
-    # TODO key_down, send_keys, key_up
-    # If it is better to Page?
-    def key_down(self, focus: bool = False):
-        pass
+    def key_down(self, value: str, focus: bool = True):
+        """
+        Sends a key press only, without releasing it. 
+        Should only be used with modifier keys (Control, Alt and Shift).
+        If you want to perform a hotkey process, 
+        it is recommended to use hotkey() instead.
 
-    def key_up(self):
-        pass
+        Args:
+        - value: The modifier key to send. Values are defined in Keys class.
+        - focus: Whether to focus element or not. Default to focus current element.
+
+        Usage::
+
+            # copy(control+c)
+            my_page.my_element.key_down(Key.CONTROL).action_send_keys('c').key_up(Key.CONTROL)
+        """
+        if focus:
+            self._action.key_down(value, self.present_element)
+        else:
+            self._action.key_down(value)
+        return self
+
+    def key_up(self, value: str, focus: bool = False):
+        """
+        Releases a modifier key.
+        Should only be used with modifier keys (Control, Alt and Shift).
+        If you want to perform a hotkey process, 
+        it is recommended to use hotkey() instead.
+
+        Args:
+        - value: The modifier key to send. Values are defined in Keys class.
+        - focus: Whether to focus on the element or not. 
+            The default is NOT to focus on the current element 
+            as this is generally not the first action.
+
+        Usage::
+
+            # copy(control+c)
+            my_page.my_element.key_down(Key.CONTROL).action_send_keys('c').key_up(Key.CONTROL)
+        """
+        if focus:
+            self._action.key_up(value, self.present_element)
+        else:
+            self._action.key_up(value)
+        return self
     
     def action_send_keys(self, *keys_to_send: str):
         """
@@ -1453,41 +1499,32 @@ class Element:
         """
         self._action.send_keys_to_element(self.present_element, *keys_to_send)
         return self
-    
-    # TODO remove perform
 
-    def move_to_element(self, perform: bool = True) -> Element:
+    def move_to_element(self) -> Element:
         """
         Selenium ActionChains API.
         Moving the mouse to the middle of an element.
 
-        Args:
-        - perform: Default is True to perform the stored action immediately; 
-            otherwise, store the action to be performed later.
-
         Usage::
 
             # Basic usage
-            my_page.my_element.move_to_element()
+            my_page.my_element.move_to_element().perform()
 
             # Chain with another method
-            my_page.my_element.scroll_to_element(False).move_to_element()
+            my_page.my_element.scroll_to_element().move_to_element().perform()
             
             # or
-            my_page.my_element.scroll_to_element(False).move_to_element(False)
+            my_page.my_element.scroll_to_element().move_to_element()
             ...  # other process
             my_page.perform()
         """
-        action = self._action.move_to_element(self.present_element)
-        if perform:
-            action.perform()
+        self._action.move_to_element(self.present_element)
         return self
 
     def move_to_element_with_offset(
         self,
         xoffset: int,
         yoffset: int,
-        perform: bool = True
     ) -> Element:
         """
         Selenium ActionChains API.
@@ -1497,65 +1534,57 @@ class Element:
         Args:
         - xoffset: X offset to move to, as a positive or negative integer.
         - yoffset: Y offset to move to, as a positive or negative integer.
-        - perform: Default is True to perform the stored action immediately; 
-            otherwise, store the action to be performed later.
 
         Usage::
 
             # Basic usage
-            my_page.my_element.move_to_element_with_offset(100, 200)
+            my_page.my_element.move_to_element_with_offset(100, 200).perform()
 
             # Chain with another method
-            my_page.my_element.scroll_to_element(False).move_to_element_with_offset(100, 200)
+            my_page.my_element.scroll_to_element().move_to_element_with_offset(100, 200).perform()
             
             # or
-            my_page.my_element.scroll_to_element(False).move_to_element_with_offset(100, 200, False)
+            my_page.my_element.scroll_to_element().move_to_element_with_offset(100, 200)
             ...  # other process
             my_page.perform()
         """
-        action = self._action.move_to_element_with_offset(self.present_element, xoffset, yoffset)
-        if perform:
-            action.perform()
+        self._action.move_to_element_with_offset(self.present_element, xoffset, yoffset)
         return self
 
-    def release(self, perform: bool = True) -> Element:
+    def release(self) -> Element:
         """
         Selenium ActionChains API.
         Releasing a held mouse button on an element.
 
-        Args:
-        - perform: Default is True to perform the stored action immediately; 
-            otherwise, store the action to be performed later.
-
         Usage::
 
             # Basic usage
-            my_page.my_element.release()
+            my_page.my_element.release().perform()
 
             # Chain with another method
-            my_page.my_element.click_and_hold(False).release()
+            my_page.my_element.click_and_hold().release().perform()
             
             # or
-            my_page.my_element.click_and_hold(False).release(False)
+            my_page.my_element.click_and_hold().release()
             ...  # other process
             my_page.perform()
         """
-        action = self._action.release(self.present_element)
-        if perform:
-            action.perform()
+        self._action.release(self.present_element)
         return self
     
-    # TODO: pause
+    def pause(self, seconds: int | float):
+        """
+        Selenium ActionChains API.
+        Pause all inputs for the specified duration in seconds.
+        """
+        self._action.pause(seconds)
+        return self
 
-    def scroll_to_element(self, perform: bool = True) -> Element:
+    def scroll_to_element(self) -> Element:
         """
         Selenium API.
         If the element is outside the viewport,
         scrolls the bottom of the element to the bottom of the viewport.
-
-        Args:
-        - perform: Default is True to perform the stored action immediately; 
-            otherwise, store the action to be performed later.
 
         Usage::
 
@@ -1563,25 +1592,22 @@ class Element:
             my_page.my_element.scroll_to_element()
 
             # Chain with another method
-            my_page.my_element.scroll_to_element(False).action_click()
+            my_page.my_element.scroll_to_element().action_click()
             
             # or
-            my_page.my_element1.scroll_to_element(False).action_click(False)
+            my_page.my_element1.scroll_to_element().action_click()
             ...  # other process
             my_page.perform()
         """
-        action = self._action.scroll_to_element(self.present_element)
-        if perform:
-            action.perform()
+        self._action.scroll_to_element(self.present_element)
         return self
 
     def scroll_from_element(
-            self, 
-            x_offset: int = 0, 
-            y_offset: int = 0,
-            delta_x: int = 0, 
-            delta_y: int = 0,
-            perform: bool = True
+        self, 
+        x_offset: int = 0, 
+        y_offset: int = 0,
+        delta_x: int = 0, 
+        delta_y: int = 0
     ):
         """
         Selenium ActionChains API.
@@ -1601,33 +1627,24 @@ class Element:
         Usage::
 
             # Basic usage
-            my_page.my_element.scroll_from_element(100, 200, -50, -100)
+            my_page.my_element.scroll_from_element(100, 200, -50, -100).perform()
 
             # Chain with another method
-            my_page.my_element.scroll_to_element(False).action_click()
+            my_page.my_element.scroll_from_element(-30, -50, 150, 100).action_click().perform()
             
             # or
-            my_page.my_element1.scroll_to_element(False).action_click(False)
+            my_page.my_element.scroll_from_element(-30, -50, 150, 100).action_click()
             ...  # other process
             my_page.perform()
         """
         scroll_origin = ScrollOrigin.from_element(self.present_element, x_offset, y_offset)
-        action = self._action.scroll_from_origin(scroll_origin, delta_x, delta_y)
-        if perform:
-            action.perform()
+        self._action.scroll_from_origin(scroll_origin, delta_x, delta_y)
         return self
     
     @property
-    def _select_property(self) -> Select:
-        self._select_object = Select(self.present_element)
-        return self._select_object
-    
-    @property
     def select(self) -> Select:
-        try:
-            return self._select_object
-        except ElementException:
-            return self._select_property
+        self._select = Select(self.present_element)
+        return self._select
     
     @property
     def options(self) -> list[SeleniumWebElement]:
@@ -1635,7 +1652,10 @@ class Element:
         Selenium Select API.
         Returns a list of all options belonging to this select tag.
         """
-        self.select.options
+        try:
+            self._select.options
+        except ElementException:
+            self.select.options
 
     @property
     def all_selected_options(self) -> list[SeleniumWebElement]:
@@ -1643,7 +1663,10 @@ class Element:
         Selenium Select API.
         Returns a list of all selected options belonging to this select tag.
         """
-        self.select.all_selected_options
+        try:
+            self._select.all_selected_options
+        except ElementException:
+            self.select.all_selected_options
 
     @property
     def first_selected_option(self) -> SeleniumWebElement:
@@ -1651,7 +1674,10 @@ class Element:
         Selenium Select API.
         The first selected option in this select tag (or the currently selected option in a normal select)
         """
-        self.select.first_selected_option
+        try:
+            self._select.first_selected_option
+        except ElementException:
+            self.select.first_selected_option
 
     def select_by_value(self, value: str) -> None:
         """
@@ -1664,7 +1690,10 @@ class Element:
         Args:
         - value: The value to match against
         """
-        self.select.select_by_value(value)
+        try:
+            self._select.select_by_value(value)
+        except ElementException:
+            self.select.select_by_value(value)
 
     def select_by_index(self, index: int) -> None:
         """
@@ -1677,7 +1706,10 @@ class Element:
         index - The option at this index will be selected
         throws NoSuchElementException If there is no option with specified index in SELECT
         """
-        self.select.select_by_index(index)
+        try:
+            self._select.select_by_index(index)
+        except ElementException:
+            self.select.select_by_index(index)
 
     def select_by_visible_text(self, text: str) -> None:
         """
@@ -1691,7 +1723,10 @@ class Element:
         text - The visible text to match against
         throws NoSuchElementException If there is no option with specified text in SELECT
         """
-        self.select.select_by_visible_text(text)
+        try:
+            self._select.select_by_visible_text(text)
+        except ElementException:
+            self.select.select_by_visible_text(text)
 
     def deselect_all(self) -> None:
         """
@@ -1699,7 +1734,10 @@ class Element:
         Clear all selected entries.
         This is only valid when the SELECT supports multiple selections.
         """
-        self.select.deselect_all()
+        try:
+            self._select.deselect_all()
+        except ElementException:
+            self.select.deselect_all()
 
     def deselect_by_value(self, value: str) -> None:
         """
@@ -1710,7 +1748,10 @@ class Element:
         Args:
         - value: The value to match against
         """
-        self.select.deselect_by_value(value)
+        try:
+            self._select.deselect_by_value(value)
+        except ElementException:
+            self.select.deselect_by_value(value)
 
     def deselect_by_index(self, index: int) -> None:
         """
@@ -1722,7 +1763,10 @@ class Element:
         Args:
         - index: The option at this index will be deselected
         """
-        self.select.deselect_by_index(index)
+        try:
+            self._select.deselect_by_index(index)
+        except:
+            self.select.deselect_by_index(index)
 
     def deselect_by_visible_text(self, text: str) -> None:
         """
@@ -1734,7 +1778,10 @@ class Element:
         Args:
         - text: The visible text to match against
         """
-        self.select.deselect_by_visible_text(text)
+        try:
+            self._select.deselect_by_visible_text(text)
+        except ElementException:
+            self.select.deselect_by_visible_text(text)
 
     @property
     def location_in_view(self) -> dict[str, int]:
@@ -1747,8 +1794,22 @@ class Element:
             return self._present_element.location_in_view
         except ElementException:
             return self.wait_present(reraise=True).location_in_view
+        
+    def input(self, text: str = '') -> Element:
+        """
+        Selenium API
+        Input text to the element.
 
-    def enter(self) -> None:
+        Args:
+        - text: The text to input.
+        """
+        try:
+            self._present_element.send_keys(text)
+        except ElementException:
+            self.wait_present(reraise=True).send_keys(text)
+        return self
+
+    def enter(self) -> Element:
         """
         Selenium API
         Send keys ENTER to the element.
@@ -1757,8 +1818,9 @@ class Element:
             self._present_element.send_keys(Keys.ENTER)
         except ElementException:
             self.wait_present(reraise=True).send_keys(Keys.ENTER)
+        return self
 
-    def select_all(self) -> None:
+    def select_all(self) -> Element:
         """
         Selenium API, this is NOT Select relative function.
         Send keys "COMMAND/CONTROL + A" to the element.
@@ -1768,8 +1830,9 @@ class Element:
             self._present_element.send_keys(first, 'a')
         except ElementException:
             self.wait_present(reraise=True).send_keys(first, 'a')
+        return self
 
-    def cut(self) -> None:
+    def cut(self) -> Element:
         """
         Selenium API
         Send keys "COMMAND/CONTROL + X" to the element.
@@ -1779,8 +1842,9 @@ class Element:
             self._present_element.send_keys(first, 'x')
         except ElementException:
             self.wait_present(reraise=True).send_keys(first, 'x')
+        return self
 
-    def copy(self) -> None:
+    def copy(self) -> Element:
         """
         Selenium API
         Send keys "COMMAND/CONTROL + C" to the element.
@@ -1790,8 +1854,9 @@ class Element:
             self._present_element.send_keys(first, 'c')
         except ElementException:
             self.wait_present(reraise=True).send_keys(first, 'c')
+        return self
 
-    def paste(self) -> None:
+    def paste(self) -> Element:
         """
         Selenium API
         Send keys "COMMAND/CONTROL + V" to the element.
@@ -1801,8 +1866,9 @@ class Element:
             self._present_element.send_keys(first, 'v')
         except ElementException:
             self.wait_present(reraise=True).send_keys(first, 'v')
+        return self
 
-    def backspace(self) -> None:
+    def backspace(self) -> Element:
         """
         Selenium API
         Send keys BACKSPACE to the element.
@@ -1811,8 +1877,9 @@ class Element:
             self._present_element.send_keys(Keys.BACKSPACE)
         except ElementException:
             self.wait_present(reraise=True).send_keys(Keys.BACKSPACE)
+        return self
 
-    def delete(self) -> None:
+    def delete(self) -> Element:
         """
         Selenium API
         Send keys DELETE to the element.
@@ -1821,8 +1888,9 @@ class Element:
             self._present_element.send_keys(Keys.DELETE)
         except ElementException:
             self.wait_present(reraise=True).send_keys(Keys.DELETE)
+        return self
 
-    def tab(self) -> None:
+    def tab(self) -> Element:
         """
         Selenium API
         Send keys TAB to the element.
@@ -1831,8 +1899,9 @@ class Element:
             self._present_element.send_keys(Keys.TAB)
         except ElementException:
             self.wait_present(reraise=True).send_keys(Keys.TAB)
+        return self
 
-    def space(self) -> None:
+    def space(self) -> Element:
         """
         Selenium API
         Send keys SPACE to the element.
@@ -1841,6 +1910,7 @@ class Element:
             self._present_element.send_keys(Keys.SPACE)
         except ElementException:
             self.wait_present(reraise=True).send_keys(Keys.SPACE)
+        return self
 
     def swipe_into_view(
         self,
