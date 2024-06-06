@@ -59,7 +59,7 @@ class Page:
 
         Usage::
             
-            page.action.scroll_to_element(element).click(element)
+            my_page.action.scroll_to_element(element).click(element)
         """
         return self._action
 
@@ -104,6 +104,7 @@ class Page:
     @property
     def url(self) -> str:
         """
+        Selenium API.
         Gets the URL of the current page.
         It is the same as driver.current_url.
         """
@@ -116,6 +117,7 @@ class Page:
             reraise: bool | None = None
     ) -> bool:
         """
+        Selenium API.
         An expectation for checking the current url,
         url is the expected url,
         which must be an exact match returns True if the url matches, False otherwise.
@@ -139,6 +141,7 @@ class Page:
             reraise: bool | None = None
     ) -> bool:
         """
+        Selenium API.
         An expectation for checking that the current url contains a case-sensitive substring,
         url is the fragment of url expected,
         returns True when the url matches, False otherwise.
@@ -162,6 +165,7 @@ class Page:
             reraise: bool | None = None
     ) -> bool:
         """
+        Selenium API.
         An expectation for checking the current url,
         pattern is the expected pattern.
         This finds the first occurrence of pattern in the current url
@@ -186,6 +190,7 @@ class Page:
             reraise: bool | None = None
     ) -> bool:
         """
+        Selenium API.
         An expectation for checking the current url,
         url is the expected url,
         which must not be an exact match returns True if the url is different, false otherwise.
@@ -205,6 +210,7 @@ class Page:
     @property
     def title(self):
         """
+        Selenium API.
         Returns the title of the current page.
         """
         return self.driver.title
@@ -216,6 +222,7 @@ class Page:
             reraise: bool | None = None
     ) -> bool:
         """
+        Selenium API.
         An expectation for checking the title of a page.
         title is the expected title,
         which must be an exact match returns True if the title matches, false otherwise.
@@ -239,6 +246,7 @@ class Page:
             reraise: bool | None = None
     ) -> bool:
         """
+        Selenium API.
         An expectation for checking that the title contains a case-sensitive substring.
         title is the fragment of title expected returns True when the title matches, False otherwise
         """
@@ -256,24 +264,28 @@ class Page:
 
     def refresh(self) -> None:
         """
+        Selenium API.
         Refreshes the current page.
         """
         self.driver.refresh()
 
     def back(self) -> None:
         """
+        Selenium API.
         Goes one step backward in the browser history.
         """
         self.driver.back()
 
     def forward(self) -> None:
         """
+        Selenium API.
         Goes one step forward in the browser history.
         """
         self.driver.forward()
 
     def close(self) -> None:
         """
+        Selenium API, driver method.
         Closes the current window.
         """
         self.driver.close()
@@ -317,9 +329,14 @@ class Page:
         """
         self.driver.minimize_window()
 
-    def set_window_rect(self, x=None, y=None, width=None, height=None) -> dict | None:
+    def set_window_rect(
+        self, 
+        x: int | None = None, 
+        y: int | None = None, 
+        width: int | None = None, 
+        height: int | None = None
+    ) -> dict | None:
         """
-        selenium API
         Sets the x, y coordinates of the window as well as height and width of the current window.
         This method is only supported for W3C compatible browsers;
         other browsers should use set_window_position and set_window_size.
@@ -334,7 +351,7 @@ class Page:
         if x is None and y is None and width is None and height is None:
             self.driver.maximize_window()
         else:
-            return self.driver.set_window_rect(int(x), int(y), int(width), int(height))
+            return self.driver.set_window_rect(x, y, width, height)
 
     def get_window_rect(self) -> dict:
         """
@@ -349,12 +366,12 @@ class Page:
         return {'x': rect['x'], 'y': rect['y'], 'width': rect['width'], 'height': rect['height']}
 
     def set_window_position(
-            self,
-            x: int | float | str = 0,
-            y: int | float | str = 0,
-            windowHandle: str = 'current') -> dict:
+        self,
+        x: int = 0,
+        y: int = 0,
+        windowHandle: str = 'current'
+    ) -> dict:
         """
-        selenium API
         Sets the x,y position of the current window. (window.moveTo)
 
         Args:
@@ -366,20 +383,20 @@ class Page:
             page.set_window_position(0,0)
 
         """
-        return self.driver.set_window_position(int(x), int(y), windowHandle)
+        return self.driver.set_window_position(x, y, windowHandle)
 
-    def get_window_position(self, windowHandle: str = "current") -> dict[str, int]:
+    def get_window_position(self, windowHandle: str = "current") -> dict:
         """
         Gets the x, y coordinates of the window as well as height and width of the current window.
 
-        Return: {'x': int, 'y': int}
+        Return: {'x': 0, 'y': 0}
         """
         return self.driver.get_window_position(windowHandle)
 
     def set_window_size(
             self,
-            width: int | float | str | None = None,
-            height: int | float | str | None = None,
+            width: int | None = None,
+            height: int | None = None,
             windowHandle: str = 'current'
     ) -> None:
         """
@@ -393,13 +410,13 @@ class Page:
         if width is None and height is None:
             self.driver.maximize_window()
         else:
-            self.driver.set_window_size(int(width), int(height), windowHandle)
+            self.driver.set_window_size(width, height, windowHandle)
 
-    def get_window_size(self, windowHandle: str = 'current') -> dict[str, int]:
+    def get_window_size(self, windowHandle: str = 'current') -> dict:
         """
         Gets the width and height of the current window.
 
-        Return: {'width': int, 'height': int}
+        Return: {'width': 430, 'height': 920}
         """
         return self.driver.get_window_size(windowHandle)
 
@@ -408,15 +425,15 @@ class Page:
         window border: {'left': int, 'right': int, 'top': int, 'bottom': int}
         """
         rect = self.driver.get_window_rect()
-        left = rect['x']
-        right = rect['x'] + rect['width']
-        top = rect['y']
-        bottom = rect['y'] + rect['height']
+        left = int(rect['x'])
+        right = int(rect['x'] + rect['width'])
+        top = int(rect['y'])
+        bottom = int(rect['y'] + rect['height'])
         return {'left': left, 'right': right, 'top': top, 'bottom': bottom}
 
     def get_window_center(self) -> dict[str, int]:
         """
-        window center: {'x': x, 'y': y}
+        window center: {'x': int, 'y': int}
         """
         rect = self.driver.get_window_rect()
         x = int(rect['x'] + rect['width'] / 2)
@@ -424,10 +441,10 @@ class Page:
         return {'x': x, 'y': y}
 
     def number_of_windows_to_be(
-            self,
-            num_windows: int,
-            timeout: int | float | None = None,
-            reraise: bool | None = None
+        self,
+        num_windows: int,
+        timeout: int | float | None = None,
+        reraise: bool | None = None
     ) -> bool:
         """
         An expectation for the number of windows to be a certain value.
@@ -542,54 +559,48 @@ class Page:
     # release()
     # send_keys()
     
-    def scroll_by_amount(self, delta_x: int, delta_y: int, perform: bool = True):
+    def scroll_by_amount(self, delta_x: int, delta_y: int) -> Page:
         """
+        Selenium ActionChains API.
         Scrolls by provided amounts with the origin in the top left corner of the viewport.
 
         Args:
         - delta_x: Distance along X axis to scroll using the wheel. A negative value scrolls left.
         - delta_y: Distance along Y axis to scroll using the wheel. A negative value scrolls up.
         """
-        action = self.action.scroll_by_amount(delta_x, delta_y)
-        if perform:
-             action.perform()
-        return action
-
-    def scroll_origin(self, x_offset: int = 0, y_offset: int = 0) -> ScrollOrigin:
+        self.action.scroll_by_amount(delta_x, delta_y)
+        return self
+    
+    def scroll_from_origin(
+        self, 
+        x_offset: int = 0,
+        y_offset: int = 0,
+        delta_x: int = 0, 
+        delta_y: int = 0,
+    ) -> Page:
         """
-        Get the scroll originates by viewport left top plus provided offsets.
-        This function should be used with `scroll_from_origin`.
+        Selenium ActionChains API.
+        Scrolls by provided amount based on a provided origin. 
+        The scroll origin is the upper left of the viewport plus any offsets. 
 
         Args:
         - x_offset: from origin viewport, a negative value offset left.
         - y_offset: from origin viewport, a negative value offset up.
+        - delta_x: Distance along X axis to scroll using the wheel. A negative value scrolls left.
+        - delta_y: Distance along Y axis to scroll using the wheel. A negative value scrolls up.
+        
+        Raises: If the origin with offset is outside the viewport.
+        - MoveTargetOutOfBoundsException - If the origin with offset is outside the viewport.
         """
-        return ScrollOrigin.from_viewport(x_offset, y_offset)
-    
-    def scroll_from_origin(
-            self, 
-            scroll_origin: ScrollOrigin, 
-            delta_x: int, 
-            delta_y: int,
-            perform: bool = True):
-        """
-        Scrolls by provided amount based on a provided origin. The scroll origin is either the center of an element or the upper left of the viewport plus any offsets. If the origin is an element, and the element is not in the viewport, the bottom of the element will first be scrolled to the bottom of the viewport.
+        scroll_origin = ScrollOrigin.from_viewport(x_offset, y_offset)
+        self._action.scroll_from_origin(scroll_origin, delta_x, delta_y)
+        return self
 
-        Args:
-
-        origin: Where scroll originates (viewport or element center) plus provided offsets.
-        delta_x: Distance along X axis to scroll using the wheel. A negative value scrolls left.
-        delta_y: Distance along Y axis to scroll using the wheel. A negative value scrolls up.
-        :Raises: If the origin with offset is outside the viewport.
-
-        MoveTargetOutOfBoundsException - If the origin with offset is outside the viewport.
-        """
-        action = self.action.scroll_from_origin(scroll_origin, delta_x, delta_y)
-        if perform:
-            action.perform()
-        return action
-
-    def tap(self, positions: list[tuple[int, int]], duration: int | None = None) -> AppiumWebDriver:
+    def tap(
+        self, 
+        positions: list[tuple[int, int]], 
+        duration: int | None = None
+    ) -> AppiumWebDriver:
         """
         Appium API.
         Taps on an particular place with up to five fingers, holding for a certain time
@@ -602,7 +613,6 @@ class Page:
         Usage::
 
             page.tap([(100, 20), (100, 60), (100, 100)], 500)
-
         """
         return self.driver.tap(positions, duration)
 
@@ -848,6 +858,11 @@ class Page:
 
         """
         return self.driver.execute_script('mobile: scroll', {'direction': direction})
+    
+    def draw_(self):
+        """
+        """
+        pass
 
     def draw_gesture(self, dots: list, gesture: str, duration: int = 1000) -> None:
         """
@@ -985,6 +1000,7 @@ class Page:
             reraise: bool | None = None
     ) -> list[str] | Literal[False]:
         """
+        Appium API.
         Wait for the webview is present and determine whether switch to it.
 
         Args:
@@ -1008,7 +1024,7 @@ class Page:
 
     def switch_to_app(self) -> Any | str:
         """
-        appium API
+        Appium API
         Switch to native app.
 
         Return: current context after judging whether to switch.
@@ -1017,25 +1033,35 @@ class Page:
             self.driver.switch_to.context('NATIVE_APP')
         return self.driver.current_context
 
-    def terminate_app(self, app_id) -> None:
+    def terminate_app(self, app_id: str, **options: Any) -> bool:
         """
-        Terminate the app to buffer, note that it does NOT shut down the app.
+        Appium API.
+        Terminates the application if it is running.
 
         Args:
-        - app_id: app bundle id which like com.xxx.ooo.
-        """
-        self.driver.terminate_app(app_id)
+        - app_id: the application id to be terminates
 
-    def activate_app(self, app_id) -> None:
+        Keyword Args:
+        - timeout (int): [Android only] how much time to wait for the uninstall to complete.
+                500ms by default.
+
+        Returns:
+        - True if the app has been successfully terminated.
         """
-        Activate the app from buffer.
+        return self.driver.terminate_app(app_id, **options)
+
+    def activate_app(self, app_id: str) -> AppiumWebDriver:
+        """
+        Appium API.
+        Activates the application if it is not running
+        or is running in the background.
 
         Args:
-        - app_id: app bundle id which like com.xxx.ooo.
+            app_id: the application id to be activated
         """
-        self.driver.activate_app(app_id)
+        return self.driver.activate_app(app_id)
 
-    def save_screenshot(self, filename: Any):
+    def save_screenshot(self, filename: Any) -> bool:
         """
         Saves a screenshot of the current window to a PNG image file.
         Returns False if there is any IOError, else returns True.
@@ -1050,7 +1076,7 @@ class Page:
             driver.save_screenshot('/Screenshots/foo.png')
 
         """
-        self.driver.save_screenshot(filename)
+        return self.driver.save_screenshot(filename)
 
     def switch_to_parent_frame(self) -> None:
         """
