@@ -517,7 +517,7 @@ class Page:
         """
         return self.driver.execute_async_script(script, *args)
     
-    def perform(self):
+    def perform(self) -> None:
         """
         Selenium ActionChains API.
         Performs all stored actions.
@@ -530,9 +530,9 @@ class Page:
             my_page.my_element2.drag_and_drop(my_page.element3)
             my_page.perform()
         """
-        return self.action.perform()
+        self._action.perform()
     
-    def reset_actions(self):
+    def reset_actions(self) -> None:
         """
         Selenium ActionChains API.
         Clears actions that are already stored in object of Page.
@@ -545,19 +545,98 @@ class Page:
             my_page.my_element2.drag_and_drop(my_page.element3)
             my_page.reset_actions()
         """
-        return self.action.reset_actions()
+        self._action.reset_actions()
     
-    # TODO
-    # action_click()
-    # click_and_hold()
-    # context_click()
-    # double_click()
-    # key_down()
-    # key_up()
-    # move_by_offset()
-    # pause()
-    # release()
-    # send_keys()
+    def click(self) -> Page:
+        """
+        Selenium ActionChains API.
+        clicks on current mouse position.
+        """
+        self._action.click()
+        return self
+    
+    def click_and_hold(self) -> Page:
+        """
+        Selenium ActionChains API.
+        Holds down the left mouse button on current mouse position.
+        """
+        self._action.click_and_hold()
+        return self
+    
+    def context_click(self) -> Page:
+        """
+        Selenium ActionChains API.
+        Performs a context-click (right click) on current mouse position.
+        """
+        self._action.context_click()
+        return self
+    
+    def double_click(self) -> Page:
+        """
+        Selenium ActionChains API.
+        Double-clicks on current mouse position.
+        """
+        self._action.double_click()
+        return self
+    
+    def key_down(self, value: str) -> Page:
+        """
+        Selenium ActionChains API.
+        Sends a key press only to a focused element, without releasing it. 
+        Should only be used with modifier keys (Control, Alt and Shift).
+
+        Args:
+        - value: The modifier key to send. Values are defined in Keys class.
+        """
+        self._action.key_down(value)
+        return self
+    
+    def key_up(self, value: str) -> Page:
+        """
+        Selenium ActionChains API.
+        Releases a modifier key on a focused element.
+
+        Args:
+        - value: The modifier key to send. Values are defined in Keys class.
+        """
+        self._action.key_up(value)
+        return self
+    
+    def move_by_offset(self, xoffset: int, yoffset: int) -> Page:
+        """
+        Selenium ActionChains API.
+        Moving the mouse to an offset from current mouse position.
+
+        Args:
+        - xoffset: X offset to move to, as a positive or negative integer.
+        - yoffset: Y offset to move to, as a positive or negative integer.
+        """
+        self._action.move_by_offset(xoffset, yoffset)
+        return self
+    
+    def pause(self, seconds: int | float) -> Page:
+        """
+        Selenium ActionChains API.
+        Pause all inputs for the specified duration in seconds.
+        """
+        self._action.pause(seconds)
+        return self
+    
+    def release(self) -> Page:
+        """
+        Selenium ActionChains API.
+        Releasing a held mouse button on current mouse position.
+        """
+        self._action.release()
+        return self
+    
+    def send_keys(self, *keys_to_send: str) -> Page:
+        """
+        Selenium ActionChains API.
+        Sends keys to current focused element.
+        """
+        self._action.send_keys(*keys_to_send)
+        return self
     
     def scroll_by_amount(self, delta_x: int, delta_y: int) -> Page:
         """
@@ -859,19 +938,56 @@ class Page:
         """
         return self.driver.execute_script('mobile: scroll', {'direction': direction})
     
-    def draw_(self):
+    def draw_lines(self, dots: list[dict[str, int]], duration: int = 1000) -> None:
         """
-        """
-        pass
+        Appium 2.0 API.
+        Draw lines by dots in given order.
 
-    def draw_gesture(self, dots: list, gesture: str, duration: int = 1000) -> None:
+        Args:
+        - dots: A list of coordinates for the target dots, 
+            e.g., [{'x': 100, 'y': 100}, {'x': 200, 'y': 200}, {'x': 300, 'y': 100}, ...].
+        - duration: The time taken to draw between two points.
+        """
+        touch_input = PointerInput(interaction.POINTER_TOUCH, 'touch')
+        actions = ActionChains(self.driver)
+        actions.w3c_actions = ActionBuilder(self.driver, mouse=touch_input)
+
+        # Press first dot, the first action can be executed without duration.
+        actions.w3c_actions.pointer_action.move_to_location(dots[0]['x'], dots[0]['y'])
+        actions.w3c_actions.pointer_action.pointer_down()
+
+        # Start drawing.
+        # Drawing needs duaration to execute the process.
+        if duration < 250:
+            # Follow by ActionBuilder duration default value.
+            duration = 250
+        actions.w3c_actions = ActionBuilder(self.driver, mouse=touch_input, duration=duration)
+        for dot in dots[1:]:
+            actions.w3c_actions.pointer_action.move_to_location(dot['x'], dot['y'])
+
+        # relase = pointer_up, lift fingers off the screen.
+        actions.w3c_actions.pointer_action.release()
+        actions.perform()
+        
+
+    def draw_gesture(self, dots: list[dict[str, int]], gesture: str, duration: int = 1000) -> None:
         """
         Appium 2.0 API.
         Nine-box Gesture Drawing.
 
         Args:
-        - dots: List of center coordinates of nine dots,
-            e.g. [{'x1': x1, 'y1': y1}, {'x2': x2, 'y2': y2}, ...]
+        - dots: A list of coordinates for nine dots, which the position is:
+
+            - 1,2,3
+            - 4,5,6
+            - 7,8,9
+
+            you should set the dots following by order: [1,2,3,4,5,6,7,8,9],
+            e.g. [{'x': 100, 'y': 100}, {'x': 200, 'y': 100}, {'x': 300, 'y': 100}, ...].
+
+            If the nine points are elements,
+            you can simply get the points by `my_page.my_elements.locations`.
+
         - gesture: A string containing the actual positions of the nine dots,
             such as '1235789' for drawing a Z shape.
         """
