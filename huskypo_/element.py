@@ -1636,7 +1636,7 @@ class Element:
         """
         Internal use. Selenium Select API.
         Get the select object of the element,
-        and calling self._select_object to re-use it.
+        and calling self._select to re-use it.
         """
         try:
             self._select = Select(self._present_element)
