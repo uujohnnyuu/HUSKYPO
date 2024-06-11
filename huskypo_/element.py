@@ -10,7 +10,7 @@ from __future__ import annotations
 import warnings
 import math
 import platform
-from typing import Any, Literal, TypeAlias
+from typing import Any, Literal
 
 from selenium.common.exceptions import TimeoutException, StaleElementReferenceException, InvalidSessionIdException
 from selenium.webdriver.common.action_chains import ActionChains
@@ -19,34 +19,36 @@ from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.support import expected_conditions as ec
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support.select import Select
+from selenium.types import WaitExcTypes
 
 from . import logstack
 from . import ec_extension as ecex
 from .config import Timeout
 from .by import ByAttribute
 from .page import Page
-from .typing import SeleniumWebElement, AppiumWebElement, AppiumWebDriver
-from .typing import WebDriver, WebElement
-
-ElementException = (AttributeError, StaleElementReferenceException, InvalidSessionIdException)
-
-IntCoordinate: TypeAlias = dict[str, int] | tuple[int, int, int, int]
-FloatCoordinate: TypeAlias = dict[str, float] | tuple[float, float, float, float]
-TupleCoordinate: TypeAlias = tuple[int, int, int, int] | tuple[float, float, float, float]
-Coordinate: TypeAlias = IntCoordinate | FloatCoordinate
+from .types import SeleniumWebElement, AppiumWebElement, AppiumWebDriver
+from .types import WebDriver, WebElement
 
 # TODO deprecate
 from .by import SwipeAction as SA
 
+ElementException = (AttributeError, StaleElementReferenceException, InvalidSessionIdException)
+
+IntCoordinate = dict[str, int] | tuple[int, int, int, int]
+FloatCoordinate = dict[str, float] | tuple[float, float, float, float]
+TupleCoordinate = tuple[int, int, int, int] | tuple[float, float, float, float]
+Coordinate = IntCoordinate | FloatCoordinate
+
+
 class Element:
 
     def __init__(
-        self,
-        by: str | None = None,
-        value: str | None = None,
-        index: int | None = None,
-        timeout: int | float | None = None,
-        remark: str | None = None):
+            self,
+            by: str | None = None,
+            value: str | None = None,
+            index: int | None = None,
+            timeout: int | float | None = None,
+            remark: str | None = None):
         """
         Initial Element attributes.
 
@@ -132,6 +134,9 @@ class Element:
         """
         return self._page._driver
 
+    def a(self) -> WaitExcTypes:
+        return 0
+
     @property
     def _action(self) -> ActionChains:
         """
@@ -179,17 +184,22 @@ class Element:
         """
         return self.driver.find_element(*self.locator)
 
-    def wait(self, timeout: int | float | None = None) -> WebDriverWait:
+    def wait(
+        self,
+        timeout: int | float | None = None,
+        ignored_exceptions: WaitExcTypes | None = None
+    ) -> WebDriverWait:
         """
-        Packing WebDriverWait(driver, timeout) to accept only the timeout parameter.
-        If you sets a timeout in here, it takes precedence;
-        otherwise, it defaults to the timeout set for the element.
+        Get an object of WebDriverWait.
 
         Args:
-        - timeout: Maximum time in seconds to wait for the expected condition.
+        - timeout: The maximum time in seconds to wait for the expected condition. 
+            By default, it initializes with the element timeout.
+        - ignored_exceptions: An iterable structure of exception classes to ignore during calls. 
+            By default, it contains only NoSuchElementException.
         """
         self._wait_timeout = self.initial_timeout if timeout is None else timeout
-        return WebDriverWait(self.driver, self._wait_timeout)
+        return WebDriverWait(self.driver, self._wait_timeout, ignored_exceptions=ignored_exceptions)
 
     @property
     def wait_timeout(self):
@@ -220,7 +230,7 @@ class Element:
         - False: The element is still not present after timeout.
         """
         return self.wait_present(timeout, reraise)
-    
+
     @property
     def _mark(self) -> WebElement | tuple[str, str]:
         """
@@ -233,7 +243,7 @@ class Element:
             return self._present_element
         except ElementException:
             return self.locator
-        
+
     @property
     def present_element(self) -> WebElement:
         """
@@ -245,22 +255,25 @@ class Element:
             return self._present_element
         except ElementException:
             return self.wait_present(reraise=True)
-        
+
     def wait_present(
         self,
         timeout: int | float | None = None,
         reraise: bool | None = None
     ) -> WebElement | Literal[False]:
         """
-        Wait for the element to be `present`.
+        Wait for the element to become present.
 
         Args:
-        - timeout: Maximum time in seconds to wait for the element to become present.
-        - reraise: True means reraising TimeoutException; vice versa.
+        - timeout: The maximum time in seconds to wait for the element to become present.
+        - reraise: When the element state is not as expected, the behavior can be set in the following ways:
+            - bool: True indicates to re-raise a TimeoutException; False means to return False.
+            - None: Follow the config.Timeout.RERAISE setting, which is a boolean. 
+                Its logic is the same as the boolean, and the default is True.
 
         Returns:
-        - WebElement: The element is present before timeout.
-        - False: The element is still not present after timeout.
+        - WebElement: The element is present before the timeout.
+        - False: The element is still not present after the timeout if TimeoutException is not re-raised.
         """
         try:
             self._present_element = self.wait(timeout).until(
@@ -271,60 +284,106 @@ class Element:
             if Timeout.reraise(reraise):
                 raise
             return False
-        
+
     def wait_not_present(
         self,
         timeout: int | float | None = None,
         reraise: bool | None = None
     ) -> bool:
         """
-        Wait for the element to be `NOT present`.
+        Wait for the element to become not present.
 
         Args:
-        - timeout: Maximum time in seconds to wait for the element to become not present.
-        - reraise: True means reraising TimeoutException; vice versa.
+        - timeout: The maximum time in seconds to wait for the element to become not present.
+        - reraise: When the element state is not as expected, the behavior can be set in the following ways:
+            - bool: True indicates to re-raise a TimeoutException; False means to return False.
+            - None: Follow the config.Timeout.RERAISE setting, which is a boolean. 
+                Its logic is the same as the boolean, and the default is True.
 
         Returns:
-        - True: The element is not present before timeout.
-        - False: The element is still present after timeout.
+        - True: The element is not present before the timeout.
+        - False: The element is still not present after the timeout if TimeoutException is not re-raised.
         """
         try:
-            self.wait(timeout).until_not(
+            return self.wait(timeout).until_not(
                 ecex.presence_of_element_located(self.locator, self.index),
                 f'Wait for element {self.remark} to be not present timed out after {self._wait_timeout} seconds.')
-            return True
         except TimeoutException:
             if Timeout.reraise(reraise):
                 raise
             return False
-        
+
     def wait_visible(
         self,
         timeout: int | float | None = None,
         reraise: bool | None = None
     ) -> WebElement | Literal[False]:
         """
-        Wait for the element to be `visible`.
+        Wait for the element to become visible.
 
         Args:
-        - timeout: Maximum time in seconds to wait for the element to become visible.
-        - reraise: True means reraising TimeoutException; vice versa.
+        - timeout: The maximum time in seconds to wait for the element to become visible.
+        - reraise: When the element state is not as expected, the behavior can be set in the following ways:
+            - bool: True indicates to re-raise a TimeoutException; False means to return False.
+            - None: Follow the config.Timeout.RERAISE setting, which is a boolean. 
+                Its logic is the same as the boolean, and the default is True.
 
         Returns:
-        - WebElement: The element is visible before timeout.
-        - False: The element is still not present or not visible after timeout.
+        - WebElement: The element is visible before the timeout.
+        - False: The element is still invisible or not present after the timeout if TimeoutException is not re-raised.
         """
         try:
-            self._visible_element = self.wait(timeout).until(
+            self._present_element = self._visible_element = self.wait(timeout, StaleElementReferenceException).until(
                 ecex.visibility_of_element(self._mark, self.index),
                 f'Wait for element {self.remark} to be visible timed out after {self._wait_timeout} seconds.')
-            self._present_element = self._visible_element
             return self._visible_element
         except TimeoutException:
             if Timeout.reraise(reraise):
                 raise
             return False
-        
+
+    def wait_invisible(
+        self,
+        timeout: int | float | None = None,
+        present: bool = True,
+        reraise: bool | None = None
+    ) -> WebElement | bool:
+        """
+        Wait for the element to become invisible.
+
+        Args:
+        - timeout: The maximum time in seconds to wait for the element to become invisible.
+        - present:
+            - True: The element should be present and invisible.
+            - False: The element can be not present.
+        - reraise: When the element state is not as expected, the behavior can be set in the following ways:
+            - bool: True indicates to re-raise a TimeoutException; False means to return False.
+            - None: Follow the config.Timeout.RERAISE setting, which is a boolean. 
+                Its logic is the same as the boolean, and the default is True.
+
+        Returns:
+        - WebElement: The element becomes invisible before the timeout.
+        - None: The element is not present before the timeout, and the present parameter is True. 
+            This means that the element should be present and invisible, 
+            but it is not present, so None is returned to indicate this.
+        - False: The element is still visible after the timeout if TimeoutException is not re-raised.
+        """
+        try:
+            self._present_element = self.wait(timeout).until(
+                ecex.invisibility_of_element(self._mark, self.index),
+                f'Wait for element {self.remark} to be not visible timed out after {self._wait_timeout} seconds.')
+            if self._present_element is True and present:
+                # self._present_element being True means it triggered
+                # NoSuchElementException or StaleElementReferenceException.
+                # If 'present' is also True,
+                # we will return None because the element is no longer present.
+                return None
+            return self._present_element
+        except TimeoutException:
+            if Timeout.reraise(reraise):
+                raise
+            return False
+
     def wait_not_visible(
         self,
         timeout: int | float | None = None,
@@ -349,13 +408,14 @@ class Element:
             so it will return None as the element status is not as expected.
         - False: The element is still visible after the timeout.
         """
+        # TODO deprecate
         try:
             result = self.wait(timeout).until_not(
                 ecex.visibility_of_element(self._mark, self.index),
                 f'Wait for element {self.remark} to be not visible timed out after {self._wait_timeout} seconds.')
             if result and present:
                 # result = True means it triggered NoSuchElementException.
-                # If present is also True, 
+                # If present is also True,
                 # we will return None because it does not match the expected state.
                 return None
             return True
@@ -363,34 +423,37 @@ class Element:
             if Timeout.reraise(reraise):
                 raise
             return False
-        
+
     def wait_clickable(
         self,
         timeout: int | float | None = None,
         reraise: bool | None = None
     ) -> WebElement | Literal[False]:
         """
-        Wait for the element to be `clickable`.
+        Wait for the element to become clickable.
 
         Args:
-        - timeout: Maximum time in seconds to wait for the element to become clickable.
-        - reraise: True means reraising TimeoutException; vice versa.
+        - timeout: The maximum time in seconds to wait for the element to become clickable.
+        - reraise: When the element state is not as expected, the behavior can be set in the following ways:
+            - bool: True indicates to re-raise a TimeoutException; False means to return False.
+            - None: Follow the config.Timeout.RERAISE setting, which is a boolean. 
+                Its logic is the same as the boolean, and the default is True.
 
         Returns:
-        - WebElement: The element is clickable before timeout.
-        - False: The element is still not present or not clickable after timeout.
+        - WebElement: The element is clickable before the timeout.
+        - False: The element is still unclickable or not present after the timeout if TimeoutException is not re-raised.
         """
         try:
-            self._clickable_element = self.wait(timeout).until(
+            self._present_element = self._visible_element = self._clickable_element = self.wait(
+                timeout, StaleElementReferenceException).until(
                 ecex.element_to_be_clickable(self._mark, self.index),
                 f'Wait for element {self.remark} to be clickable timed out after {self._wait_timeout} seconds.')
-            self._present_element = self._visible_element = self._clickable_element
             return self._clickable_element
         except TimeoutException:
             if Timeout.reraise(reraise):
                 raise
             return False
-        
+
     def wait_not_clickable(
         self,
         timeout: int | float | None = None,
@@ -421,7 +484,7 @@ class Element:
                 f'Wait for element {self.remark} to be not clickable timed out after {self._wait_timeout} seconds.')
             if result and present:
                 # result = True means it triggered NoSuchElementException.
-                # If present is also True, 
+                # If present is also True,
                 # we will return None because it does not match the expected state.
                 return None
             return True
@@ -429,7 +492,7 @@ class Element:
             if Timeout.reraise(reraise):
                 raise
             return False
-        
+
     def wait_selected(
         self,
         timeout: int | float | None = None,
@@ -454,7 +517,7 @@ class Element:
             if Timeout.reraise(reraise):
                 raise
             return False
-        
+
     def wait_not_selected(
         self,
         timeout: int | float | None = None,
@@ -485,7 +548,7 @@ class Element:
                 f'Wait for element {self.remark} to be not selected timed out after {self._wait_timeout} seconds.')
             if result and present:
                 # result = True means it triggered NoSuchElementException.
-                # If present is also True, 
+                # If present is also True,
                 # we will return None because it does not match the expected state.
                 return None
             return True
@@ -924,9 +987,9 @@ class Element:
         return area
 
     def __get_offset(self,
-        offset: Coordinate,
-        area: tuple[int, int, int, int]
-    ) -> tuple[int, int, int, int]:
+                     offset: Coordinate,
+                     area: tuple[int, int, int, int]
+                     ) -> tuple[int, int, int, int]:
 
         start_x, start_y, end_x, end_y = self.__get_coordinate(offset, 'offset')
 
@@ -942,11 +1005,11 @@ class Element:
         return offset
 
     def __start_swiping_by(
-        self,
-        offset: tuple[int, int, int, int],
-        duration: int,
-        timeout: int | float,
-        max_swipe: int):
+            self,
+            offset: tuple[int, int, int, int],
+            duration: int,
+            timeout: int | float,
+            max_swipe: int):
         logstack._logging(f'🟢 Start swiping to element {self.remark}.')
         count = 0
         while not self.is_viewable(timeout):
@@ -959,10 +1022,10 @@ class Element:
         return True
 
     def __start_flicking_by(
-        self,
-        offset: tuple[int, int, int, int],
-        timeout: int | float,
-        max_swipe: int):
+            self,
+            offset: tuple[int, int, int, int],
+            timeout: int | float,
+            max_swipe: int):
         logstack._logging(f'🟢 Start flicking to element {self.remark}.')
         count = 0
         while not self.is_viewable(timeout):
@@ -975,12 +1038,12 @@ class Element:
         return True
 
     def __start_adjusting_by(
-        self,
-        offset: tuple[int, int, int, int],
-        area: tuple[int, int, int, int],
-        max_adjust: int,
-        min_distance: int,
-        duration: int):
+            self,
+            offset: tuple[int, int, int, int],
+            area: tuple[int, int, int, int],
+            max_adjust: int,
+            min_distance: int,
+            duration: int):
         def get_final_delta(delta):
             return int(math.copysign(min_distance, delta)) if abs(delta) < min_distance else delta
 
@@ -1188,7 +1251,7 @@ class Element:
             if Timeout.reraise(reraise):
                 raise
             return False
-        
+
     def perform(self) -> None:
         """
         Selenium ActionChains API.
@@ -1211,7 +1274,7 @@ class Element:
             my_page.perform()
         """
         self._action.perform()
-    
+
     def reset_actions(self) -> None:
         """
         Selenium ActionChains API.
@@ -1244,7 +1307,7 @@ class Element:
 
             # Chain with another method
             my_page.my_element.scroll_to_element().action_click().perform()
-            
+
             # or
             my_page.my_element1.scroll_to_element().action_click()
             ...  # other process
@@ -1265,7 +1328,7 @@ class Element:
 
             # Chain with another method
             my_page.my_element.scroll_to_element().click_and_hold().perform()
-            
+
             # or
             my_page.my_element1.scroll_to_element().click_and_hold()
             ...  # other process
@@ -1286,7 +1349,7 @@ class Element:
 
             # Chain with another method
             my_page.my_element.scroll_to_element().context_click().perform()
-            
+
             # or
             my_page.my_element1.scroll_to_element().context_click()
             ...  # other process
@@ -1307,7 +1370,7 @@ class Element:
 
             # Chain with another method
             my_page.my_element.scroll_to_element().double_click()
-            
+
             # or
             my_page.my_element1.scroll_to_element().double_click()
             ...  # other process
@@ -1332,7 +1395,7 @@ class Element:
 
             # Chain with another method
             my_page.my_element1.scroll_to_element().drag_and_drop(my_page.my_element2).perform()
-            
+
             # or
             my_page.my_element1.scroll_to_element().drag_and_drop(my_page.my_element2)
             ...  # other process
@@ -1360,7 +1423,7 @@ class Element:
 
             # Chain with another method
             my_page.my_element.scroll_to_element().drag_and_drop_by_offset(100, 200).perform()
-            
+
             # or
             my_page.my_element.scroll_to_element().drag_and_drop_by_offset(100, 200)
             ...  # other process
@@ -1368,7 +1431,7 @@ class Element:
         """
         self._action.drag_and_drop_by_offset(self.present_element, xoffset, yoffset)
         return self
-    
+
     def hotkey(self, *value: str):
         """
         Selenium ActionChains API.
@@ -1395,7 +1458,7 @@ class Element:
         for key in value[-2::-1]:
             self._action.key_up(key)
         return self
-    
+
     def key_down(self, value: str, focus: bool = True):
         """
         Selenium ActionChains API.
@@ -1443,7 +1506,7 @@ class Element:
         else:
             self._action.key_up(value)
         return self
-    
+
     def action_send_keys(self, *keys_to_send: str):
         """
         Selenium ActionChains API.
@@ -1457,7 +1520,7 @@ class Element:
 
             # Combine with key_down and key_up method
             my_page.my_element.key_down(Keys.COMMAND).action_send_keys('a').key_up(Keys.COMMAND).perform()
-            
+
             # Send keys to focused element
             # This is recommend to use send_keys_to_element() instead.
             my_page.my_element.action_click()  # Need to have focused element first.
@@ -1465,7 +1528,7 @@ class Element:
         """
         self._action.send_keys(*keys_to_send)
         return self
-    
+
     def send_keys_to_element(self, *keys_to_send: str) -> Element:
         """
         Selenium ActionChains API.
@@ -1481,7 +1544,7 @@ class Element:
 
             # Chain with another method
             my_page.my_element.scroll_to_element(False).send_keys_to_element(Keys.ENTER)
-            
+
             # or
             my_page.my_element.scroll_to_element(False).send_keys_to_element(Keys.ENTER)
             ...  # other process
@@ -1502,7 +1565,7 @@ class Element:
 
             # Chain with another method
             my_page.my_element.scroll_to_element().move_to_element().perform()
-            
+
             # or
             my_page.my_element.scroll_to_element().move_to_element()
             ...  # other process
@@ -1532,7 +1595,7 @@ class Element:
 
             # Chain with another method
             my_page.my_element.scroll_to_element().move_to_element_with_offset(100, 200).perform()
-            
+
             # or
             my_page.my_element.scroll_to_element().move_to_element_with_offset(100, 200)
             ...  # other process
@@ -1553,7 +1616,7 @@ class Element:
 
             # Chain with another method
             my_page.my_element.click_and_hold().release().perform()
-            
+
             # or
             my_page.my_element.click_and_hold().release()
             ...  # other process
@@ -1561,7 +1624,7 @@ class Element:
         """
         self._action.release(self.present_element)
         return self
-    
+
     def pause(self, seconds: int | float):
         """
         Selenium ActionChains API.
@@ -1583,7 +1646,7 @@ class Element:
 
             # Chain with another method
             my_page.my_element.scroll_to_element().action_click()
-            
+
             # or
             my_page.my_element1.scroll_to_element().action_click()
             ...  # other process
@@ -1593,10 +1656,10 @@ class Element:
         return self
 
     def scroll_from_element(
-        self, 
-        x_offset: int = 0, 
+        self,
+        x_offset: int = 0,
         y_offset: int = 0,
-        delta_x: int = 0, 
+        delta_x: int = 0,
         delta_y: int = 0
     ):
         """
@@ -1621,7 +1684,7 @@ class Element:
 
             # Chain with another method
             my_page.my_element.scroll_from_element(-30, -50, 150, 100).action_click().perform()
-            
+
             # or
             my_page.my_element.scroll_from_element(-30, -50, 150, 100).action_click()
             ...  # other process
@@ -1630,7 +1693,7 @@ class Element:
         scroll_origin = ScrollOrigin.from_element(self.present_element, x_offset, y_offset)
         self._action.scroll_from_origin(scroll_origin, delta_x, delta_y)
         return self
-    
+
     @property
     def _new_select(self) -> Select:
         """
@@ -1643,7 +1706,7 @@ class Element:
         except ElementException:
             self._select = Select(self.wait_present(reraise=True))
         return self._select
-    
+
     @property
     def options(self) -> list[SeleniumWebElement]:
         """
@@ -1796,7 +1859,7 @@ class Element:
             return self._present_element.location_in_view
         except ElementException:
             return self.wait_present(reraise=True).location_in_view
-        
+
     def input(self, text: str = '') -> Element:
         """
         Selenium API
@@ -1897,7 +1960,7 @@ class Element:
         except ElementException:
             self.wait_present(reraise=True).send_keys(first, 'v')
         return self
-    
+
     def arrow_left(self, times: int = 1) -> Element:
         """
         Selenium API
@@ -1915,7 +1978,7 @@ class Element:
         except ElementException:
             self.wait_present(reraise=True).send_keys(Keys.ARROW_LEFT * times)
         return self
-    
+
     def arrow_right(self, times: int = 1) -> Element:
         """
         Selenium API
@@ -1933,7 +1996,7 @@ class Element:
         except ElementException:
             self.wait_present(reraise=True).send_keys(Keys.ARROW_RIGHT * times)
         return self
-    
+
     def arrow_up(self, times: int = 1) -> Element:
         """
         Selenium API
@@ -1951,7 +2014,7 @@ class Element:
         except ElementException:
             self.wait_present(reraise=True).send_keys(Keys.ARROW_UP * times)
         return self
-    
+
     def arrow_down(self, times: int = 1) -> Element:
         """
         Selenium API
@@ -2137,9 +2200,9 @@ class Element:
         return self
 
     def __get_border(
-        self,
-        direction: str,
-        border: dict[str, int] | tuple[int, int, int, int]):
+            self,
+            direction: str,
+            border: dict[str, int] | tuple[int, int, int, int]):
         """
         Usage::
 
@@ -2163,15 +2226,15 @@ class Element:
         return border
 
     def __get_range(
-        self,
-        direction: str,
-        left: int,
-        right: int,
-        top: int,
-        bottom: int,
-        start: int,
-        end: int,
-        fix: bool | int = False):
+            self,
+            direction: str,
+            left: int,
+            right: int,
+            top: int,
+            bottom: int,
+            start: int,
+            end: int,
+            fix: bool | int = False):
         """
         Usage::
 
@@ -2217,14 +2280,14 @@ class Element:
         return coordinate
 
     def __start_swiping(
-        self,
-        sx: int,
-        sy: int,
-        ex: int,
-        ey: int,
-        duration: int,
-        timeout: int | float,
-        max_swipe: int):
+            self,
+            sx: int,
+            sy: int,
+            ex: int,
+            ey: int,
+            duration: int,
+            timeout: int | float,
+            max_swipe: int):
         """
         Return viewable or not.
         """
@@ -2240,18 +2303,18 @@ class Element:
         return True
 
     def __start_adjusting(
-        self,
-        left: int,
-        right: int,
-        top: int,
-        bottom: int,
-        sx: int,
-        sy: int,
-        ex: int,
-        ey: int,
-        max_adjust: int,
-        min_distance: int,
-        duration: int):
+            self,
+            left: int,
+            right: int,
+            top: int,
+            bottom: int,
+            sx: int,
+            sy: int,
+            ex: int,
+            ey: int,
+            max_adjust: int,
+            min_distance: int,
+            duration: int):
         """
         Start adjusting.
         """
