@@ -313,6 +313,48 @@ class Element:
                 raise
             return False
 
+    def _wait_visible(
+        self,
+        timeout: int | float | None = None,
+        reraise: bool | None = None
+    ) -> WebElement | Literal[False]:
+        """
+        Wait for the element to become visible.
+
+        Args:
+        - timeout: The maximum time in seconds to wait for the element to become visible.
+        - reraise: When the element state is not as expected, the behavior can be set in the following ways:
+            - bool: True indicates to re-raise a TimeoutException; False means to return False.
+            - None: Follow the config.Timeout.RERAISE setting, which is a boolean. 
+                Its logic is the same as the boolean, and the default is True.
+
+        Returns:
+        - WebElement: The element is visible before the timeout.
+        - False: The element is still invisible or not present after the timeout if TimeoutException is not re-raised.
+        """
+        mark = self._mark
+        wait = self.wait(timeout)
+        message = f'Wait for element {self.remark} to be visible timed out after {self._wait_timeout} seconds.'
+
+        try:
+            if isinstance(mark, tuple):
+                # mark is locator
+                self._present_element = self._visible_element = wait.until(
+                    ecex.visibility_of_element_located(mark, self.index), message)
+            else:
+                # mark is WebElement
+                self._present_element = self._visible_element = wait.until(
+                    ecex.visibility_of_element(mark, self.index), message)
+        except StaleElementReferenceException:
+            # When mark is WebElement and stales, refind element by locator.
+            self._present_element = self._visible_element = wait.until(
+                ecex.visibility_of_element_located(self.locator, self.index), message)
+        except TimeoutException:
+            if Timeout.reraise(reraise):
+                raise
+            return False
+        return self._visible_element
+
     def wait_visible(
         self,
         timeout: int | float | None = None,
@@ -370,7 +412,7 @@ class Element:
         """
         try:
             self._present_element = self.wait(timeout).until(
-                ecex.invisibility_of_element(self._mark, self.index),
+                ecex.invisibility_of_element_marked(self._mark, self.index),
                 f'Wait for element {self.remark} to be not visible timed out after {self._wait_timeout} seconds.')
             if self._present_element is True and present:
                 # self._present_element being True means it triggered

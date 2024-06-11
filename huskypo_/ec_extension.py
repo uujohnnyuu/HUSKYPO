@@ -29,11 +29,10 @@ def _find_element_by(
     """
     if index is None:
         return driver.find_element(*locator)
-    else:
-        try:
-            return driver.find_elements(*locator)[index]
-        except IndexError:
-            raise NoSuchElementException
+    try:
+        return driver.find_elements(*locator)[index]
+    except IndexError:
+        raise NoSuchElementException
 
 
 def presence_of_element_located(
@@ -94,15 +93,15 @@ def visibility_of_element(
     - element: WebElement
     """
 
-    def _predicate():
+    def _predicate(_):
         return element if element.is_displayed() else False
 
     return _predicate
 
 
-def invisibility_of_element(
-        mark: tuple[str, str] | WebElement,
-        index: int | None
+def invisibility_of_element_marked(
+    mark: tuple[str, str] | WebElement,
+    index: int | None
 ) -> Callable[[WebDriver], WebElement | bool]:
     """
     Extended `invisibility_of_element_located` and `invisibility_of_element`.
@@ -187,13 +186,13 @@ def element_to_be_clickable(
     - element: WebElement
     """
 
-    def _predicate():
+    def _predicate(_):
         return element if element.is_displayed() and element.is_enabled() else False
 
     return _predicate
 
 
-def element_to_be_unclickable(
+def element_marked_to_be_unclickable(
     mark: tuple[str, str] | WebElement,
     index: int | None
 ) -> Callable[[WebDriver], WebElement | bool]:
@@ -303,10 +302,7 @@ def element_to_be_unselected(
     it must be done in an external function.
 
     Args:
-    - mark: (by, value) or WebElement
-    - index (if mark is locator): 
-        - None: driver.find_element(*locator)
-        - int: driver.find_elements(*locator)[index]
+    - element: WebElement
     """
 
     def _predicate(_):
