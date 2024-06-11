@@ -26,8 +26,8 @@ from selenium.webdriver.common.print_page_options import PrintOptions
 from . import logstack
 from . import ec_extension as ecex
 from .config import Timeout
-from .typing import AppiumWebDriver
-from .typing import WebDriver, WebElement, WebDriverTuple
+from .types import AppiumWebDriver
+from .types import WebDriver, WebElement, WebDriverTuple
 
 # TODO deprecate
 from .by import SwipeAction as SA
@@ -36,7 +36,6 @@ IntCoordinate: TypeAlias = dict[str, int] | tuple[int, int, int, int]
 FloatCoordinate: TypeAlias = dict[str, float] | tuple[float, float, float, float]
 TupleCoordinate: TypeAlias = tuple[int, int, int, int] | tuple[float, float, float, float]
 Coordinate: TypeAlias = IntCoordinate | FloatCoordinate
-
 
 
 class Page:
@@ -50,7 +49,7 @@ class Page:
     @property
     def driver(self) -> WebDriver:
         return self._driver
-    
+
     @property
     def action(self) -> ActionChains:
         """
@@ -58,7 +57,7 @@ class Page:
         You can use it to perform an ActionChains method.
 
         Usage::
-            
+
             my_page.action.scroll_to_element(element).click(element)
         """
         return self._action
@@ -73,7 +72,7 @@ class Page:
         """
         self._wait_timeout = Timeout.DEFAULT if timeout is None else timeout
         return WebDriverWait(self.driver, self._wait_timeout)
-    
+
     @property
     def wait_timeout(self):
         """
@@ -330,10 +329,10 @@ class Page:
         self.driver.minimize_window()
 
     def set_window_rect(
-        self, 
-        x: int | None = None, 
-        y: int | None = None, 
-        width: int | None = None, 
+        self,
+        x: int | None = None,
+        y: int | None = None,
+        width: int | None = None,
         height: int | None = None
     ) -> dict | None:
         """
@@ -516,7 +515,7 @@ class Page:
 
         """
         return self.driver.execute_async_script(script, *args)
-    
+
     def perform(self) -> None:
         """
         Selenium ActionChains API.
@@ -531,7 +530,7 @@ class Page:
             my_page.perform()
         """
         self._action.perform()
-    
+
     def reset_actions(self) -> None:
         """
         Selenium ActionChains API.
@@ -546,7 +545,7 @@ class Page:
             my_page.reset_actions()
         """
         self._action.reset_actions()
-    
+
     def click(self) -> Page:
         """
         Selenium ActionChains API.
@@ -554,7 +553,7 @@ class Page:
         """
         self._action.click()
         return self
-    
+
     def click_and_hold(self) -> Page:
         """
         Selenium ActionChains API.
@@ -562,7 +561,7 @@ class Page:
         """
         self._action.click_and_hold()
         return self
-    
+
     def context_click(self) -> Page:
         """
         Selenium ActionChains API.
@@ -570,7 +569,7 @@ class Page:
         """
         self._action.context_click()
         return self
-    
+
     def double_click(self) -> Page:
         """
         Selenium ActionChains API.
@@ -578,7 +577,7 @@ class Page:
         """
         self._action.double_click()
         return self
-    
+
     def key_down(self, value: str) -> Page:
         """
         Selenium ActionChains API.
@@ -590,7 +589,7 @@ class Page:
         """
         self._action.key_down(value)
         return self
-    
+
     def key_up(self, value: str) -> Page:
         """
         Selenium ActionChains API.
@@ -601,7 +600,7 @@ class Page:
         """
         self._action.key_up(value)
         return self
-    
+
     def move_by_offset(self, xoffset: int, yoffset: int) -> Page:
         """
         Selenium ActionChains API.
@@ -613,7 +612,7 @@ class Page:
         """
         self._action.move_by_offset(xoffset, yoffset)
         return self
-    
+
     def pause(self, seconds: int | float) -> Page:
         """
         Selenium ActionChains API.
@@ -621,7 +620,7 @@ class Page:
         """
         self._action.pause(seconds)
         return self
-    
+
     def release(self) -> Page:
         """
         Selenium ActionChains API.
@@ -629,7 +628,7 @@ class Page:
         """
         self._action.release()
         return self
-    
+
     def send_keys(self, *keys_to_send: str) -> Page:
         """
         Selenium ActionChains API.
@@ -637,7 +636,7 @@ class Page:
         """
         self._action.send_keys(*keys_to_send)
         return self
-    
+
     def scroll_by_amount(self, delta_x: int, delta_y: int) -> Page:
         """
         Selenium ActionChains API.
@@ -649,12 +648,12 @@ class Page:
         """
         self.action.scroll_by_amount(delta_x, delta_y)
         return self
-    
+
     def scroll_from_origin(
-        self, 
+        self,
         x_offset: int = 0,
         y_offset: int = 0,
-        delta_x: int = 0, 
+        delta_x: int = 0,
         delta_y: int = 0,
     ) -> Page:
         """
@@ -667,7 +666,7 @@ class Page:
         - y_offset: from origin viewport, a negative value offset up.
         - delta_x: Distance along X axis to scroll using the wheel. A negative value scrolls left.
         - delta_y: Distance along Y axis to scroll using the wheel. A negative value scrolls up.
-        
+
         Raises: If the origin with offset is outside the viewport.
         - MoveTargetOutOfBoundsException - If the origin with offset is outside the viewport.
         """
@@ -676,8 +675,8 @@ class Page:
         return self
 
     def tap(
-        self, 
-        positions: list[tuple[int, int]], 
+        self,
+        positions: list[tuple[int, int]],
         duration: int | None = None
     ) -> AppiumWebDriver:
         """
@@ -723,7 +722,7 @@ class Page:
 
         """
         return self.driver.swipe(start_x, start_y, end_x, end_y, duration)
-    
+
     def swipe_by(
             self,
             offset: Coordinate = {'start_x': 0.5, 'start_y': 0.75, 'end_x': 0.5, 'end_y': 0.25},
@@ -788,7 +787,7 @@ class Page:
             driver = self.driver.swipe(*offset, duration)
 
         return driver
-    
+
     def flick(self, start_x: int, start_y: int, end_x: int, end_y: int) -> AppiumWebDriver:
         """
         Appium API.
@@ -804,7 +803,7 @@ class Page:
             page.flick(100, 100, 100, 400)
         """
         return self.driver.flick(start_x, start_y, end_x, end_y)
-    
+
     def flick_by(
             self,
             offset: Coordinate = {'start_x': 0.5, 'start_y': 0.75, 'end_x': 0.5, 'end_y': 0.25},
@@ -866,10 +865,10 @@ class Page:
             driver = self.driver.flick(*offset)
 
         return driver
-    
+
     def __get_coordinate(
-            self, 
-            coordinate: Coordinate, 
+            self,
+            coordinate: Coordinate,
             name: str
     ) -> TupleCoordinate:
 
@@ -880,7 +879,7 @@ class Page:
             values = coordinate
         else:
             raise TypeError(f'"{name}" should be dict or tuple.')
-        
+
         # is coordinate
         if all(isinstance(value, int) for value in values):
             values_type = int
@@ -888,13 +887,13 @@ class Page:
             values_type = float
         else:
             raise TypeError(f'All "{name}" values should be "int" or "float".')
-        
+
         # if float, all should be (0 <= x <= 1)
         if values_type == float and not all(0 <= value <= 1 for value in values):
             raise ValueError(f'All "{name}" values are floats and should be between "0.0" and "1.0".')
-        
+
         return values
-    
+
     def __get_area(self, area: Coordinate) -> tuple[int, int, int, int]:
 
         area_x, area_y, area_width, area_height = self.__get_coordinate(area, 'area')
@@ -905,15 +904,15 @@ class Page:
             area_y = window_y + int(window_height * area_y)
             area_width = int(window_width * area_width)
             area_height = int(window_height * area_height)
-        
+
         area = (area_x, area_y, area_width, area_height)
         logstack._logging(f'🟢 area: {area}')
         return area
-    
-    def __get_offset(self, 
-            offset: Coordinate, 
-            area: tuple[int, int, int, int]
-        ) -> tuple[int, int, int, int]:
+
+    def __get_offset(self,
+                     offset: Coordinate,
+                     area: tuple[int, int, int, int]
+                     ) -> tuple[int, int, int, int]:
 
         start_x, start_y, end_x, end_y = self.__get_coordinate(offset, 'offset')
 
@@ -923,11 +922,11 @@ class Page:
             start_y = area_y + int(area_height * start_y)
             end_x = area_x + int(area_width * end_x)
             end_y = area_y + int(area_height * end_y)
-        
+
         offset = (start_x, start_y, end_x, end_y)
         logstack._logging(f'🟢 offset: {offset}')
         return offset
-    
+
     def js_mobile_scroll_direction(self, direction: str = 'down'):
         """
         java script::
@@ -937,7 +936,7 @@ class Page:
 
         """
         return self.driver.execute_script('mobile: scroll', {'direction': direction})
-    
+
     def draw_lines(self, dots: list[dict[str, int]], duration: int = 1000) -> None:
         """
         Appium 2.0 API.
@@ -968,7 +967,6 @@ class Page:
         # relase = pointer_up, lift fingers off the screen.
         actions.w3c_actions.pointer_action.release()
         actions.perform()
-        
 
     def draw_gesture(self, dots: list[dict[str, int]], gesture: str, duration: int = 1000) -> None:
         """
@@ -1386,7 +1384,7 @@ class Page:
             'This function is deprecated and will be removed in future versions. Please use "swipe_by" instead.',
             DeprecationWarning,
             stacklevel=2)
-        
+
         vertical = 'v'
         horizontal = 'h'
 

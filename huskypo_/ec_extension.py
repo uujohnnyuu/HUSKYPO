@@ -11,6 +11,10 @@ from selenium.common.exceptions import StaleElementReferenceException
 
 from .types import AppiumWebDriver, WebDriver, WebElement
 
+# TODO difference between locator and WebElement
+# locator: can using StaleElementReferenceException to retry to find element(s).
+# WebElement: can NOT using StaleElementReferenceException to retry, for you can not get the locator by WebElement.
+
 
 def _find_element_by(
     driver: WebDriver,
@@ -52,25 +56,46 @@ def presence_of_element_located(
     return _predicate
 
 
-def visibility_of_element(
-        mark: tuple[str, str] | WebElement,
-        index: int | None
+def visibility_of_element_located(
+    locator: tuple[str, str],
+    index: int | None
 ) -> Callable[[WebDriver], WebElement | Literal[False]]:
     """
-    Extended `visibility_of_element_located` and `visibility_of`.
+    Extended `visibility_of_element_located`.
 
     Args:
-    - mark: (by, value) or WebElement
-    - index (if mark is locator): 
+    - locator: (by, value)
+    - index: 
         - None: driver.find_element(*locator)
         - int: driver.find_elements(*locator)[index]
     """
 
     def _predicate(driver: WebDriver):
-        target = mark
-        if isinstance(target, tuple):
-            target = _find_element_by(driver, target, index)
-        return target if target.is_displayed() else False
+        try:
+            element = _find_element_by(driver, locator, index)
+            return element if element.is_displayed() else False
+        except StaleElementReferenceException:
+            return False
+
+    return _predicate
+
+
+def visibility_of_element(
+    element: WebElement
+) -> Callable[[WebDriver], WebElement | Literal[False]]:
+    """
+    Extended `visibility_of`.
+    StaleElementReferenceException is not caught here 
+    because the element can only be re-located using the locator. 
+    Therefore, if you need to handle stale element issues, 
+    it must be done in an external function.
+
+    Args:
+    - element: WebElement
+    """
+
+    def _predicate():
+        return element if element.is_displayed() else False
 
     return _predicate
 
@@ -124,29 +149,46 @@ def visibility_of_any_elements_located(
     return _predicate
 
 
-def element_to_be_clickable(
-    mark: tuple[str, str] | WebElement,
+def element_located_to_be_clickable(
+    locator: tuple[str, str],
     index: int | None
 ) -> Callable[[WebDriver], WebElement | Literal[False]]:
     """
     Extended `element_to_be_clickable`.
 
     Args:
-    - mark: (by, value) or WebElement
-    - index (if mark is locator): 
+    - locator: (by, value)
+    - index: 
         - None: driver.find_element(*locator)
         - int: driver.find_elements(*locator)[index]
     """
 
     def _predicate(driver: WebDriver):
         try:
-            target = mark
-            if isinstance(target, tuple):
-                target = _find_element_by(driver, target, index)
-            return target if target.is_displayed() and target.is_enabled() else False
+            element = _find_element_by(driver, locator, index)
+            return element if element.is_displayed() and element.is_enabled() else False
         except StaleElementReferenceException:
-            # TODO
-            pass
+            return False
+
+    return _predicate
+
+
+def element_to_be_clickable(
+    element: WebElement
+) -> Callable[[WebDriver], WebElement | Literal[False]]:
+    """
+    Extended `element_to_be_clickable`.
+    StaleElementReferenceException is not caught here 
+    because the element can only be re-located using the locator. 
+    Therefore, if you need to handle stale element issues, 
+    it must be done in an external function.
+
+    Args:
+    - element: WebElement
+    """
+
+    def _predicate():
+        return element if element.is_displayed() and element.is_enabled() else False
 
     return _predicate
 
@@ -182,39 +224,83 @@ def element_to_be_unclickable(
     return _predicate
 
 
-def element_to_be_selected(
-    mark: tuple[str, str] | WebElement,
+def element_located_to_be_selected(
+    locator: tuple[str, str],
     index: int | None
 ) -> Callable[[WebDriver], WebElement | Literal[False]]:
     """
-    Extended `element_located_to_be_selected` and `element_to_be_selected`.
+    Extended `element_located_to_be_selected`.
 
     Args:
-    - mark: (by, value) or WebElement
-    - index (if mark is locator): 
+    - locator: (by, value)
+    - index: 
         - None: driver.find_element(*locator)
         - int: driver.find_elements(*locator)[index]
     """
 
     def _predicate(driver: WebDriver):
-        target = mark
-        if isinstance(target, tuple):
-            target = _find_element_by(driver, target, index)
-        return target if target.is_selected() else False
+        try:
+            element = _find_element_by(driver, locator, index)
+            return element if element.is_selected() else False
+        except StaleElementReferenceException:
+            return False
+
+    return _predicate
+
+
+def element_to_be_selected(
+    element: WebElement
+) -> Callable[[WebDriver], WebElement | Literal[False]]:
+    """
+    Extended `element_to_be_selected`.
+    StaleElementReferenceException is not caught here 
+    because the element can only be re-located using the locator. 
+    Therefore, if you need to handle stale element issues, 
+    it must be done in an external function.
+
+    Args:
+    - element: WebElement
+    """
+
+    def _predicate(_):
+        return element if element.is_selected() else False
+
+    return _predicate
+
+
+def element_located_to_be_unselected(
+    locator: tuple[str, str],
+    index: int | None
+) -> Callable[[WebDriver], WebElement | Literal[False]]:
+    """
+    Extended new function.
+
+    Args:
+    - locator: (by, value)
+    - index: 
+        - None: driver.find_element(*locator)
+        - int: driver.find_elements(*locator)[index]
+    """
+
+    def _predicate(driver: WebDriver):
+        try:
+            element = _find_element_by(driver, locator, index)
+            return element if not element.is_selected() else False
+        except StaleElementReferenceException:
+            return False
 
     return _predicate
 
 
 def element_to_be_unselected(
-    mark: tuple[str, str] | WebElement,
-    index: int | None
-) -> Callable[[WebDriver], WebElement | bool]:
+    element: WebElement
+) -> Callable[[WebDriver], WebElement | Literal[False]]:
     """
     Extended new function.
-    Note that unselected is different from conditions like invisible and unclickable. 
-    The selected or unselected state depends on the user's action, 
-    so the element must be present. 
-    Therefore, we do not accept NoSuchElementException or StaleElementReferenceException.
+    StaleElementReferenceException is not caught here 
+    because the element can only be re-located using the locator. 
+    Therefore, if you need to handle stale element issues, 
+    it must be done in an external function.
 
     Args:
     - mark: (by, value) or WebElement
@@ -223,11 +309,8 @@ def element_to_be_unselected(
         - int: driver.find_elements(*locator)[index]
     """
 
-    def _predicate(driver: WebDriver):
-        target = mark
-        if isinstance(target, tuple):
-            target = _find_element_by(driver, target, index)
-        return target if not target.is_selected() else False
+    def _predicate(_):
+        return element if not element.is_selected() else False
 
     return _predicate
 

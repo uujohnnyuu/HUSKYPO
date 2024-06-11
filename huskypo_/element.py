@@ -334,7 +334,7 @@ class Element:
         """
         try:
             self._present_element = self._visible_element = self.wait(timeout, StaleElementReferenceException).until(
-                ecex.visibility_of_element(self._mark, self.index),
+                ecex.visibility_of_element_located(self._mark, self.index),
                 f'Wait for element {self.remark} to be visible timed out after {self._wait_timeout} seconds.')
             return self._visible_element
         except TimeoutException:
@@ -411,7 +411,7 @@ class Element:
         # TODO deprecate
         try:
             result = self.wait(timeout).until_not(
-                ecex.visibility_of_element(self._mark, self.index),
+                ecex.visibility_of_element_located(self._mark, self.index),
                 f'Wait for element {self.remark} to be not visible timed out after {self._wait_timeout} seconds.')
             if result and present:
                 # result = True means it triggered NoSuchElementException.
