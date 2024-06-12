@@ -42,12 +42,12 @@ Coordinate = IntCoordinate | FloatCoordinate
 class Element:
 
     def __init__(
-            self,
-            by: str | None = None,
-            value: str | None = None,
-            index: int | None = None,
-            timeout: int | float | None = None,
-            remark: str | None = None):
+        self,
+        by: str | None = None,
+        value: str | None = None,
+        index: int | None = None,
+        timeout: int | float | None = None,
+        remark: str | None = None):
         """
         Initial Element attributes.
 
@@ -204,6 +204,9 @@ class Element:
             return self._wait_timeout
         except AttributeError:
             return None
+        
+    def __timeout_message(self, status: str):
+        return f'Waiting for element "{self.remark}" to become "{status}" timed out after {self._wait_timeout} seconds.'
 
     def find(
         self,
@@ -274,7 +277,7 @@ class Element:
         try:
             self._present_element = self.wait(timeout).until(
                 ecex.presence_of_element_located(self.locator, self.index),
-                f'Wait for element {self.remark} to be present timed out after {self._wait_timeout} seconds.')
+                self.__timeout_message('present'))
             return self._present_element
         except TimeoutException:
             if Timeout.reraise(reraise):
@@ -305,9 +308,9 @@ class Element:
         - TimeoutException: `reraise` is True and the element is still `present` after the timeout.
         """
         try:
-            return self.wait(timeout).until_not(
-                ecex.presence_of_element_located(self.locator, self.index),
-                f'Wait for element {self.remark} to be absent timed out after {self._wait_timeout} seconds.')
+            return self.wait(timeout).until(
+                ecex.absence_of_element_located(self.locator, self.index),
+                self.__timeout_message('absent'))
         except TimeoutException:
             if Timeout.reraise(reraise):
                 raise
@@ -336,6 +339,7 @@ class Element:
         Exception:
         - TimeoutException: `reraise` is True and the element is still `present` after the timeout.
         """
+        warnings.warn('Please use "wait_absent" instead.', DeprecationWarning, 2)
         return self.wait_absent(timeout, reraise)
     
     def wait_visible(
@@ -364,7 +368,7 @@ class Element:
         try:
             self._present_element = self._visible_element = self.wait(timeout).until(
                 ecex.visibility_of_element_marked(self._mark, self.locator, self.index),
-                f'Wait for element {self.remark} to be visible timed out after {self._wait_timeout} seconds.')
+                self.__timeout_message('visible'))
             return self._visible_element
         except TimeoutException:
             if Timeout.reraise(reraise):
@@ -405,7 +409,7 @@ class Element:
         try:
             self._present_element = self.wait(timeout).until(
                 ecex.invisibility_of_element_marked(self._mark, self.index),
-                f'Wait for element {self.remark} to be invisible timed out after {self._wait_timeout} seconds.')
+                self.__timeout_message('invisible'))
             if self._present_element is True and present:
                 # self._present_element being True means it triggered
                 # NoSuchElementException or StaleElementReferenceException.
@@ -442,6 +446,7 @@ class Element:
             so it will return None as the element status is not as expected.
         - False: The element is still visible after the timeout.
         """
+        warnings.warn('Please use "wait_invisible" instead.', DeprecationWarning, 2)
         return self.wait_invisible(timeout, present, reraise)
         
     def wait_clickable(
@@ -470,7 +475,7 @@ class Element:
         try:
             self._present_element = self._visible_element = self._clickable_element = self.wait(timeout).until(
                 ecex.element_marked_to_be_clickable(self._mark, self.locator, self.index),
-                f'Wait for element {self.remark} to be clickable timed out after {self._wait_timeout} seconds.')
+                self.__timeout_message('clickable'))
             return self._clickable_element
         except TimeoutException:
             if Timeout.reraise(reraise):
@@ -510,7 +515,7 @@ class Element:
         try:
             self._present_element = self.wait(timeout).until(
                 ecex.element_marked_to_be_unclickable(self._mark, self.index),
-                f'Wait for element {self.remark} to be unclickable timed out after {self._wait_timeout} seconds.')
+                self.__timeout_message('unclickable'))
             if self._present_element is True and present:
                 # self._present_element being True means it triggered
                 # NoSuchElementException or StaleElementReferenceException.
@@ -553,6 +558,7 @@ class Element:
         Exception:
         - TimeoutException: `reraise` is True and the element is still `clickable` after the timeout.
         """
+        warnings.warn('Please use "wait_unclickable" instead.', DeprecationWarning, 2)
         self.wait_unclickable(timeout, present, reraise)
 
     def wait_selected(
@@ -581,7 +587,7 @@ class Element:
         try:
             self._present_element = self.wait(timeout).until(
                 ecex.element_marked_to_be_selected(self._mark, self.locator, self.index),
-                f'Wait for element {self.remark} to be selected timed out after {self._wait_timeout} seconds.')
+                self.__timeout_message('selected'))
             return self._present_element
         except TimeoutException:
             if Timeout.reraise(reraise):
@@ -614,7 +620,7 @@ class Element:
         try:
             self._present_element = self.wait(timeout).until(
                 ecex.element_marked_to_be_unselected(self._mark, self.locator, self.index),
-                f'Wait for element {self.remark} to be unselected timed out after {self._wait_timeout} seconds.')
+                self.__timeout_message('unselected'))
             return self._present_element
         except TimeoutException:
             if Timeout.reraise(reraise):
@@ -644,6 +650,7 @@ class Element:
         Exception:
         - TimeoutException: `reraise` is True and the element is still `selected` or `absent` after the timeout.
         """
+        warnings.warn('Please use "wait_unselected" instead.', DeprecationWarning, 2)
         return self.wait_unselected(timeout, reraise)
 
     def is_present(self, timeout: int | float | None = None) -> bool:
@@ -657,11 +664,7 @@ class Element:
         - True: The element is present before timeout.
         - False: The element is still not present after timeout.
         """
-        try:
-            self._present_element.is_enabled()
-            return True
-        except ElementException:
-            return True if self.wait_present(timeout, False) else False
+        return True if self.wait_present(timeout, False) else False
 
     def is_visible(self) -> bool:
         """
@@ -1330,12 +1333,12 @@ class Element:
     ) -> bool:
         """
         Selenium API.
-        Switches focus to the specified frame by webelement.
+        If the frame is available it switches the given driver to the specified frame.
         """
         try:
             return self.wait(timeout).until(
                 ec.frame_to_be_available_and_switch_to_it(self.locator),
-                f'Wait for frame by element {self.remark} to be available timed out after {self._wait_timeout} seconds.')
+                self.__timeout_message('available frame'))
         except TimeoutException:
             if Timeout.reraise(reraise):
                 raise

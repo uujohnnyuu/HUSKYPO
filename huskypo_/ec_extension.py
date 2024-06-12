@@ -55,6 +55,31 @@ def presence_of_element_located(
     return _predicate
 
 
+def absence_of_element_located(
+    locator: tuple[str, str],
+    index: int | None
+) -> Callable[[WebDriver], bool]:
+    """
+    Extended new function.
+    Whether the element is absence.
+
+    Args:
+    - locator: (by, value)
+    - index: 
+        - None: driver.find_element(*locator)
+        - int: driver.find_elements(*locator)[index]
+    """
+
+    def _predicate(driver: WebDriver):
+        try:
+            _find_element_by(driver, locator, index)
+            return False
+        except NoSuchElementException:
+            return True
+
+    return _predicate
+
+
 def visibility_of_element_marked(
     mark: tuple[str, str] | WebElement,
     locator: tuple[str, str],
