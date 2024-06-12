@@ -110,10 +110,10 @@ class Page:
         return self.driver.current_url
 
     def url_is(
-            self,
-            url: str,
-            timeout: int | float | None = None,
-            reraise: bool | None = None
+        self,
+        url: str,
+        timeout: int | float | None = None,
+        reraise: bool | None = None
     ) -> bool:
         """
         Selenium API.
@@ -134,10 +134,10 @@ class Page:
             return False
 
     def url_contains(
-            self,
-            url: str,
-            timeout: int | float | None = None,
-            reraise: bool | None = None
+        self,
+        url: str,
+        timeout: int | float | None = None,
+        reraise: bool | None = None
     ) -> bool:
         """
         Selenium API.
@@ -158,10 +158,10 @@ class Page:
             return False
 
     def url_matches(
-            self,
-            pattern: str,
-            timeout: int | float | None = None,
-            reraise: bool | None = None
+        self,
+        pattern: str,
+        timeout: int | float | None = None,
+        reraise: bool | None = None
     ) -> bool:
         """
         Selenium API.
@@ -183,10 +183,10 @@ class Page:
             return False
 
     def url_changes(
-            self,
-            url: str,
-            timeout: int | float | None = None,
-            reraise: bool | None = None
+        self,
+        url: str,
+        timeout: int | float | None = None,
+        reraise: bool | None = None
     ) -> bool:
         """
         Selenium API.
@@ -215,10 +215,10 @@ class Page:
         return self.driver.title
 
     def title_is(
-            self,
-            title: str,
-            timeout: int | float | None = None,
-            reraise: bool | None = None
+        self,
+        title: str,
+        timeout: int | float | None = None,
+        reraise: bool | None = None
     ) -> bool:
         """
         Selenium API.
@@ -239,10 +239,10 @@ class Page:
             return False
 
     def title_contains(
-            self,
-            title: str,
-            timeout: int | float | None = None,
-            reraise: bool | None = None
+        self,
+        title: str,
+        timeout: int | float | None = None,
+        reraise: bool | None = None
     ) -> bool:
         """
         Selenium API.
@@ -393,10 +393,10 @@ class Page:
         return self.driver.get_window_position(windowHandle)
 
     def set_window_size(
-            self,
-            width: int | None = None,
-            height: int | None = None,
-            windowHandle: str = 'current'
+        self,
+        width: int | None = None,
+        height: int | None = None,
+        windowHandle: str = 'current'
     ) -> None:
         """
         selenium API
@@ -459,10 +459,10 @@ class Page:
             return False
 
     def new_window_is_opened(
-            self,
-            current_handles: list[str],
-            timeout: int | float | None = None,
-            reraise: bool | None = None
+        self,
+        current_handles: list[str],
+        timeout: int | float | None = None,
+        reraise: bool | None = None
     ) -> bool:
         """
         An expectation for the number of windows to be a certain value.
@@ -724,11 +724,11 @@ class Page:
         return self.driver.swipe(start_x, start_y, end_x, end_y, duration)
 
     def swipe_by(
-            self,
-            offset: Coordinate = {'start_x': 0.5, 'start_y': 0.75, 'end_x': 0.5, 'end_y': 0.25},
-            area: Coordinate = {'x': 0.0, 'y': 0.0, 'width': 1.0, 'height': 1.0},
-            duration: int = 1000,
-            times: int = 1
+        self,
+        offset: Coordinate = {'start_x': 0.5, 'start_y': 0.75, 'end_x': 0.5, 'end_y': 0.25},
+        area: Coordinate = {'x': 0.0, 'y': 0.0, 'width': 1.0, 'height': 1.0},
+        duration: int = 1000,
+        times: int = 1
     ) -> AppiumWebDriver:
         """
         Swipe from one point to another, allowing customization of the offset and border settings.
@@ -805,10 +805,10 @@ class Page:
         return self.driver.flick(start_x, start_y, end_x, end_y)
 
     def flick_by(
-            self,
-            offset: Coordinate = {'start_x': 0.5, 'start_y': 0.75, 'end_x': 0.5, 'end_y': 0.25},
-            area: Coordinate = {'x': 0.0, 'y': 0.0, 'width': 1.0, 'height': 1.0},
-            times: int = 1
+        self,
+        offset: Coordinate = {'start_x': 0.5, 'start_y': 0.75, 'end_x': 0.5, 'end_y': 0.25},
+        area: Coordinate = {'x': 0.0, 'y': 0.0, 'width': 1.0, 'height': 1.0},
+        times: int = 1
     ) -> AppiumWebDriver:
         """
         Flick from one point to another, allowing customization of the offset and border settings.
@@ -867,9 +867,9 @@ class Page:
         return driver
 
     def __get_coordinate(
-            self,
-            coordinate: Coordinate,
-            name: str
+        self,
+        coordinate: Coordinate,
+        name: str
     ) -> TupleCoordinate:
 
         # is dict or tuple
@@ -909,10 +909,11 @@ class Page:
         logstack._logging(f'🟢 area: {area}')
         return area
 
-    def __get_offset(self,
-                     offset: Coordinate,
-                     area: tuple[int, int, int, int]
-                     ) -> tuple[int, int, int, int]:
+    def __get_offset(
+        self,
+        offset: Coordinate,
+        area: tuple[int, int, int, int]
+    ) -> tuple[int, int, int, int]:
 
         start_x, start_y, end_x, end_y = self.__get_coordinate(offset, 'offset')
 
@@ -1019,9 +1020,9 @@ class Page:
         return self.driver.switch_to.active_element
 
     def switch_to_alert(
-            self,
-            timeout: int | float | None = None,
-            reraise: bool | None = None
+        self,
+        timeout: int | float | None = None,
+        reraise: bool | None = None
     ) -> Alert | Literal[False]:
         """
         Switch to alert.
@@ -1107,11 +1108,11 @@ class Page:
         return self.driver.switch_to.context(context)
 
     def switch_to_webview(
-            self,
-            switch: bool = True,
-            index: int = -1,
-            timeout: int | float | None = None,
-            reraise: bool | None = None
+        self,
+        switch: bool = True,
+        index: int = -1,
+        timeout: int | float | None = None,
+        reraise: bool | None = None
     ) -> list[str] | Literal[False]:
         """
         Appium API.
@@ -1347,13 +1348,13 @@ class Page:
         self.driver.set_page_load_timeout(time_to_wait)
 
     def swipe_ratio(
-            self,
-            direction: str = SA.V,
-            start: int = 75,
-            end: int = 25,
-            fix: int = None,
-            ratio: bool = False,
-            duration: int = 1000
+        self,
+        direction: str = SA.V,
+        start: int = 75,
+        end: int = 25,
+        fix: int = None,
+        ratio: bool = False,
+        duration: int = 1000
     ) -> None:
         """
         Swipe by window ratio vertically or horizontally.

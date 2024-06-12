@@ -30,11 +30,11 @@ from .types import WebDriver, WebElement
 class Elements:
 
     def __init__(
-            self,
-            by: str | None = None,
-            value: str | None = None,
-            timeout: int | float | None = None,
-            remark: str | None = None):
+        self,
+        by: str | None = None,
+        value: str | None = None,
+        timeout: int | float | None = None,
+        remark: str | None = None):
         """
         Initial Elements attributes.
 
@@ -157,12 +157,15 @@ class Elements:
             return self._wait_timeout
         except AttributeError:
             return None
+        
+    def __timeout_message(self, status: str):
+        return f'Waiting for elements "{self.remark}" to become "{status}" timed out after {self._wait_timeout} seconds.'
 
     def find(
-            self,
-            index: int | None = None,
-            timeout: int | float | None = None,
-            reraise: bool | None = None
+        self,
+        index: int | None = None,
+        timeout: int | float | None = None,
+        reraise: bool | None = None
     ) -> list[WebElement] | WebElement | Literal[False]:
         """
         Selenium and Appium API.
@@ -192,9 +195,9 @@ class Elements:
         return elements
 
     def wait_all_present(
-            self,
-            timeout: int | float | None = None,
-            reraise: bool | None = None
+        self,
+        timeout: int | float | None = None,
+        reraise: bool | None = None
     ) -> list[WebElement] | Literal[False]:
         """
         Selenium and Appium API.

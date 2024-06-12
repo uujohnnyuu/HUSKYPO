@@ -457,8 +457,8 @@ def element_to_be_unselected(
 
 
 def webview_is_present(
-        switch: bool = True,
-        index: int = -1
+    switch: bool = True,
+    index: int = -1
 ) -> Callable[[AppiumWebDriver], list[str] | Literal[False]]:
     """
     Wait for context WEBVIEW_XXX is present.
