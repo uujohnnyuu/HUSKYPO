@@ -206,6 +206,9 @@ class Element:
             return None
         
     def __timeout_message(self, status: str):
+        """
+        Waiting for element "{self.remark}" to become "{status}" timed out after {self._wait_timeout} seconds.
+        """
         return f'Waiting for element "{self.remark}" to become "{status}" timed out after {self._wait_timeout} seconds.'
 
     def find(
@@ -257,7 +260,7 @@ class Element:
         reraise: bool | None = None
     ) -> WebElement | Literal[False]:
         """
-        Wait for the element to become `present`.
+        Waiting for the element to become `present`.
 
         Args:
         - timeout: The maximum time in seconds to wait for the element to become `present`.
@@ -290,7 +293,7 @@ class Element:
         reraise: bool | None = None
     ) -> bool:
         """
-        Wait for the element to become `absent`.
+        Waiting for the element to become `absent`.
 
         Args:
         - timeout: The maximum time in seconds to wait for the element to become `absent`.
@@ -322,7 +325,7 @@ class Element:
         reraise: bool | None = None
     ) -> bool:
         """
-        Wait for the element to become `absent`.
+        Waiting for the element to become `absent`.
 
         Args:
         - timeout: The maximum time in seconds to wait for the element to become `absent`.
@@ -348,7 +351,7 @@ class Element:
         reraise: bool | None = None
     ) -> WebElement | Literal[False]:
         """
-        Wait for the element to become `visible`.
+        Waiting for the element to become `visible`.
 
         Args:
         - timeout: The maximum time in seconds to wait for the element to become `visible`.
@@ -383,7 +386,7 @@ class Element:
         reraise: bool | None = None
     ) -> WebElement | bool:
         """
-        Wait for the element to become `invisible`.
+        Waiting for the element to become `invisible`.
 
         Args:
         - timeout: The maximum time in seconds to wait for the element to become `invisible`.
@@ -429,7 +432,7 @@ class Element:
         reraise: bool | None = None
     ) -> bool:
         """
-        Wait for the element to be `not visible`.
+        Waiting for the element to be `not visible`.
 
         Args:
         - timeout: Maximum time in seconds to wait for the element to become not visible.
@@ -455,7 +458,7 @@ class Element:
         reraise: bool | None = None
     ) -> WebElement | Literal[False]:
         """
-        Wait for the element to become `clickable`.
+        Waiting for the element to become `clickable`.
 
         Args:
         - timeout: The maximum time in seconds to wait for the element to become `clickable`.
@@ -489,7 +492,7 @@ class Element:
         reraise: bool | None = None
     ) -> WebElement | bool:
         """
-        Wait for the element to become `unclickable`.
+        Waiting for the element to become `unclickable`.
 
         Args:
         - timeout: The maximum time in seconds to wait for the element to become `unclickable`.
@@ -535,7 +538,7 @@ class Element:
         reraise: bool | None = None
     ) -> bool:
         """
-        Wait for the element to become `unclickable`.
+        Waiting for the element to become `unclickable`.
 
         Args:
         - timeout: The maximum time in seconds to wait for the element to become `unclickable`.
@@ -567,7 +570,7 @@ class Element:
         reraise: bool | None = None
     ) -> bool:
         """
-        Wait for the element to become `selected`.
+        Waiting for the element to become `selected`.
 
         Args:
         - timeout: The maximum time in seconds to wait for the element to become `selected`.
@@ -600,7 +603,7 @@ class Element:
         reraise: bool | None = None
     ) -> bool:
         """
-        Wait for the element to become `unselected`.
+        Waiting for the element to become `unselected`.
 
         Args:
         - timeout: The maximum time in seconds to wait for the element to become `unselected`.
@@ -633,7 +636,7 @@ class Element:
         reraise: bool | None = None
     ) -> bool:
         """
-        Wait for the element to become `unselected`.
+        Waiting for the element to become `unselected`.
 
         Args:
         - timeout: The maximum time in seconds to wait for the element to become `unselected`.

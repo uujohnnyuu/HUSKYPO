@@ -41,6 +41,7 @@ def presence_of_element_located(
 ) -> Callable[[WebDriver], WebElement]:
     """
     Extended `presence_of_element_located`.
+    Whether the element is present.
 
     Args:
     - locator: (by, value)
@@ -60,8 +61,7 @@ def absence_of_element_located(
     index: int | None
 ) -> Callable[[WebDriver], bool]:
     """
-    Extended new function.
-    Whether the element is absence.
+    Whether the element is absent.
 
     Args:
     - locator: (by, value)
@@ -76,6 +76,44 @@ def absence_of_element_located(
             return False
         except NoSuchElementException:
             return True
+
+    return _predicate
+
+
+def presence_of_any_elements_located(
+    locator: tuple[str, str]
+) -> Callable[[WebDriver], list[WebElement]]:
+    """
+    Extended `presence_of_all_elements_located`.
+    Whether there are `at least one (any)` elements can be found by the locator.
+    Note that "all" is changed to "any" because the logic of `find_elements` 
+    is to find `at least one (any) present elements`.
+
+    Args:
+    - locator: (by, value)
+    """
+
+    def _predicate(driver: WebDriver):
+        return driver.find_elements(*locator)
+
+    return _predicate
+
+
+def absence_of_all_elements_located(
+    locator: tuple[str, str]
+) -> Callable[[WebDriver], bool]:
+    """
+    Whether `all the elements are absent` by the locator.
+    Note that this is `completely opposite to presence_of_all_elements_located`.
+
+    Args:
+    - locator: (by, value)
+    """
+
+    def _predicate(driver: WebDriver):
+        if driver.find_elements(*locator) == []:
+            return True
+        return False
 
     return _predicate
 
@@ -190,10 +228,15 @@ def visibility_of_any_elements_located(
 ) -> Callable[[WebDriver], list[WebElement]]:
     """
     Extended `visibility_of_any_elements_located`.
+    Whether any elements are visible. 
     It can distinguish the return value of find_elements,
     if it is [], triggers NoSuchElementException.
+
+    Args:
+    - locator: (by, value)
     """
-    # TODO Does it need negative condition?
+
+    # TODO necessity
     def _predicate(driver: WebDriver):
         elements = driver.find_elements(*locator)
         if elements == []:
