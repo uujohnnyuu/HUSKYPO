@@ -55,6 +55,36 @@ def presence_of_element_located(
     return _predicate
 
 
+def visibility_of_element_marked(
+    mark: tuple[str, str] | WebElement,
+    locator: tuple[str, str],
+    index: int | None
+) -> Callable[[WebDriver], WebElement | Literal[False]]:
+    """
+    Package the `visibility_of_element_located` and `visibility_of_element` methods 
+    to elastically execute the `wait_visible` process in the `Element` class.
+
+    Args:
+    - mark: (by, value) or WebElement.
+    - locator: (by, value). This is used to avoid StaleElementReferenceException 
+        when mark is a WebElement and retry by locator.
+    - index:
+        - None: Use driver.find_element(*locator).
+        - int: Use driver.find_elements(*locator)[index].
+    """
+
+    def _predicate(driver: WebDriver):
+        if isinstance(mark, tuple):
+            return visibility_of_element_located(mark, index)(driver)
+        else:
+            try:
+                return visibility_of_element(mark)(driver)
+            except StaleElementReferenceException:
+                return visibility_of_element_located(locator, index)(driver)
+
+    return _predicate
+
+
 def visibility_of_element_located(
     locator: tuple[str, str],
     index: int | None

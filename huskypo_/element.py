@@ -284,6 +284,34 @@ class Element:
             if Timeout.reraise(reraise):
                 raise
             return False
+        
+    def wait_absent(
+        self,
+        timeout: int | float | None = None,
+        reraise: bool | None = None
+    ) -> bool:
+        """
+        Wait for the element to become absent.
+
+        Args:
+        - timeout: The maximum time in seconds to wait for the element to become absent.
+        - reraise: When the element state is not as expected, the behavior can be set in the following ways:
+            - bool: True indicates to re-raise a TimeoutException; False means to return False.
+            - None: Follow the config.Timeout.RERAISE setting, which is a boolean. 
+                Its logic is the same as the boolean, and the default is True.
+
+        Returns:
+        - True: The element is absent before the timeout.
+        - False: The element is still present after the timeout if TimeoutException is not re-raised.
+        """
+        try:
+            return self.wait(timeout).until_not(
+                ecex.presence_of_element_located(self.locator, self.index),
+                f'Wait for element {self.remark} to be not present timed out after {self._wait_timeout} seconds.')
+        except TimeoutException:
+            if Timeout.reraise(reraise):
+                raise
+            return False
 
     def wait_not_present(
         self,
@@ -304,16 +332,9 @@ class Element:
         - True: The element is not present before the timeout.
         - False: The element is still not present after the timeout if TimeoutException is not re-raised.
         """
-        try:
-            return self.wait(timeout).until_not(
-                ecex.presence_of_element_located(self.locator, self.index),
-                f'Wait for element {self.remark} to be not present timed out after {self._wait_timeout} seconds.')
-        except TimeoutException:
-            if Timeout.reraise(reraise):
-                raise
-            return False
-
-    def _wait_visible(
+        return self.wait_absent(timeout, reraise)
+    
+    def wait_visible(
         self,
         timeout: int | float | None = None,
         reraise: bool | None = None
@@ -354,35 +375,6 @@ class Element:
                 raise
             return False
         return self._visible_element
-
-    def wait_visible(
-        self,
-        timeout: int | float | None = None,
-        reraise: bool | None = None
-    ) -> WebElement | Literal[False]:
-        """
-        Wait for the element to become visible.
-
-        Args:
-        - timeout: The maximum time in seconds to wait for the element to become visible.
-        - reraise: When the element state is not as expected, the behavior can be set in the following ways:
-            - bool: True indicates to re-raise a TimeoutException; False means to return False.
-            - None: Follow the config.Timeout.RERAISE setting, which is a boolean. 
-                Its logic is the same as the boolean, and the default is True.
-
-        Returns:
-        - WebElement: The element is visible before the timeout.
-        - False: The element is still invisible or not present after the timeout if TimeoutException is not re-raised.
-        """
-        try:
-            self._present_element = self._visible_element = self.wait(timeout, StaleElementReferenceException).until(
-                ecex.visibility_of_element_located(self._mark, self.index),
-                f'Wait for element {self.remark} to be visible timed out after {self._wait_timeout} seconds.')
-            return self._visible_element
-        except TimeoutException:
-            if Timeout.reraise(reraise):
-                raise
-            return False
 
     def wait_invisible(
         self,
@@ -450,22 +442,8 @@ class Element:
             so it will return None as the element status is not as expected.
         - False: The element is still visible after the timeout.
         """
-        # TODO deprecate
-        try:
-            result = self.wait(timeout).until_not(
-                ecex.visibility_of_element_located(self._mark, self.index),
-                f'Wait for element {self.remark} to be not visible timed out after {self._wait_timeout} seconds.')
-            if result and present:
-                # result = True means it triggered NoSuchElementException.
-                # If present is also True,
-                # we will return None because it does not match the expected state.
-                return None
-            return True
-        except TimeoutException:
-            if Timeout.reraise(reraise):
-                raise
-            return False
-
+        return self.wait_invisible(timeout, present, reraise)
+        
     def wait_clickable(
         self,
         timeout: int | float | None = None,
@@ -485,12 +463,66 @@ class Element:
         - WebElement: The element is clickable before the timeout.
         - False: The element is still unclickable or not present after the timeout if TimeoutException is not re-raised.
         """
+        mark = self._mark
+        wait = self.wait(timeout)
+        message = f'Wait for element {self.remark} to be clickable timed out after {self._wait_timeout} seconds.'
+
         try:
-            self._present_element = self._visible_element = self._clickable_element = self.wait(
-                timeout, StaleElementReferenceException).until(
-                ecex.element_to_be_clickable(self._mark, self.index),
-                f'Wait for element {self.remark} to be clickable timed out after {self._wait_timeout} seconds.')
-            return self._clickable_element
+            if isinstance(mark, tuple):
+                # mark is locator
+                self._present_element = self._visible_element = self._clickable_element = wait.until(
+                    ecex.element_located_to_be_clickable(mark, self.index), message)
+            else:
+                # mark is WebElement
+                self._present_element = self._visible_element = self._clickable_element = wait.until(
+                    ecex.element_to_be_clickable(mark, self.index), message)
+        except StaleElementReferenceException:
+            # When mark is WebElement and stales, refind element by locator.
+            self._present_element = self._visible_element = self._clickable_element = wait.until(
+                ecex.element_located_to_be_clickable(self.locator, self.index), message)
+        except TimeoutException:
+            if Timeout.reraise(reraise):
+                raise
+            return False
+        return self._clickable_element
+    
+    def wait_unclickable(
+        self,
+        timeout: int | float | None = None,
+        present: bool = True,
+        reraise: bool | None = None
+    ) -> WebElement | bool:
+        """
+        Wait for the element to become unclickable.
+
+        Args:
+        - timeout: The maximum time in seconds to wait for the element to become unclickable.
+        - present:
+            - True: The element should be present and unclickable.
+            - False: The element can be not present.
+        - reraise: When the element state is not as expected, the behavior can be set in the following ways:
+            - bool: True indicates to re-raise a TimeoutException; False means to return False.
+            - None: Follow the config.Timeout.RERAISE setting, which is a boolean. 
+                Its logic is the same as the boolean, and the default is True.
+
+        Returns:
+        - WebElement: The element becomes unclickable before the timeout.
+        - None: The element is absent before the timeout, and the present parameter is True. 
+            This means that the element should be present and unclickable, 
+            but it is absent, so None is returned to indicate this.
+        - False: The element is still clickable after the timeout if TimeoutException is not re-raised.
+        """
+        try:
+            self._present_element = self.wait(timeout).until(
+                ecex.element_marked_to_be_unclickable(self._mark, self.index),
+                f'Wait for element {self.remark} to be not visible timed out after {self._wait_timeout} seconds.')
+            if self._present_element is True and present:
+                # self._present_element being True means it triggered
+                # NoSuchElementException or StaleElementReferenceException.
+                # If 'present' is also True,
+                # we will return None because the element is no longer present.
+                return None
+            return self._present_element
         except TimeoutException:
             if Timeout.reraise(reraise):
                 raise
@@ -520,20 +552,7 @@ class Element:
             so it will return None as the element status is not as expected.
         - False: The element is still clickable after the timeout.
         """
-        try:
-            result = self.wait(timeout).until_not(
-                ecex.element_to_be_clickable(self._mark, self.index),
-                f'Wait for element {self.remark} to be not clickable timed out after {self._wait_timeout} seconds.')
-            if result and present:
-                # result = True means it triggered NoSuchElementException.
-                # If present is also True,
-                # we will return None because it does not match the expected state.
-                return None
-            return True
-        except TimeoutException:
-            if Timeout.reraise(reraise):
-                raise
-            return False
+        self.wait_unclickable(timeout, present, reraise)
 
     def wait_selected(
         self,
@@ -541,63 +560,104 @@ class Element:
         reraise: bool | None = None
     ) -> bool:
         """
-        Wait for the element to be `selected`.
+        Wait for the element to become selected.
 
         Args:
-        - timeout: Maximum time in seconds to wait for the element to become selected.
-        - reraise: True means reraising TimeoutException; vice versa.
+        - timeout: The maximum time in seconds to wait for the element to become selected.
+        - reraise: When the element state is not as expected, the behavior can be set in the following ways:
+            - bool: True indicates to re-raise a TimeoutException; False means to return False.
+            - None: Follow the config.Timeout.RERAISE setting, which is a boolean. 
+                Its logic is the same as the boolean, and the default is True.
 
         Returns:
-        - True: The element is selected before timeout.
-        - False: The element is still not present or not selected after timeout.
+        - WebElement: The element is selected before the timeout.
+        - False: The element is still unselected or not present after the timeout if TimeoutException is not re-raised.
         """
+        mark = self._mark
+        wait = self.wait(timeout)
+        message = f'Wait for element {self.remark} to be selected timed out after {self._wait_timeout} seconds.'
+
         try:
-            return self.wait(timeout).until(
-                ecex.element_to_be_selected(self._mark, self.index),
-                f'Wait for element {self.remark} to be selected timed out after {self._wait_timeout} seconds.')
+            if isinstance(mark, tuple):
+                # mark is locator
+                self._present_element = wait.until(
+                    ecex.element_located_to_be_selected(mark, self.index), message)
+            else:
+                # mark is WebElement
+                self._present_element = wait.until(
+                    ecex.element_to_be_selected(mark, self.index), message)
+        except StaleElementReferenceException:
+            # When mark is WebElement and stales, refind element by locator.
+            self._present_element = wait.until(
+                ecex.element_located_to_be_selected(self.locator, self.index), message)
         except TimeoutException:
             if Timeout.reraise(reraise):
                 raise
             return False
+        return self._present_element
+    
+    def wait_unselected(
+        self,
+        timeout: int | float | None = None,
+        reraise: bool | None = None
+    ) -> bool:
+        """
+        Wait for the element to become unselected.
+
+        Args:
+        - timeout: The maximum time in seconds to wait for the element to become unselected.
+        - reraise: When the element state is not as expected, the behavior can be set in the following ways:
+            - bool: True indicates to re-raise a TimeoutException; False means to return False.
+            - None: Follow the config.Timeout.RERAISE setting, which is a boolean. 
+                Its logic is the same as the boolean, and the default is True.
+
+        Returns:
+        - WebElement: The element is unselected before the timeout.
+        - False: The element is still selected or not present after the timeout if TimeoutException is not re-raised.
+        """
+        mark = self._mark
+        wait = self.wait(timeout)
+        message = f'Wait for element {self.remark} to be unselected timed out after {self._wait_timeout} seconds.'
+
+        try:
+            if isinstance(mark, tuple):
+                # mark is locator
+                self._present_element = wait.until(
+                    ecex.element_located_to_be_unselected(mark, self.index), message)
+            else:
+                # mark is WebElement
+                self._present_element = wait.until(
+                    ecex.element_to_be_unselected(mark, self.index), message)
+        except StaleElementReferenceException:
+            # When mark is WebElement and stales, refind element by locator.
+            self._present_element = wait.until(
+                ecex.element_located_to_be_unselected(self.locator, self.index), message)
+        except TimeoutException:
+            if Timeout.reraise(reraise):
+                raise
+            return False
+        return self._present_element
 
     def wait_not_selected(
         self,
         timeout: int | float | None = None,
-        present: bool = True,
         reraise: bool | None = None
     ) -> bool:
         """
-        Wait for the element to be `not selected`.
+        Wait for the element to become unselected.
 
         Args:
-        - timeout: Maximum time in seconds to wait for the element to become not selected.
-        - present:
-            - True: Only accept not selected as a condition.
-            - False: Accept not present as a part of not selected condition.
-        - reraise: True means reraising TimeoutException; vice versa.
+        - timeout: The maximum time in seconds to wait for the element to become unselected.
+        - reraise: When the element state is not as expected, the behavior can be set in the following ways:
+            - bool: True indicates to re-raise a TimeoutException; False means to return False.
+            - None: Follow the config.Timeout.RERAISE setting, which is a boolean. 
+                Its logic is the same as the boolean, and the default is True.
 
         Returns:
-        - True: The element is not selected before the timeout.
-        - None: The element is not present before the timeout, and the present parameter is True.
-            This means that you accept only the element to be not selected, 
-            but now the element is not present,
-            so it will return None as the element status is not as expected.
-        - False: The element is still selected after the timeout.
+        - WebElement: The element is unselected before the timeout.
+        - False: The element is still selected or not present after the timeout if TimeoutException is not re-raised.
         """
-        try:
-            result = self.wait(timeout).until_not(
-                ecex.element_to_be_selected(self._mark, self.index),
-                f'Wait for element {self.remark} to be not selected timed out after {self._wait_timeout} seconds.')
-            if result and present:
-                # result = True means it triggered NoSuchElementException.
-                # If present is also True,
-                # we will return None because it does not match the expected state.
-                return None
-            return True
-        except TimeoutException:
-            if Timeout.reraise(reraise):
-                raise
-            return False
+        return self.wait_unselected(timeout, reraise)
 
     def is_present(self, timeout: int | float | None = None) -> bool:
         """
