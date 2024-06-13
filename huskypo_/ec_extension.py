@@ -3,17 +3,38 @@
 # PyPI: https://pypi.org/project/huskypo/
 # GitHub: https://github.com/uujohnnyuu/huskyPO
 
+# All you need to know about this extended expected conditions (referred to as EXEC):
+
+# 1. EXEC extends all methods related to element states, 
+# including present, visible, clickable, selected, and their opposites.
+
+# 2. You can perform explicit waits using find_elements(*locator)[index]. 
+# We have designed it to detect NoSuchElementException.
+
+# 3. From the official methods, we know that explicit waits can be 
+# performed using either locators or WebElements. 
+# Some methods, like those related to visibility, are separate; 
+# others, like those related to clickability, are integrated.
+
+# 4. EXEC separates the methods for locators and WebElements 
+# because these two approaches should handle exceptions differently, 
+# allowing for more comprehensive exception handling.
+
+# 5. For inverse states, invisible and unclickable can be set to include the absent state. 
+# However, unselected requires the element to be present 
+# because this state is highly related to user interaction, 
+# and the element must be present to be meaningful.
+
+# 6. EXEC methods related to marked elements are 
+# mainly used in wait-related functions within the Element class. 
+# Please consider their feasibility before use.
+
 from __future__ import annotations
 
 from typing import Callable, Literal
-from selenium.common.exceptions import NoSuchElementException
-from selenium.common.exceptions import StaleElementReferenceException
+from selenium.common.exceptions import NoSuchElementException, StaleElementReferenceException
 
 from .types import AppiumWebDriver, WebDriver, WebElement
-
-# TODO difference between locator and WebElement
-# locator: can using StaleElementReferenceException to retry to find element(s).
-# WebElement: can NOT using StaleElementReferenceException to retry, for you can not get the locator by WebElement.
 
 
 def _find_element_by(
