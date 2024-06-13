@@ -3,9 +3,9 @@
 # PyPI: https://pypi.org/project/huskypo/
 # GitHub: https://github.com/uujohnnyuu/huskyPO
 
-# All you need to know about this extended expected conditions (referred to as EXEC):
+# All you need to know about this expected conditions extension (referred to as ECEX):
 
-# 1. EXEC extends all methods related to element states, 
+# 1. ECEX extends all methods related to element states, 
 # including present, visible, clickable, selected, and their opposites.
 
 # 2. You can perform explicit waits using find_elements(*locator)[index]. 
@@ -16,7 +16,7 @@
 # Some methods, like those related to visibility, are separate; 
 # others, like those related to clickability, are integrated.
 
-# 4. EXEC separates the methods for locators and WebElements 
+# 4. ECEX separates the methods for locators and WebElements 
 # because these two approaches should handle exceptions differently, 
 # allowing for more comprehensive exception handling.
 
@@ -25,13 +25,14 @@
 # because this state is highly related to user interaction, 
 # and the element must be present to be meaningful.
 
-# 6. EXEC methods related to marked elements are 
+# 6. ECEX methods related to marked elements are 
 # mainly used in wait-related functions within the Element class. 
 # Please consider their feasibility before use.
 
 from __future__ import annotations
 
 from typing import Callable, Literal
+
 from selenium.common.exceptions import NoSuchElementException, StaleElementReferenceException
 
 from .types import AppiumWebDriver, WebDriver, WebElement
@@ -113,9 +114,9 @@ def presence_of_any_elements_located(
 ) -> Callable[[WebDriver], list[WebElement]]:
     """
     Extended `presence_of_all_elements_located`.
-    Whether there are `at least one (any)` elements can be found by the locator.
+    Whether there are `any (at least one)` elements can be found by the locator.
     Note that "all" is changed to "any" because the logic of `find_elements` 
-    is to find `at least one (any) present elements`.
+    is to find `at least one matched elements`.
 
     Args:
     - locator: (by, value)
@@ -166,11 +167,11 @@ def visibility_of_element_marked(
         - int: Use driver.find_elements(*locator)[index].
     
     Return process:
-    - visibility_of_element_located:
+    - `visibility_of_element_located`:
         - "mark" is a locator.
-        - Executed by "locator" if "mark" is a WebElement 
-            but visibility_of_element process triggers StaleElementReferenceException.
-    - visibility_of_element: "mark" is a WebElement.
+        - Executed by "locator" when "mark" is a WebElement and 
+            triggers a StaleElementReferenceException in the `visibility_of_element` process.
+    - `visibility_of_element`: "mark" is a WebElement.
     """
 
     def _predicate(driver: WebDriver):
@@ -221,8 +222,8 @@ def visibility_of_element(
     Extended `visibility_of`.
     Whether the element is visible.
 
-    StaleElementReferenceException is not caught here 
-    because the element can only be relocated using the locator. 
+    We do not catch StaleElementReferenceException here (the same as official ec) because 
+    the element can only be relocated using the locator. 
     Therefore, if you need to handle stale element issues, 
     it must be done in an external function.
 
@@ -230,8 +231,8 @@ def visibility_of_element(
     - element: WebElement
 
     Return:
-    - WebElement: Element is visible.
-    - False: Element is present and invisible.
+    - WebElement: The element is visible.
+    - False: The element is present and invisible.
     """
 
     def _predicate(_):
@@ -264,10 +265,10 @@ def invisibility_of_element_marked(
         - False: Element can be absent.
 
     Return process:
-    - invisibility_of_element_located:
+    - `invisibility_of_element_located`:
         - "mark" is a locator.
-        - Executed by "locator" if "mark" is a WebElement 
-            but invisibility_of_element process triggers StaleElementReferenceException.
+        - Executed by "locator" when "mark" is a WebElement and 
+            triggers a StaleElementReferenceException in the `invisibility_of_element` process.
     - invisibility_of_element: "mark" is a WebElement.
     """
 
@@ -307,8 +308,8 @@ def invisibility_of_element_located(
     - WebElement: The element is `present and invisible`.
     - False: 
         - The element is `present and visible`.
-        - The element is `absent` and `"present" is True`.
-    - True: The element is `absent` and `"present" is False`.
+        - The element is `absent and should be present` ("present" is True).
+    - True: The element is `absent and allowed` ("present" is False).
     """
 
     def _predicate(driver: WebDriver):
@@ -328,8 +329,8 @@ def invisibility_of_element(
     Extended `invisibility_of_element`.
     Whether the element is present and invisible.
 
-    StaleElementReferenceException is not caught here 
-    because the element can only be relocated using the locator. 
+    We do not catch StaleElementReferenceException here (the same as official ec) because 
+    the element can only be relocated using the locator. 
     Therefore, if you need to handle stale element issues, 
     it must be done in an external function.
 
@@ -390,10 +391,10 @@ def element_marked_to_be_clickable(
         - int: Use driver.find_elements(*locator)[index].
     
     Return process:
-    - element_located_to_be_clickable:
+    - `element_located_to_be_clickable`:
         - "mark" is a locator.
-        - Executed by "locator" if "mark" is a WebElement 
-            but element_to_be_clickable process triggers StaleElementReferenceException.
+        - Executed by "locator" when "mark" is a WebElement and 
+            triggers a StaleElementReferenceException in the `element_to_be_clickable` process.
     - element_to_be_clickable: "mark" is a WebElement.
     """
 
@@ -445,8 +446,8 @@ def element_to_be_clickable(
     Extended `element_to_be_clickable`.
     Whether the element is clickable.
 
-    StaleElementReferenceException is not caught here 
-    because the element can only be relocated using the locator. 
+    We do not catch StaleElementReferenceException here (the same as official ec) because 
+    the element can only be relocated using the locator. 
     Therefore, if you need to handle stale element issues, 
     it must be done in an external function.
 
@@ -490,8 +491,8 @@ def element_marked_to_be_unclickable(
     Return process:
     - element_located_to_be_unclickable:
         - "mark" is a locator.
-        - Executed by "locator" if "mark" is a WebElement 
-            but element_to_be_unclickable process triggers StaleElementReferenceException.
+        - Executed by "locator" when "mark" is a WebElement and 
+            triggers a StaleElementReferenceException in the `element_to_be_unclickable` process.
     - element_to_be_unclickable: "mark" is a WebElement.
     """
 
@@ -513,7 +514,7 @@ def element_located_to_be_unclickable(
     locator: tuple[str, str],
     index: int | None,
     present: bool = True
-) -> Callable[[WebDriver], WebElement | Literal[False]]:
+) -> Callable[[WebDriver], WebElement | bool]:
     """
     Whether the element is present and unclickable, or absent.
     
@@ -530,8 +531,8 @@ def element_located_to_be_unclickable(
     - WebElement: The element is `present and unclickable`.
     - False: 
         - The element is `present and clickable`.
-        - The element is `absent` and `"present" is True`.
-    - True: The element is `absent` and `"present" is False`.
+        - The element is `absent and should be present` ("present" is True).
+    - True: The element is `absent and allowed` ("present" is False).
     """
 
     def _predicate(driver: WebDriver):
@@ -550,8 +551,8 @@ def element_to_be_unclickable(
     """
     Whether the element is present and unclickable.
 
-    StaleElementReferenceException is not caught here 
-    because the element can only be re-located using the locator. 
+    We do not catch StaleElementReferenceException here (the same as official ec) because 
+    the element can only be relocated using the locator. 
     Therefore, if you need to handle stale element issues, 
     it must be done in an external function.
 
@@ -591,8 +592,8 @@ def element_marked_to_be_selected(
     Return process:
     - element_located_to_be_selected:
         - "mark" is a locator.
-        - Executed by "locator" if "mark" is a WebElement 
-            but element_to_be_selected process triggers StaleElementReferenceException.
+        - Executed by "locator" when "mark" is a WebElement and 
+            triggers a StaleElementReferenceException in the `element_to_be_selected` process.
     - element_to_be_selected: "mark" is a WebElement.
     """
 
@@ -644,8 +645,8 @@ def element_to_be_selected(
     Extended `element_to_be_selected`.
     Whether the element is selected.
 
-    StaleElementReferenceException is not caught here 
-    because the element can only be relocated using the locator. 
+    We do not catch StaleElementReferenceException here (the same as official ec) because 
+    the element can only be relocated using the locator. 
     Therefore, if you need to handle stale element issues, 
     it must be done in an external function.
 
@@ -685,8 +686,8 @@ def element_marked_to_be_unselected(
     Return process:
     - element_located_to_be_unselected:
         - "mark" is a locator.
-        - Executed by "locator" if "mark" is a WebElement 
-            but element_to_be_unselected process triggers StaleElementReferenceException.
+        - Executed by "locator" when "mark" is a WebElement and 
+            triggers a StaleElementReferenceException in the `element_to_be_unselected` process.
     - element_to_be_unselected: "mark" is a WebElement.
     """
 
@@ -736,8 +737,8 @@ def element_to_be_unselected(
     """
     Whether the element is presnet and unselected.
 
-    StaleElementReferenceException is not caught here 
-    because the element can only be re-located using the locator. 
+    We do not catch StaleElementReferenceException here (the same as official ec) because 
+    the element can only be relocated using the locator. 
     Therefore, if you need to handle stale element issues, 
     it must be done in an external function.
 
