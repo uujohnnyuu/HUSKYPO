@@ -347,7 +347,7 @@ def invisibility_of_element(
 
     return _predicate
 
-
+# TODO
 def visibility_of_any_elements_located(
     locator: tuple[str, str]
 ) -> Callable[[WebDriver], list[WebElement]]:
@@ -361,7 +361,6 @@ def visibility_of_any_elements_located(
     - locator: (by, value)
     """
 
-    # TODO necessity
     def _predicate(driver: WebDriver):
         elements = driver.find_elements(*locator)
         if elements == []:
@@ -369,6 +368,22 @@ def visibility_of_any_elements_located(
         return [element for element in elements if element.is_displayed()]
 
     return _predicate
+
+
+# def invisibility_of_all_elements_located(
+#     locator: tuple[str, str],
+#     present: bool = True
+# ) -> Callable[[WebDriver], list[WebElement]]:
+#     """
+#     """
+    
+#     def _predicate(driver: WebDriver):
+#         elements = driver.find_elements(*locator)
+#         if elements == []:
+#             raise NoSuchElementException
+#         return [element for element in elements if element.is_displayed()]
+
+#     return _predicate
 
 
 def element_marked_to_be_clickable(

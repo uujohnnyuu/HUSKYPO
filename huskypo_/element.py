@@ -322,17 +322,6 @@ class Element:
             if Timeout.reraise(reraise):
                 raise
             return False
-
-    def wait_not_present(
-        self,
-        timeout: int | float | None = None,
-        reraise: bool | None = None
-    ) -> bool:
-        """
-        Please use `wait_absent` instead.
-        """
-        warnings.warn('Please use "wait_absent" instead.', DeprecationWarning, 2)
-        return self.wait_absent(timeout, reraise)
     
     def wait_visible(
         self,
@@ -419,18 +408,6 @@ class Element:
             if Timeout.reraise(reraise):
                 raise
             return False
-
-    def wait_not_visible(
-        self,
-        timeout: int | float | None = None,
-        present: bool = True,
-        reraise: bool | None = None
-    ) -> bool:
-        """
-        Please use `wait_invisible` instead.
-        """
-        warnings.warn('Please use "wait_invisible" instead.', DeprecationWarning, 2)
-        return self.wait_invisible(timeout, present, reraise)
         
     def wait_clickable(
         self,
@@ -518,18 +495,6 @@ class Element:
                 raise
             return False
 
-    def wait_not_clickable(
-        self,
-        timeout: int | float | None = None,
-        present: bool = True,
-        reraise: bool | None = None
-    ) -> bool:
-        """
-        Please use `wait_unclickable` instead.
-        """
-        warnings.warn('Please use "wait_unclickable" instead.', DeprecationWarning, 2)
-        self.wait_unclickable(timeout, present, reraise)
-
     def wait_selected(
         self,
         timeout: int | float | None = None,
@@ -603,17 +568,6 @@ class Element:
             if Timeout.reraise(reraise):
                 raise
             return False
-
-    def wait_not_selected(
-        self,
-        timeout: int | float | None = None,
-        reraise: bool | None = None
-    ) -> bool:
-        """
-        Please use `wait_unselected` instead.
-        """
-        warnings.warn('Please use "wait_unselected" instead.', DeprecationWarning, 2)
-        return self.wait_unselected(timeout, reraise)
 
     def is_present(self, timeout: int | float | None = None) -> bool:
         """
@@ -2403,3 +2357,49 @@ class Element:
                     f'🟡 End adjusting to the element {self.remark} as the maximum adjust count of {max_adjust} has been reached.')
                 return True
             self.driver.swipe(sx, sy, ex, ey, duration)
+
+    def wait_not_present(
+        self,
+        timeout: int | float | None = None,
+        reraise: bool | None = None
+    ) -> bool:
+        """
+        Please use `wait_absent` instead.
+        """
+        warnings.warn('Please use "wait_absent" instead.', DeprecationWarning, 2)
+        return self.wait_absent(timeout, reraise)
+    
+    def wait_not_visible(
+        self,
+        timeout: int | float | None = None,
+        present: bool = True,
+        reraise: bool | None = None
+    ) -> bool:
+        """
+        Please use `wait_invisible` instead.
+        """
+        warnings.warn('Please use "wait_invisible" instead.', DeprecationWarning, 2)
+        return self.wait_invisible(timeout, present, reraise)
+    
+    def wait_not_clickable(
+        self,
+        timeout: int | float | None = None,
+        present: bool = True,
+        reraise: bool | None = None
+    ) -> bool:
+        """
+        Please use `wait_unclickable` instead.
+        """
+        warnings.warn('Please use "wait_unclickable" instead.', DeprecationWarning, 2)
+        self.wait_unclickable(timeout, present, reraise)
+
+    def wait_not_selected(
+        self,
+        timeout: int | float | None = None,
+        reraise: bool | None = None
+    ) -> bool:
+        """
+        Please use `wait_unselected` instead.
+        """
+        warnings.warn('Please use "wait_unselected" instead.', DeprecationWarning, 2)
+        return self.wait_unselected(timeout, reraise)
