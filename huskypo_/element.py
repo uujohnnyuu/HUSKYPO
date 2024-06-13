@@ -306,7 +306,7 @@ class Element:
                 Its logic is the same as the boolean, and the default is True.
 
         Returns:
-        - WebElement (Expected): The element reached the expected status before the timeout.
+        - True (Expected): The element reached the expected status before the timeout.
         - False (Unexpected): The element did not reach the expected status after the timeout 
             if TimeoutException is not reraised.
 
