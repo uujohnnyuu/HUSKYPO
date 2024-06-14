@@ -205,10 +205,13 @@ class Element:
         except AttributeError:
             return None
         
-    def __timeout_message(self, status: str):
+    def __timeout_message(self, status: str, present: bool = True):
         """
         Waiting for element "{self.remark}" to become "{status}" timed out after {self._wait_timeout} seconds.
+        if not present: status + ' or absent'
         """
+        if not present:
+            status + ' or absent'
         return f'Waiting for element "{self.remark}" to become "{status}" timed out after {self._wait_timeout} seconds.'
 
     def find(
@@ -365,16 +368,16 @@ class Element:
         reraise: bool | None = None
     ) -> WebElement | bool:
         """
-        Waiting for the element to become `present and invisible` or `absent`.
+        Waiting for the element to become `invisible` or `absent`.
         The expected status is decided by the "present" argument.
         Please follow the description below.
 
         Usage::
 
-            # Element should be present and invisible.
+            # Element should be invisible.
             my_page.my_element.wait_invisible()
 
-            # Element can be present and invisible, or absent.
+            # Element can be invisible, or absent.
             my_page.my_element.wait_invisible(present=False)
 
         Args:
@@ -402,7 +405,7 @@ class Element:
         try:
             self._present_element = self.wait(timeout).until(
                 ecex.invisibility_of_element_marked(self._mark, self.locator, self.index, present),
-                self.__timeout_message('invisible'))
+                self.__timeout_message('invisible', present))
             return self._present_element
         except TimeoutException:
             if Timeout.reraise(reraise):
@@ -451,16 +454,16 @@ class Element:
         reraise: bool | None = None
     ) -> WebElement | bool:
         """
-        Waiting for the element to become `present and unclickable` or `absent`.
+        Waiting for the element to become `unclickable` or `absent`.
         The expected status is decided by the "present" argument.
         Please follow the description below.
 
         Usage::
 
-            # Element should be present and unclickable.
+            # Element should be unclickable.
             my_page.my_element.wait_unclickable()
 
-            # Element can be present and unclickable, or absent.
+            # Element can be unclickable, or absent.
             my_page.my_element.wait_unclickable(present=False)
 
         Args:
@@ -488,7 +491,7 @@ class Element:
         try:
             self._present_element = self.wait(timeout).until(
                 ecex.element_marked_to_be_unclickable(self._mark, self.locator, self.index, present),
-                self.__timeout_message('unclickable'))
+                self.__timeout_message('unclickable', present))
             return self._present_element
         except TimeoutException:
             if Timeout.reraise(reraise):
