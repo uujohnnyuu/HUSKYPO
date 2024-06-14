@@ -307,6 +307,39 @@ class Elements:
             if Timeout.reraise(reraise):
                 raise
             return False
+        
+    def wait_all_invisible(
+        self,
+        timeout: int | float | None = None,
+        present: bool = True,
+        reraise: bool | None = None
+    ) -> bool:
+        """
+        Waiting for `all elements to become invisible`.
+
+        Args:
+        - timeout: The maximum time (in seconds) to wait for the elements to reach the expected state. 
+            Defaults (None) to the elements' timeout value.
+        - reraise: When the elements state is not as expected, the behavior can be set in the following ways:
+            - bool: True indicates to reraise a TimeoutException; False means to return False.
+            - None: Follow the config.Timeout.RERAISE setting, which is a boolean. 
+                Its logic is the same as the boolean, and the default is True.
+
+        Returns:
+        - True: All elements are not visible before timeout.
+        - False: At least one element is visible after timeout.
+        """
+        try:
+            result = self.wait(timeout).until_not(
+                ecex.visibility_of_any_elements_located(self.locator),
+                f'Wait for all elements {self.remark} to be not visible timed out after {self._wait_timeout} seconds.')
+            if result and present:
+                return None
+            return True
+        except TimeoutException:
+            if Timeout.reraise(reraise):
+                raise
+            return False
 
     def wait_all_not_visible(
             self,
