@@ -183,15 +183,15 @@ class Element:
     def wait(self, timeout: int | float | None = None) -> WebDriverWait:
         """
         Get an object of WebDriverWait.
+        The ignored exceptions include NoSuchElementException and StaleElementReferenceException 
+        to capture their screen and stacktrace messages when a TimeoutException occurs.
 
         Args:
         - timeout: The maximum time in seconds to wait for the expected condition. 
             By default, it initializes with the element timeout.
-        - ignored_exceptions: An iterable structure of exception classes to ignore during calls. 
-            By default, it contains only NoSuchElementException.
         """
         self._wait_timeout = self.initial_timeout if timeout is None else timeout
-        return WebDriverWait(self.driver, self._wait_timeout)
+        return WebDriverWait(self.driver, self._wait_timeout, ignored_exceptions=StaleElementReferenceException)
 
     @property
     def wait_timeout(self):

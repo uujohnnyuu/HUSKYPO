@@ -3,31 +3,17 @@
 # PyPI: https://pypi.org/project/huskypo/
 # GitHub: https://github.com/uujohnnyuu/huskyPO
 
-# All you need to know about this expected conditions extension (referred to as ECEX):
+# All you need to know about this expected conditions extension (ECEX):
 
 # 1. ECEX extends all methods related to element states, 
 # including present, visible, clickable, selected, and their opposites.
 
-# 2. You can perform explicit waits using find_elements(*locator)[index]. 
-# We have designed it to detect NoSuchElementException.
+# 2. You can perform explicit waits using find_elements(*locator)[index]
+# when you set index in each method.
 
-# 3. From the official methods, we know that explicit waits can be 
-# performed using either locators or WebElements. 
-# Some methods, like those related to visibility, are separate; 
-# others, like those related to clickability, are integrated.
-
-# 4. ECEX separates the methods for locators and WebElements 
+# 3. ECEX separates the methods for locators and WebElements 
 # because these two approaches should handle exceptions differently, 
 # allowing for more comprehensive exception handling.
-
-# 5. For inverse states, invisible and unclickable can be set to include the absent state. 
-# However, unselected requires the element to be present 
-# because this state is highly related to user interaction, 
-# and the element must be present to be meaningful.
-
-# 6. ECEX methods related to marked elements are 
-# mainly used in wait-related functions within the Element class. 
-# Please consider their feasibility before use.
 
 from __future__ import annotations
 
@@ -73,6 +59,9 @@ def presence_of_element_located(
 
     Return:
     - WebElement: The element is present.
+
+    Exception (should be caught in until):
+    - NoSuchElementException (default)
     """
 
     def _predicate(driver: WebDriver):
@@ -92,6 +81,12 @@ def presence_of_any_elements_located(
 
     Args:
     - locator: (by, value)
+
+    Return:
+    - list[WebElement]: WebElements.
+    - []: No any elements are found.
+
+    Exception (should be caught in until): None
     """
 
     def _predicate(driver: WebDriver):
@@ -116,6 +111,8 @@ def absence_of_element_located(
     Return:
     - True: The element is absent.
     - False: The element is present.
+
+    Exception (should be caught in until): None
     """
 
     def _predicate(driver: WebDriver):
@@ -137,6 +134,12 @@ def absence_of_all_elements_located(
 
     Args:
     - locator: (by, value)
+
+    Return:
+    - True: No any elements are found.
+    - False: At least one element is found.
+
+    Exception (should be caught in until): None
     """
 
     def _predicate(driver: WebDriver):
@@ -149,7 +152,7 @@ def absence_of_all_elements_located(
 
 def visibility_of_element_located(
     locator: tuple[str, str],
-    index: int | None
+    index: int | None,
 ) -> Callable[[WebDriver], WebElement | Literal[False]]:
     """
     Extended `visibility_of_element_located`.
@@ -163,15 +166,16 @@ def visibility_of_element_located(
 
     Return:
     - WebElement: The element is visible.
-    - False: The element is present and invisible, or absent.
+    - False: The element is invisible.
+
+    Exception (should be caught in until):
+    - NoSuchElementException (default)
+    - StaleReferenceElementException
     """
 
     def _predicate(driver: WebDriver):
-        try:
-            element = _find_element_by(driver, locator, index)
-            return element if element.is_displayed() else False
-        except (NoSuchElementException, StaleElementReferenceException):
-            return False
+        element = _find_element_by(driver, locator, index)
+        return element if element.is_displayed() else False
 
     return _predicate
 
@@ -183,17 +187,17 @@ def visibility_of_element(
     Extended `visibility_of`.
     Whether the element is visible.
 
-    We do not catch StaleElementReferenceException here (the same as official ec) because 
-    the element can only be relocated using the locator. 
-    Therefore, if you need to handle stale element issues, 
-    it must be done in an external function.
-
     Args:
     - element: WebElement
 
     Return:
     - WebElement: The element is visible.
-    - False: The element is present and invisible.
+    - False: The element is invisible.
+
+    Exception (should be caught in until): None
+    
+    Exception (should be caught in external):
+    - StaleReferenceElementException: retry by locator.
     """
 
     def _predicate(_):
@@ -265,7 +269,7 @@ def invisibility_of_element_located(
 ) -> Callable[[WebDriver], WebElement | bool]:
     """
     Extended `invisibility_of_element_located`.
-    Whether the element is present and invisible, or absent.
+    Whether the element is invisible or absent.
 
     Args:
     - locator: (by, value)
@@ -273,15 +277,17 @@ def invisibility_of_element_located(
         - None: driver.find_element(*locator)
         - int: driver.find_elements(*locator)[index]
     - present: Whether element should be present or not.
-        - True: Element should be `present and invisible`.
+        - True: Element should be invisible.
         - False: Element can be absent.
 
     Return:
-    - WebElement: The element is `present and invisible`.
-    - False: 
-        - The element is `present and visible`.
-        - The element is `absent and should be present` ("present" is True).
-    - True: The element is `absent and allowed` ("present" is False).
+    - WebElement: The element is invisible.
+    - False: The element is visible.
+    - True: The element is absent and "present" is False.
+
+    Exception (should be caught in until) when "present" is True:
+    - NoSuchElementException (default)
+    - StaleElementReferenceException
     """
 
     def _predicate(driver: WebDriver):
@@ -289,7 +295,9 @@ def invisibility_of_element_located(
             element = _find_element_by(driver, locator, index)
             return element if not element.is_displayed() else False
         except (NoSuchElementException, StaleElementReferenceException):
-            return not present
+            if present:
+                raise
+            return True
 
     return _predicate
 
@@ -301,17 +309,19 @@ def invisibility_of_element(
     Extended `invisibility_of_element`.
     Whether the element is present and invisible.
 
-    We do not catch StaleElementReferenceException here (the same as official ec) because 
-    the element can only be relocated using the locator. 
-    Therefore, if you need to handle stale element issues, 
-    it must be done in an external function.
-
     Args:
     - element: WebElement
 
     Return:
-    - WebElement: The element is present and invisible.
-    - False: The element is present and visible.
+    - WebElement: The element is invisible.
+    - False: The element is visible.
+
+    Exception (should be caught in until): None
+    
+    Exception (should be caught in external):
+    - StaleReferenceElementException: 
+        - The element should be present: retry by locator.
+        - The element can be absent: return True.
     """
 
     def _predicate(_):
@@ -396,45 +406,6 @@ def invisibility_of_all_elements_located(
     return _predicate
 
 
-def element_marked_to_be_clickable(
-    mark: tuple[str, str] | WebElement,
-    locator: tuple[str, str],
-    index: int | None
-) -> Callable[[WebDriver], WebElement | Literal[False]]:
-    """
-    This is for the `wait_clickable` method of the `Element` class.
-
-    We combine the `element_located_to_be_clickable` and `element_to_be_clickable` methods 
-    to flexibly execute the corresponding waiting process.
-
-    Args:
-    - mark: (by, value) or WebElement.
-    - locator: (by, value). This is used to avoid StaleElementReferenceException 
-        when mark is a WebElement and retry by this locator.
-    - index:
-        - None: Use driver.find_element(*locator).
-        - int: Use driver.find_elements(*locator)[index].
-    
-    Return process:
-    - `element_located_to_be_clickable`:
-        - "mark" is a locator.
-        - Executed by "locator" when "mark" is a WebElement and 
-            triggers a StaleElementReferenceException in the `element_to_be_clickable` process.
-    - element_to_be_clickable: "mark" is a WebElement.
-    """
-
-    def _predicate(driver: WebDriver):
-        if isinstance(mark, tuple):
-            return element_located_to_be_clickable(mark, index)(driver)
-        else:
-            try:
-                return element_to_be_clickable(mark)(driver)
-            except StaleElementReferenceException:
-                return element_located_to_be_clickable(locator, index)(driver)
-
-    return _predicate
-
-
 def element_located_to_be_clickable(
     locator: tuple[str, str],
     index: int | None
@@ -451,15 +422,16 @@ def element_located_to_be_clickable(
 
     Return:
     - WebElement: The element is clickable.
-    - False: The element is present and unclickable, or absent.
+    - False: The element is unclickable.
+
+    Exception (should be caught in until):
+    - NoSuchElementException (default)
+    - StaleReferenceElementException
     """
 
     def _predicate(driver: WebDriver):
-        try:
-            element = _find_element_by(driver, locator, index)
-            return element if element.is_displayed() and element.is_enabled() else False
-        except (NoSuchElementException, StaleElementReferenceException):
-            return False
+        element = _find_element_by(driver, locator, index)
+        return element if element.is_displayed() and element.is_enabled() else False
 
     return _predicate
 
@@ -471,66 +443,21 @@ def element_to_be_clickable(
     Extended `element_to_be_clickable`.
     Whether the element is clickable.
 
-    We do not catch StaleElementReferenceException here (the same as official ec) because 
-    the element can only be relocated using the locator. 
-    Therefore, if you need to handle stale element issues, 
-    it must be done in an external function.
-
     Args:
     - element: WebElement
 
     Return:
     - WebElement: The element is clickable.
-    - False: The element is present and unclickable.
+    - False: The element is unclickable.
+
+    Exception (should be caught in until): None
+    
+    Exception (should be caught in external):
+    - StaleReferenceElementException: retry by locator
     """
 
     def _predicate(_):
         return element if element.is_displayed() and element.is_enabled() else False
-
-    return _predicate
-
-
-def element_marked_to_be_unclickable(
-    mark: tuple[str, str] | WebElement,
-    locator: tuple[str, str],
-    index: int | None,
-    present: bool = True
-) -> Callable[[WebDriver], WebElement | bool]:
-    """
-    This is for the `wait_unclickable` method of the `Element` class.
-
-    We combine the `element_located_to_be_unclickable` and `element_to_be_unclickable` methods 
-    to flexibly execute the corresponding waiting process.
-
-    Args:
-    - mark: (by, value) or WebElement.
-    - locator: (by, value). This is used to avoid StaleElementReferenceException 
-        when mark is a WebElement and retry by this locator.
-    - index:
-        - None: Use driver.find_element(*locator).
-        - int: Use driver.find_elements(*locator)[index].
-    - present: Whether element should be present or not.
-        - True: Element should be `present and invisible`.
-        - False: Element can be absent.
-
-    Return process:
-    - element_located_to_be_unclickable:
-        - "mark" is a locator.
-        - Executed by "locator" when "mark" is a WebElement and 
-            triggers a StaleElementReferenceException in the `element_to_be_unclickable` process.
-    - element_to_be_unclickable: "mark" is a WebElement.
-    """
-
-    def _predicate(driver: WebDriver):
-        if isinstance(mark, tuple):
-            return element_located_to_be_unclickable(mark, index, present)(driver)
-        else:
-            try:
-                return element_to_be_unclickable(mark)(driver)
-            except StaleElementReferenceException:
-                if present:
-                    return element_located_to_be_unclickable(locator, index, present)(driver)
-                return True
 
     return _predicate
 
@@ -541,7 +468,7 @@ def element_located_to_be_unclickable(
     present: bool = True
 ) -> Callable[[WebDriver], WebElement | bool]:
     """
-    Whether the element is present and unclickable, or absent.
+    Whether the element is unclickable or absent.
     
     Args:
     - locator: (by, value)
@@ -549,15 +476,17 @@ def element_located_to_be_unclickable(
         - None: driver.find_element(*locator)
         - int: driver.find_elements(*locator)[index]
     - present: Whether element should be present or not.
-        - True: Element should be `present and unclickable`.
+        - True: Element should be unclickable.
         - False: Element can be absent.
 
     Return:
-    - WebElement: The element is `present and unclickable`.
-    - False: 
-        - The element is `present and clickable`.
-        - The element is `absent and should be present` ("present" is True).
-    - True: The element is `absent and allowed` ("present" is False).
+    - WebElement: The element is unclickable.
+    - False: The element is clickable.
+    - True: The element is absent and "present" is False.
+
+    Exception (should be caught in until) when "present" is True:
+    - NoSuchElementException (default)
+    - StaleElementReferenceException
     """
 
     def _predicate(driver: WebDriver):
@@ -565,8 +494,10 @@ def element_located_to_be_unclickable(
             element = _find_element_by(driver, locator, index)
             return element if not(element.is_displayed() and element.is_enabled()) else False
         except (NoSuchElementException, StaleElementReferenceException):
-            return not present
-
+            if present:
+                raise
+            return True
+    
     return _predicate
 
 
@@ -574,19 +505,21 @@ def element_to_be_unclickable(
     element: WebElement
 ) -> Callable[[WebDriver], WebElement | Literal[False]]:
     """
-    Whether the element is present and unclickable.
-
-    We do not catch StaleElementReferenceException here (the same as official ec) because 
-    the element can only be relocated using the locator. 
-    Therefore, if you need to handle stale element issues, 
-    it must be done in an external function.
+    Whether the element is unclickable.
 
     Args:
     - element: WebElement
 
     Return:
-    - WebElement: The element is present and unclickable.
-    - False: The element is present and clickable.
+    - WebElement: The element is unclickable.
+    - False: The element is clickable.
+
+    Exception (should be caught in until): None
+    
+    Exception (should be caught in external):
+    - StaleReferenceElementException: 
+        - The element should be present: retry by locator.
+        - The element can be absent: return True.
     """
 
     def _predicate(_):
@@ -611,15 +544,16 @@ def element_located_to_be_selected(
 
     Return:
     - WebElement: The element is selected.
-    - False: The element is present and unselected, or absent.
+    - False: The element is unselected.
+
+    Exception (should be caught in until):
+    - NoSuchElementException (default)
+    - StaleReferenceElementException
     """
 
     def _predicate(driver: WebDriver):
-        try:
-            element = _find_element_by(driver, locator, index)
-            return element if element.is_selected() else False
-        except StaleElementReferenceException:
-            return False
+        element = _find_element_by(driver, locator, index)
+        return element if element.is_selected() else False
 
     return _predicate
 
@@ -631,17 +565,17 @@ def element_to_be_selected(
     Extended `element_to_be_selected`.
     Whether the element is selected.
 
-    We do not catch StaleElementReferenceException here (the same as official ec) because 
-    the element can only be relocated using the locator. 
-    Therefore, if you need to handle stale element issues, 
-    it must be done in an external function.
-
     Args:
     - element: WebElement
 
     Return:
     - WebElement: The element is selected.
-    - False: The element is present and unselected.
+    - False: The element is unselected.
+
+    Exception (should be caught in until): None
+    
+    Exception (should be caught in external):
+    - StaleReferenceElementException: retry by locator.
     """
 
     def _predicate(_):
@@ -655,7 +589,7 @@ def element_located_to_be_unselected(
     index: int | None
 ) -> Callable[[WebDriver], WebElement | Literal[False]]:
     """
-    Whether the element is presnet and unselected.
+    Whether the element is unselected.
 
     Args:
     - locator: (by, value)
@@ -665,15 +599,16 @@ def element_located_to_be_unselected(
 
     Return:
     - WebElement: The element is unselected.
-    - False: The element is present and selected, or absent.
+    - False: The element is selected.
+    
+    Exception (should be caught in until):
+    - NoSuchElementException (default)
+    - StaleReferenceElementException
     """
 
     def _predicate(driver: WebDriver):
-        try:
-            element = _find_element_by(driver, locator, index)
-            return element if not element.is_selected() else False
-        except StaleElementReferenceException:
-            return False
+        element = _find_element_by(driver, locator, index)
+        return element if not element.is_selected() else False
 
     return _predicate
 
@@ -684,17 +619,17 @@ def element_to_be_unselected(
     """
     Whether the element is presnet and unselected.
 
-    We do not catch StaleElementReferenceException here (the same as official ec) because 
-    the element can only be relocated using the locator. 
-    Therefore, if you need to handle stale element issues, 
-    it must be done in an external function.
-
     Args:
     - element: WebElement
 
     Return:
     - WebElement: The element is unselected.
-    - False: The element is present and selected.
+    - False: The element is selected.
+
+    Exception (should be caught in until): None
+    
+    Exception (should be caught in external):
+    - StaleReferenceElementException: retry by locator.
     """
 
     def _predicate(_):
