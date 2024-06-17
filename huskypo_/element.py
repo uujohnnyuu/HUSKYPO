@@ -325,7 +325,7 @@ class Element:
             if Timeout.reraise(reraise):
                 raise
             return False
-    
+        
     def wait_visible(
         self,
         timeout: int | float | None = None,
@@ -351,41 +351,41 @@ class Element:
         - TimeoutException: Raised if "reraise" is True and 
             the element did not reach the expected status after the timeout.
         """
+        wait = self.wait(timeout)
+        mark = self._mark
+        message = self.__timeout_message('visible')
         try:
-            self._present_element = self._visible_element = self.wait(timeout).until(
-                ecex.visibility_of_element_marked(self._mark, self.locator, self.index),
-                self.__timeout_message('visible'))
-            return self._visible_element
+            if isinstance(mark, tuple(str, str)):
+                # mark is locator.
+                self._present_element = self._visible_element = wait.until(
+                    ecex.visibility_of_element_located(mark, self.index), message)
+            else:
+                # mark is WebElement.
+                self._present_element = self._visible_element = wait.until(
+                    ecex.visibility_of_element(mark), message)
+        except StaleElementReferenceException:
+            # mark is WebElement but staled, retry by locator.
+            self._present_element = self._visible_element = wait.until(
+                ecex.visibility_of_element_located(self.locator, self.index), message)
         except TimeoutException:
             if Timeout.reraise(reraise):
                 raise
             return False
-        
+        return self._visible_element
+    
+
     def wait_invisible(
         self,
         timeout: int | float | None = None,
         present: bool = True,
         reraise: bool | None = None
-    ) -> WebElement | bool:
+    ) -> WebElement | Literal[False]:
         """
-        Waiting for the element to become `invisible` or `absent`.
-        The expected status is decided by the "present" argument.
-        Please follow the description below.
-
-        Usage::
-
-            # Element should be invisible.
-            my_page.my_element.wait_invisible()
-
-            # Element can be invisible, or absent.
-            my_page.my_element.wait_invisible(present=False)
+        Waiting for the element to become `invisible`.
 
         Args:
         - timeout: The maximum time (in seconds) to wait for the element to reach the expected state. 
             Defaults (None) to the element's timeout value.
-        - present:
-            - True (Default): The element should be present and reach the expected status.
-            - False: The element can be absent.
         - reraise: When the element state is not as expected, the behavior can be set in the following ways:
             - bool: True indicates to reraise a TimeoutException; False means to return False.
             - None: Follow the config.Timeout.RERAISE setting, which is a boolean. 
@@ -393,8 +393,6 @@ class Element:
 
         Returns:
         - WebElement (Expected): The element reached the expected status before the timeout.
-        - True (Expected): The element is absent before the timeout, and "present" is False, 
-            indicating that the absence of the element is allowed.
         - False (Unexpected): The element did not reach the expected status after the timeout 
             if TimeoutException is not reraised.
 
@@ -402,16 +400,33 @@ class Element:
         - TimeoutException: Raised if "reraise" is True and 
             the element did not reach the expected status after the timeout.
         """
+        wait = self.wait(timeout)
+        mark = self._mark
+        message = self.__timeout_message('invisible', present)
         try:
-            self._present_element = self.wait(timeout).until(
-                ecex.invisibility_of_element_marked(self._mark, self.locator, self.index, present),
-                self.__timeout_message('invisible', present))
-            return self._present_element
+            if isinstance(mark, tuple(str, str)):
+                # mark is locator.
+                self._present_element = wait.until(
+                    ecex.invisibility_of_element_located(mark, self.index, present), message)
+            else:
+                # mark is WebElement.
+                self._present_element = wait.until(
+                    ecex.invisibility_of_element(mark), message)
+        except StaleElementReferenceException:
+            # mark is WebElement but staled.
+            if not present:
+                # allow the element is absent.
+                return True
+            # element should be present and retry by locator.
+            self._present_element = wait.until(
+                ecex.invisibility_of_element_located(self.locator, self.index, present), message)
         except TimeoutException:
             if Timeout.reraise(reraise):
                 raise
             return False
+        return self._present_element
         
+    
     def wait_clickable(
         self,
         timeout: int | float | None = None,
@@ -437,15 +452,27 @@ class Element:
         - TimeoutException: Raised if "reraise" is True and 
             the element did not reach the expected status after the timeout.
         """
+        wait = self.wait(timeout)
+        mark = self._mark
+        message = self.__timeout_message('clickable')
         try:
-            self._present_element = self._visible_element = self._clickable_element = self.wait(timeout).until(
-                ecex.element_marked_to_be_clickable(self._mark, self.locator, self.index),
-                self.__timeout_message('clickable'))
-            return self._clickable_element
+            if isinstance(mark, tuple(str, str)):
+                # mark is locator.
+                self._present_element = self._visible_element = self._clickable_element = wait.until(
+                    ecex.element_located_to_be_clickable(mark, self.index), message)
+            else:
+                # mark is WebElement.
+                self._present_element = self._visible_element = self._clickable_element = wait.until(
+                    ecex.element_to_be_clickable(mark), message)
+        except StaleElementReferenceException:
+            # mark is WebElement but staled, retry by locator.
+            self._present_element = self._visible_element = self._clickable_element = wait.until(
+                ecex.element_located_to_be_clickable(self.locator, self.index), message)
         except TimeoutException:
             if Timeout.reraise(reraise):
                 raise
             return False
+        return self._clickable_element
     
     def wait_unclickable(
         self,
@@ -488,15 +515,31 @@ class Element:
         - TimeoutException: Raised if "reraise" is True and 
             the element did not reach the expected status after the timeout.
         """
+        wait = self.wait(timeout)
+        mark = self._mark
+        message = self.__timeout_message('unclickable', present)
         try:
-            self._present_element = self.wait(timeout).until(
-                ecex.element_marked_to_be_unclickable(self._mark, self.locator, self.index, present),
-                self.__timeout_message('unclickable', present))
-            return self._present_element
+            if isinstance(mark, tuple(str, str)):
+                # mark is locator.
+                self._present_element = wait.until(
+                    ecex.element_located_to_be_unclickable(mark, self.index, present), message)
+            else:
+                # mark is WebElement.
+                self._present_element = wait.until(
+                    ecex.element_to_be_unclickable(mark), message)
+        except StaleElementReferenceException:
+            # mark is WebElement but staled.
+            if not present:
+                # allow the element is absent.
+                return True
+            # element should be present and retry by locator.
+            self._present_element = wait.until(
+                ecex.element_located_to_be_unclickable(self.locator, self.index, present), message)
         except TimeoutException:
             if Timeout.reraise(reraise):
                 raise
             return False
+        return self._present_element
 
     def wait_selected(
         self,
@@ -523,16 +566,29 @@ class Element:
         - TimeoutException: Raised if "reraise" is True and 
             the element did not reach the expected status after the timeout.
         """
+        wait = self.wait(timeout)
+        mark = self._mark
+        message = self.__timeout_message('selected')
         try:
-            self._present_element = self.wait(timeout).until(
-                ecex.element_marked_to_be_selected(self._mark, self.locator, self.index),
-                self.__timeout_message('selected'))
-            return self._present_element
+            if isinstance(mark, tuple(str, str)):
+                # mark is locator.
+                self._present_element = wait.until(
+                    ecex.element_located_to_be_selected(mark, self.index), message)
+            else:
+                # mark is WebElement.
+                self._present_element = wait.until(
+                    ecex.element_to_be_selected(mark), message)
+        except StaleElementReferenceException:
+            # mark is WebElement but staled, retry by locator.
+            self._present_element = wait.until(
+                ecex.element_located_to_be_selected(self.locator, self.index), message)
         except TimeoutException:
             if Timeout.reraise(reraise):
                 raise
             return False
+        return self._present_element
     
+
     def wait_unselected(
         self,
         timeout: int | float | None = None,
@@ -562,15 +618,27 @@ class Element:
         - TimeoutException: Raised if "reraise" is True and 
             the element did not reach the expected status after the timeout.
         """
+        wait = self.wait(timeout)
+        mark = self._mark
+        message = self.__timeout_message('unselected')
         try:
-            self._present_element = self.wait(timeout).until(
-                ecex.element_marked_to_be_unselected(self._mark, self.locator, self.index),
-                self.__timeout_message('unselected'))
-            return self._present_element
+            if isinstance(mark, tuple(str, str)):
+                # mark is locator.
+                self._present_element = wait.until(
+                    ecex.element_located_to_be_unselected(mark, self.index), message)
+            else:
+                # mark is WebElement.
+                self._present_element = wait.until(
+                    ecex.element_to_be_unselected(mark), message)
+        except StaleElementReferenceException:
+            # mark is WebElement but staled, retry by locator.
+            self._present_element = wait.until(
+                ecex.element_located_to_be_unselected(self.locator, self.index), message)
         except TimeoutException:
             if Timeout.reraise(reraise):
                 raise
             return False
+        return self._present_element
 
     def is_present(self, timeout: int | float | None = None) -> bool:
         """

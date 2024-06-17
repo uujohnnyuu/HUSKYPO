@@ -147,45 +147,6 @@ def absence_of_all_elements_located(
     return _predicate
 
 
-def visibility_of_element_marked(
-    mark: tuple[str, str] | WebElement,
-    locator: tuple[str, str],
-    index: int | None
-) -> Callable[[WebDriver], WebElement | Literal[False]]:
-    """
-    This is for the `wait_visible` method of the `Element` class.
-
-    We combine the `visibility_of_element_located` and `visibility_of_element` methods 
-    to flexibly execute the corresponding waiting process.
-
-    Args:
-    - mark: (by, value) or WebElement.
-    - locator: (by, value). This is used to avoid StaleElementReferenceException 
-        when mark is a WebElement and retry by this locator.
-    - index:
-        - None: Use driver.find_element(*locator).
-        - int: Use driver.find_elements(*locator)[index].
-    
-    Return process:
-    - `visibility_of_element_located`:
-        - "mark" is a locator.
-        - Executed by "locator" when "mark" is a WebElement and 
-            triggers a StaleElementReferenceException in the `visibility_of_element` process.
-    - `visibility_of_element`: "mark" is a WebElement.
-    """
-
-    def _predicate(driver: WebDriver):
-        if isinstance(mark, tuple):
-            return visibility_of_element_located(mark, index)(driver)
-        else:
-            try:
-                return visibility_of_element(mark)(driver)
-            except StaleElementReferenceException:
-                return visibility_of_element_located(locator, index)(driver)
-
-    return _predicate
-
-
 def visibility_of_element_located(
     locator: tuple[str, str],
     index: int | None
@@ -297,51 +258,6 @@ def visibility_of_all_elements_located(
     return _predicate
 
 
-def invisibility_of_element_marked(
-    mark: tuple[str, str] | WebElement,
-    locator: tuple[str, str],
-    index: int | None,
-    present: bool = True
-) -> Callable[[WebDriver], WebElement | bool]:
-    """
-    This is for the `wait_invisible` method of the `Element` class.
-
-    We combine the `invisibility_of_element_located` and `invisibility_of_element` methods 
-    to flexibly execute the corresponding waiting process.
-
-    Args:
-    - mark: (by, value) or WebElement.
-    - locator: (by, value). This is used to avoid StaleElementReferenceException 
-        when mark is a WebElement and retry by this locator.
-    - index:
-        - None: Use driver.find_element(*locator).
-        - int: Use driver.find_elements(*locator)[index].
-    - present: Whether element should be present or not.
-        - True: Element should be `present and invisible`.
-        - False: Element can be absent.
-
-    Return process:
-    - `invisibility_of_element_located`:
-        - "mark" is a locator.
-        - Executed by "locator" when "mark" is a WebElement and 
-            triggers a StaleElementReferenceException in the `invisibility_of_element` process.
-    - invisibility_of_element: "mark" is a WebElement.
-    """
-
-    def _predicate(driver: WebDriver):
-        if isinstance(mark, tuple):
-            return invisibility_of_element_located(mark, index, present)(driver)
-        else:
-            try:
-                return invisibility_of_element(mark)(driver)
-            except StaleElementReferenceException:
-                if present:
-                    return invisibility_of_element_located(locator, index, present)(driver)
-                return True
-
-    return _predicate
-
-
 def invisibility_of_element_located(
     locator: tuple[str, str],
     index: int | None,
@@ -373,7 +289,7 @@ def invisibility_of_element_located(
             element = _find_element_by(driver, locator, index)
             return element if not element.is_displayed() else False
         except (NoSuchElementException, StaleElementReferenceException):
-            return False if present else True
+            return not present
 
     return _predicate
 
@@ -649,7 +565,7 @@ def element_located_to_be_unclickable(
             element = _find_element_by(driver, locator, index)
             return element if not(element.is_displayed() and element.is_enabled()) else False
         except (NoSuchElementException, StaleElementReferenceException):
-            return False if present else True
+            return not present
 
     return _predicate
 
@@ -675,45 +591,6 @@ def element_to_be_unclickable(
 
     def _predicate(_):
         return element if not (element.is_displayed() and element.is_enabled()) else False
-
-    return _predicate
-
-
-def element_marked_to_be_selected(
-    mark: tuple[str, str] | WebElement,
-    locator: tuple[str, str],
-    index: int | None
-) -> Callable[[WebDriver], WebElement | Literal[False]]:
-    """
-    This is for the `wait_selected` method of the `Element` class.
-
-    We combine the `element_located_to_be_selected` and `element_to_be_selected` methods 
-    to flexibly execute the corresponding waiting process.
-
-    Args:
-    - mark: (by, value) or WebElement.
-    - locator: (by, value). This is used to avoid StaleElementReferenceException 
-        when mark is a WebElement and retry by this locator.
-    - index:
-        - None: Use driver.find_element(*locator).
-        - int: Use driver.find_elements(*locator)[index].
-    
-    Return process:
-    - element_located_to_be_selected:
-        - "mark" is a locator.
-        - Executed by "locator" when "mark" is a WebElement and 
-            triggers a StaleElementReferenceException in the `element_to_be_selected` process.
-    - element_to_be_selected: "mark" is a WebElement.
-    """
-
-    def _predicate(driver: WebDriver):
-        if isinstance(mark, tuple):
-            return element_located_to_be_selected(mark, index)(driver)
-        else:
-            try:
-                return element_to_be_selected(mark)(driver)
-            except StaleElementReferenceException:
-                return element_located_to_be_selected(locator, index)(driver)
 
     return _predicate
 
@@ -769,45 +646,6 @@ def element_to_be_selected(
 
     def _predicate(_):
         return element if element.is_selected() else False
-
-    return _predicate
-
-
-def element_marked_to_be_unselected(
-    mark: tuple[str, str] | WebElement,
-    locator: tuple[str, str],
-    index: int | None
-) -> Callable[[WebDriver], WebElement | Literal[False]]:
-    """
-    This is for the `wait_unselected` method of the `Element` class.
-
-    We combine the `element_located_to_be_unselected` and `element_to_be_unselected` methods 
-    to flexibly execute the corresponding waiting process.
-
-    Args:
-    - mark: (by, value) or WebElement.
-    - locator: (by, value). This is used to avoid StaleElementReferenceException 
-        when mark is a WebElement and retry by this locator.
-    - index:
-        - None: Use driver.find_element(*locator).
-        - int: Use driver.find_elements(*locator)[index].
-    
-    Return process:
-    - element_located_to_be_unselected:
-        - "mark" is a locator.
-        - Executed by "locator" when "mark" is a WebElement and 
-            triggers a StaleElementReferenceException in the `element_to_be_unselected` process.
-    - element_to_be_unselected: "mark" is a WebElement.
-    """
-
-    def _predicate(driver: WebDriver):
-        if isinstance(mark, tuple):
-            return element_located_to_be_unselected(mark, index)(driver)
-        else:
-            try:
-                return element_to_be_unselected(mark)(driver)
-            except StaleElementReferenceException:
-                return element_located_to_be_unselected(locator, index)(driver)
 
     return _predicate
 
