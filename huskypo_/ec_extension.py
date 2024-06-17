@@ -170,7 +170,7 @@ def visibility_of_element_located(
 
     Exception (should be caught in until):
     - NoSuchElementException (default)
-    - StaleReferenceElementException
+    - StaleElementReferenceException
     """
 
     def _predicate(driver: WebDriver):
@@ -197,7 +197,7 @@ def visibility_of_element(
     Exception (should be caught in until): None
     
     Exception (should be caught in external):
-    - StaleReferenceElementException: retry by locator.
+    - StaleElementReferenceException: retry by locator.
     """
 
     def _predicate(_):
@@ -319,7 +319,7 @@ def invisibility_of_element(
     Exception (should be caught in until): None
     
     Exception (should be caught in external):
-    - StaleReferenceElementException: 
+    - StaleElementReferenceException: 
         - The element should be present: retry by locator.
         - The element can be absent: return True.
     """
@@ -426,7 +426,7 @@ def element_located_to_be_clickable(
 
     Exception (should be caught in until):
     - NoSuchElementException (default)
-    - StaleReferenceElementException
+    - StaleElementReferenceException
     """
 
     def _predicate(driver: WebDriver):
@@ -453,7 +453,7 @@ def element_to_be_clickable(
     Exception (should be caught in until): None
     
     Exception (should be caught in external):
-    - StaleReferenceElementException: retry by locator
+    - StaleElementReferenceException: retry by locator
     """
 
     def _predicate(_):
@@ -517,7 +517,7 @@ def element_to_be_unclickable(
     Exception (should be caught in until): None
     
     Exception (should be caught in external):
-    - StaleReferenceElementException: 
+    - StaleElementReferenceException: 
         - The element should be present: retry by locator.
         - The element can be absent: return True.
     """
@@ -548,7 +548,7 @@ def element_located_to_be_selected(
 
     Exception (should be caught in until):
     - NoSuchElementException (default)
-    - StaleReferenceElementException
+    - StaleElementReferenceException
     """
 
     def _predicate(driver: WebDriver):
@@ -575,7 +575,7 @@ def element_to_be_selected(
     Exception (should be caught in until): None
     
     Exception (should be caught in external):
-    - StaleReferenceElementException: retry by locator.
+    - StaleElementReferenceException: retry by locator.
     """
 
     def _predicate(_):
@@ -603,7 +603,7 @@ def element_located_to_be_unselected(
     
     Exception (should be caught in until):
     - NoSuchElementException (default)
-    - StaleReferenceElementException
+    - StaleElementReferenceException
     """
 
     def _predicate(driver: WebDriver):
@@ -629,7 +629,7 @@ def element_to_be_unselected(
     Exception (should be caught in until): None
     
     Exception (should be caught in external):
-    - StaleReferenceElementException: retry by locator.
+    - StaleElementReferenceException: retry by locator.
     """
 
     def _predicate(_):
