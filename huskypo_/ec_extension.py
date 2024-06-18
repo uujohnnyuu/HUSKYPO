@@ -84,13 +84,13 @@ def presence_of_element_located(
     return _predicate
 
 
-def presence_of_any_elements_located(
+def presence_of_all_elements_located(
     locator: tuple[str, str]
 ) -> Callable[[WebDriver], list[WebElement]]:
     """
     Extended `presence_of_all_elements_located`.
-    Whether there are `any (at least one)` elements can be found by the locator.
-    Note that "all" is changed to "any" because the logic of `find_elements` 
+    Whether there are `at least one (any)` elements can be found by the locator.
+    Note that `all` here means `at least one (any)` for the logic of `find_elements` 
     is to find `at least one matched elements`.
 
     Args:
@@ -222,7 +222,7 @@ def visibility_of_element(
 
 def visibility_of_any_elements_located(
     locator: tuple[str, str]
-) -> Callable[[WebDriver], list[WebElement] | Literal[False]]:
+) -> Callable[[WebDriver], list[WebElement]]:
     """
     Extended `visibility_of_any_elements_located`.
     Whether any (at least one) elements are visible.
@@ -360,7 +360,7 @@ def invisibility_of_any_elements_located(
     - list[WebElement]: All elements are present and only the invisible elements are returned.
     - True: At least one element is absent, and "present" is False.
 
-    Exception (should be caught by until) when "present" is False:
+    Exception (should be caught by until) when "present" is True:
     - NoSuchElementException: find_elements == [].
     - StaleElementReferenceException: at least one element staled.
     """
@@ -392,11 +392,12 @@ def invisibility_of_all_elements_located(
     Return:
     - list[WebElement]: All elements are present and invisible.
     - True: All elements are absent, and "present" is False.
-    - False: All elements are absent, and "present" is True.
+    - False: At least one element is still visible.
 
-    Exception (should be caught by until) when "present" is False:
-    - NoSuchElementException: find_elements == [].
-    - StaleElementReferenceException: at least one element staled.
+    Exception (should be caught by until):
+    - NoSuchElementException: find_elements == [] when "present" is True.
+    - StaleElementReferenceException: at least one element staled, 
+        and it is irrelevant to the value of "present".
     """
 
     def _predicate(driver: WebDriver):

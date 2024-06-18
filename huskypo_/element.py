@@ -1132,12 +1132,13 @@ class Element:
         return True
 
     def __start_adjusting_by(
-            self,
-            offset: tuple[int, int, int, int],
-            area: tuple[int, int, int, int],
-            max_adjust: int,
-            min_distance: int,
-            duration: int):
+        self,
+        offset: tuple[int, int, int, int],
+        area: tuple[int, int, int, int],
+        max_adjust: int,
+        min_distance: int,
+        duration: int):
+        
         def get_final_delta(delta):
             return int(math.copysign(min_distance, delta)) if abs(delta) < min_distance else delta
 

@@ -16,8 +16,7 @@ from __future__ import annotations
 import warnings
 from typing import Literal
 
-from selenium.common.exceptions import TimeoutException
-from selenium.webdriver.support import expected_conditions as ec
+from selenium.common.exceptions import TimeoutException, StaleElementReferenceException
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.types import WaitExcTypes
 
@@ -213,13 +212,15 @@ class Elements:
                 raise TimeoutException(self.__timeout_message('all present'))
         return elements
     
-    def wait_any_present(
+    def wait_all_present(
         self,
         timeout: int | float | None = None,
         reraise: bool | None = None
     ) -> list[WebElement] | Literal[False]:
         """
         Waiting for `any elements to become present`.
+        Note that `all` here means `at least one (any)` for 
+        the logic of find_elements is to find at least one matched elements.
 
         Args:
         - timeout: The maximum time (in seconds) to wait for the elements to reach the expected state. 
@@ -240,7 +241,7 @@ class Elements:
         """
         try:
             return self.wait(timeout).until(
-                ecex.presence_of_any_elements_located(self.locator),
+                ecex.presence_of_all_elements_located(self.locator),
                 self.__timeout_message('any elements are present'))
         except TimeoutException:
             if Timeout.reraise(reraise):
@@ -280,9 +281,6 @@ class Elements:
             if Timeout.reraise(reraise):
                 raise
             return False
-    
-    # -----------------------------------------------------------------------------------------
-    # TODO Refactor done, still need to check the functionality.
 
     def wait_any_visible(
         self,
@@ -310,7 +308,7 @@ class Elements:
             the elements did not reach the expected status after the timeout.
         """
         try:
-            return self.wait(timeout).until(
+            return self.wait(timeout, StaleElementReferenceException).until(
                 ecex.visibility_of_any_elements_located(self.locator),
                 self.__timeout_message('any elements are visible'))
         except TimeoutException:
@@ -349,7 +347,7 @@ class Elements:
             the elements did not reach the expected status after the timeout.
         """
         try:
-            return self.wait(timeout).until(
+            return self.wait(timeout, StaleElementReferenceException).until(
                 ecex.invisibility_of_any_elements_located(self.locator, present),
                 self.__timeout_message('any elements are invisible', present))
         except TimeoutException:
@@ -383,7 +381,7 @@ class Elements:
             the elements did not reach the expected status after the timeout.
         """
         try:
-            return self.wait(timeout).until(
+            return self.wait(timeout, StaleElementReferenceException).until(
                 ecex.visibility_of_all_elements_located(self.locator),
                 self.__timeout_message('all elements are visible'))
         except TimeoutException:
@@ -418,7 +416,7 @@ class Elements:
             if TimeoutException is not reraised.
         """
         try:
-            return self.wait(timeout).until(
+            return self.wait(timeout, StaleElementReferenceException).until(
                 ecex.invisibility_of_all_elements_located(self.locator, present),
                 self.__timeout_message('all elements are invisible', present))
         except TimeoutException:
@@ -577,17 +575,6 @@ class Elements:
         """
         elements = self.wait_all_present(reraise=True)
         return [element.location_in_view for element in elements]
-    
-    def wait_all_present(
-        self,
-        timeout: int | float | None = None,
-        reraise: bool | None = None
-    ) -> list[WebElement] | Literal[False]:
-        """
-        Please use `wait_any_present` instead.
-        """
-        warnings.warn('Please use "wait_any_present" instead.', DeprecationWarning, 2)
-        return self.wait_any_present(timeout, reraise)
     
     def wait_all_not_present(
         self,
