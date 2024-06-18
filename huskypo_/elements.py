@@ -19,6 +19,7 @@ from typing import Literal
 from selenium.common.exceptions import TimeoutException
 from selenium.webdriver.support import expected_conditions as ec
 from selenium.webdriver.support.ui import WebDriverWait
+from selenium.types import WaitExcTypes
 
 from . import logstack
 from . import ec_extension as ecex
@@ -140,18 +141,24 @@ class Elements:
         """
         return self.driver.find_elements(*self.locator)
 
-    def wait(self, timeout: int | float | None = None) -> WebDriverWait:
+    def wait(
+        self, 
+        timeout: int | float | None = None,
+        ignored_exceptions: WaitExcTypes | None = None
+    ) -> WebDriverWait:
         """
-        Selenium and Appium API.
-        Packing WebDriverWait(driver, timeout) to accept only the timeout parameter.
-        If you sets a timeout in here, it takes precedence;
-        otherwise, it defaults to the timeout set for the element.
+        Get an object of WebDriverWait.
+        The ignored exceptions include NoSuchElementException and StaleElementReferenceException 
+        to capture their stacktrace when a TimeoutException occurs.
 
         Args:
-        - timeout: Maximum time in seconds to wait for the expected condition.
+        - timeout: The maximum time in seconds to wait for the expected condition. 
+            By default, it initializes with the element timeout.
+        - ignored_exceptions: iterable structure of exception classes ignored during calls. 
+            By default, it contains NoSuchElementException only.
         """
         self._wait_timeout = self.initial_timeout if timeout is None else timeout
-        return WebDriverWait(self.driver, self._wait_timeout)
+        return WebDriverWait(self.driver, self._wait_timeout, ignored_exceptions=ignored_exceptions)
 
     @property
     def wait_timeout(self):

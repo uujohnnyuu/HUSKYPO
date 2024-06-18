@@ -41,6 +41,20 @@ def _find_element_by(
         return driver.find_elements(*locator)[index]
     except IndexError:
         raise NoSuchElementException
+    
+
+def _find_elements_by(
+    driver: WebDriver,
+    locator: tuple[str, str],
+) -> list[WebElement]:
+    """
+    Return driver.find_elements(*locator).
+    if elements == []: raise NoSuchElementException
+    """
+    elements = driver.find_elements(*locator)
+    if elements == []:
+        raise NoSuchElementException
+    return elements
 
 
 def presence_of_element_located(
@@ -211,9 +225,7 @@ def visibility_of_any_elements_located(
 ) -> Callable[[WebDriver], list[WebElement] | Literal[False]]:
     """
     Extended `visibility_of_any_elements_located`.
-    Whether any elements are visible.
-    This method differs from the official one in that 
-    it catches StaleElementReferenceException.
+    Whether any (at least one) elements are visible.
 
     Args:
     - locator: (by, value)
@@ -221,14 +233,14 @@ def visibility_of_any_elements_located(
     Return:
     - list[WebElement]: At least one element is visible.
     - [] (empty list): All elements are absent or invisible.
-    - False: StaleElementReferenceException occurs.
+    
+    Exception (should be caught in until):
+    - NoSuchElementException: when find_elements is [].
+    - StaleElementReferenceException: when at least one element staled.
     """
 
     def _predicate(driver: WebDriver):
-        try:
-            return [element for element in driver.find_elements(*locator) if element.is_displayed()]
-        except StaleElementReferenceException:
-            return False
+        return [element for element in _find_elements_by(driver, locator) if element.is_displayed()]
 
     return _predicate
 
@@ -247,17 +259,18 @@ def visibility_of_all_elements_located(
     - list[WebElement]: All elements are visible.
     - [] (empty list): All elements are absent.
     - False: One of the element is invisible or StaleElementReferenceException occurs.
+
+    Exception (should be caught in until):
+    - NoSuchElementException: when find_elements is [].
+    - StaleElementReferenceException: when at least one element staled.
     """
 
     def _predicate(driver: WebDriver):
-        try:
-            elements = driver.find_elements(*locator)
-            for element in elements:
-                if not element.is_displayed():
-                    return False
-            return elements
-        except StaleElementReferenceException:
-            return False
+        elements = _find_elements_by(driver, locator)
+        for element in elements:
+            if not element.is_displayed():
+                return False
+        return elements
 
     return _predicate
 
@@ -333,9 +346,9 @@ def invisibility_of_element(
 def invisibility_of_any_elements_located(
     locator: tuple[str, str],
     present: bool = True
-) -> Callable[[WebDriver], list[WebElement] | bool]:
+) -> Callable[[WebDriver], list[WebElement] | Literal[True]]:
     """
-    Whether at least one element is invisible or absent.
+    Whether any (at least one) element is invisible or absent.
 
     Args:
     - locator: (by, value)
@@ -346,21 +359,19 @@ def invisibility_of_any_elements_located(
     Return:
     - list[WebElement]: All elements are present and only the invisible elements are returned.
     - True: At least one element is absent, and "present" is False.
-    - False: At least one element is absent, and "present" is True.
+
+    Exception (should be caught by until) when "present" is False:
+    - NoSuchElementException: find_elements == [].
+    - StaleElementReferenceException: at least one element staled.
     """
 
     def _predicate(driver: WebDriver):
         try:
-            elements = driver.find_elements(*locator)
-            if elements == []:
-                # return False: If all elements should be present but are not.
-                # return True: If elements are allowed to be absent, and they indeed are absent.
-                return False if present else True
-            return [element for element in elements if not element.is_displayed()]
-        except StaleElementReferenceException:
-            # return False: If all elements should be present but one of the elements is stale.
-            # return True: If elements are allowed to be absent, and one of the elements is stale.
-            return False if present else True
+            return [element for element in _find_elements_by(driver, locator) if not element.is_displayed()]
+        except (NoSuchElementException, StaleElementReferenceException):
+            if present:
+                raise
+            return True
 
     return _predicate
 
@@ -382,26 +393,30 @@ def invisibility_of_all_elements_located(
     - list[WebElement]: All elements are present and invisible.
     - True: All elements are absent, and "present" is False.
     - False: All elements are absent, and "present" is True.
+
+    Exception (should be caught by until) when "present" is False:
+    - NoSuchElementException: find_elements == [].
+    - StaleElementReferenceException: at least one element staled.
     """
 
     def _predicate(driver: WebDriver):
         try:
-            elements = driver.find_elements(*locator)
-            if elements == []:
-                # return False: If all elements should be present but are not.
-                # return True: If elements are allowed to be absent, and they indeed are absent.
-                return False if present else True
+            elements = _find_elements_by(driver, locator)
             for element in elements:
                 if element.is_displayed():
                     return False
             return elements
+        except NoSuchElementException:
+            if present:
+                raise
+            return True
         except StaleElementReferenceException:
             # Since the expected result of this function must be 
             # either all elements are invisible or all elements are absent,
-            # the logic here checks if a single element becomes stale and returns False, 
-            # indicating the result is not as expected,
-            # regardless of the "present" parameter state.
-            return False
+            # the logic here checks if a single element becomes stale, 
+            # indicating that the result is not as expected.
+            # Therefore, we cannot determine if the element is actually invisible or absent.
+            raise
 
     return _predicate
 

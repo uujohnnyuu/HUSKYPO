@@ -189,7 +189,7 @@ class Element:
         """
         Get an object of WebDriverWait.
         The ignored exceptions include NoSuchElementException and StaleElementReferenceException 
-        to capture their screen and stacktrace messages when a TimeoutException occurs.
+        to capture their stacktrace when a TimeoutException occurs.
 
         Args:
         - timeout: The maximum time in seconds to wait for the expected condition. 
