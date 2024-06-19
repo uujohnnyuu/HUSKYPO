@@ -171,13 +171,10 @@ class Elements:
         except AttributeError:
             return None
         
-    def __timeout_message(self, status: str, present: bool = True):
+    def __timeout_message(self, status: str):
         """
         Waiting for elements "{self.remark}" to become "{status}" timed out after {self._wait_timeout} seconds.
-        if not present: status + ' or absent'
         """
-        if not present:
-            status + ' or absent'
         return f'Waiting for elements "{self.remark}" to become "{status}" timed out after {self._wait_timeout} seconds.'
 
     def find(
