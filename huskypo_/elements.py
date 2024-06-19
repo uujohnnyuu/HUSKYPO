@@ -346,45 +346,6 @@ class Elements:
                 raise
             return False
         
-    def wait_any_invisible(
-        self,
-        timeout: int | float | None = None,
-        present: bool = True,
-        reraise: bool | None = None
-    ) -> bool:
-        """
-        Waiting for `any elements to become invisible or absent`.
-
-        Args:
-        - timeout: The maximum time (in seconds) to wait for the elements to reach the expected state. 
-            Defaults (None) to the elements' timeout value.
-        - present:
-            - True (Default): All elements should be present and reach the expected status.
-            - False: At least one element can be absent.
-        - reraise: When the elements state is not as expected, the behavior can be set in the following ways:
-            - bool: True indicates to reraise a TimeoutException; False means to return False.
-            - None: Follow the config.Timeout.RERAISE setting, which is a boolean. 
-                Its logic is the same as the boolean, and the default is True.
-
-        Returns:
-        - list[WebElement] (Expected): At least one element is invisible before timeout.
-        - True (Expected): At least one element is absent before timeout when "present" is False.
-        - False (Unexpected): The element did not reach the expected status after the timeout 
-            if TimeoutException is not reraised.
-
-        Exception:
-        - TimeoutException: Raised if "reraise" is True and 
-            the elements did not reach the expected status after the timeout.
-        """
-        try:
-            return self.wait(timeout, StaleElementReferenceException).until(
-                ecex.invisibility_of_any_elements_located(self.locator, present),
-                self.__timeout_message('any elements are invisible', present))
-        except TimeoutException:
-            if Timeout.reraise(reraise):
-                raise
-            return False
-        
     def wait_all_visible(
         self,
         timeout: int | float | None = None,
@@ -414,41 +375,6 @@ class Elements:
             return self.wait(timeout, StaleElementReferenceException).until(
                 ecex.visibility_of_all_elements_located(self.locator),
                 self.__timeout_message('all elements are visible'))
-        except TimeoutException:
-            if Timeout.reraise(reraise):
-                raise
-            return False
-        
-    def wait_all_invisible(
-        self,
-        timeout: int | float | None = None,
-        present: bool = True,
-        reraise: bool | None = None
-    ) -> list[WebElement] | bool:
-        """
-        Waiting for `all elements to become invisible or absent`.
-
-        Args:
-        - timeout: The maximum time (in seconds) to wait for the elements to reach the expected state. 
-            Defaults (None) to the elements' timeout value.
-        - present:
-            - True (Default): All elements should be present and reach the expected status.
-            - False: All elements can be absent.
-        - reraise: When the elements state is not as expected, the behavior can be set in the following ways:
-            - bool: True indicates to reraise a TimeoutException; False means to return False.
-            - None: Follow the config.Timeout.RERAISE setting, which is a boolean. 
-                Its logic is the same as the boolean, and the default is True.
-
-        Returns:
-        - list[WebElement] (Expected): All elements are invisible before timeout.
-        - True (Expected): All elements are absent before timeout when "present" is False.
-        - False (Unexpected): The element did not reach the expected status after the timeout 
-            if TimeoutException is not reraised.
-        """
-        try:
-            return self.wait(timeout, StaleElementReferenceException).until(
-                ecex.invisibility_of_all_elements_located(self.locator, present),
-                self.__timeout_message('all elements are invisible', present))
         except TimeoutException:
             if Timeout.reraise(reraise):
                 raise
