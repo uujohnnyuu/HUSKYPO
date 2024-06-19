@@ -26,13 +26,13 @@ from . import ec_extension as ecex
 from .config import Timeout
 from .by import ByAttribute
 from .page import Page
-from .types import SeleniumWebElement, AppiumWebElement, AppiumWebDriver
+from .types import SeleniumWebElement, AppiumWebDriver
 from .types import WebDriver, WebElement
 
 # TODO deprecate
 from .by import SwipeAction as SA
 
-ElementException = (AttributeError, StaleElementReferenceException, InvalidSessionIdException)
+ElementReferenceException = (AttributeError, StaleElementReferenceException, InvalidSessionIdException)
 
 IntCoordinate = dict[str, int] | tuple[int, int, int, int]
 FloatCoordinate = dict[str, float] | tuple[float, float, float, float]
@@ -240,29 +240,34 @@ class Element:
         return self.wait_present(timeout, reraise)
 
     @property
-    def _mark(self) -> WebElement | tuple[str, str]:
-        """
-        Internal use.
-        Get WebElement if the element is not stale; otherwise, return the locator.
-        This will be called in wait_related functions.
-        """
-        try:
-            self._present_element.is_enabled()
-            return self._present_element
-        except ElementException:
-            return self.locator
-
-    @property
     def present_element(self) -> WebElement:
         """
-        Get WebElement if the element is not stale; 
-        otherwise, execute the wait_present to re-find it.
+        Obtaining a present webelement simply.
+        The same as element.wait_present(reraise=True).
+        Note that a TimeoutException will be raised 
+        if the element is abesent within the timeout period.
         """
-        try:
-            self._present_element.is_enabled()
-            return self._present_element
-        except ElementException:
-            return self.wait_present(reraise=True)
+        return self.wait_present(reraise=True)
+    
+    @property
+    def visible_element(self) -> WebElement:
+        """
+        Obtaining a visible webelement simply.
+        The same as element.wait_visible(reraise=True).
+        Note that a TimeoutException will be raised 
+        if the element is invisible or abesent within the timeout period.
+        """
+        return self.wait_visible(reraise=True)
+
+    @property
+    def clickable_element(self) -> WebElement:
+        """
+        Obtaining a clickable webelement simply.
+        The same as element.wait_clickable(reraise=True).
+        Note that a TimeoutException will be raised 
+        if the element is unclickable or abesent within the timeout period.
+        """
+        return self.wait_clickable(reraise=True)
 
     def wait_present(
         self,
@@ -358,28 +363,20 @@ class Element:
         - TimeoutException: Raised if "reraise" is True and 
             the element did not reach the expected status after the timeout.
         """
-        mark = self._mark
         try:
-            if isinstance(mark, tuple):
-                # mark is locator.
-                self._present_element = self._visible_element = self.wait(timeout, StaleElementReferenceException).until(
-                    ecex.visibility_of_element_located(mark, self.index), 
-                    self.__timeout_message('visible'))
-            else:
-                # mark is WebElement.
-                self._present_element = self._visible_element = self.wait(timeout).until(
-                    ecex.visibility_of_element(mark), 
-                    self.__timeout_message('visible'))
-        except StaleElementReferenceException:
-            # mark is WebElement but staled, retry by locator.
+            self._visible_element = self.wait(timeout).until(
+                ecex.visibility_of_element(self._present_element), 
+                self.__timeout_message('visible'))
+            return self._visible_element
+        except ElementReferenceException:
             self._present_element = self._visible_element = self.wait(timeout, StaleElementReferenceException).until(
                 ecex.visibility_of_element_located(self.locator, self.index), 
                 self.__timeout_message('visible'))
+            return self._visible_element
         except TimeoutException:
             if Timeout.reraise(reraise):
                 raise
             return False
-        return self._visible_element
     
 
     def wait_invisible(
@@ -410,34 +407,19 @@ class Element:
         - TimeoutException: Raised if "reraise" is True and 
             the element did not reach the expected status after the timeout.
         """
-        mark = self._mark
         try:
-            if isinstance(mark, tuple):
-                # mark is locator.
-                self._present_element = self.wait(timeout, StaleElementReferenceException).until(
-                    ecex.invisibility_of_element_located(mark, self.index, present), 
-                    self.__timeout_message('invisible', present))
-            else:
-                # mark is WebElement.
-                self._present_element = self.wait(timeout).until(
-                    ecex.invisibility_of_element(mark), 
-                    self.__timeout_message('invisible', present))
-        except StaleElementReferenceException:
-            # mark is WebElement but staled.
-            if not present:
-                # allow the element is absent.
-                return True
-            # element should be present and retry by locator.
+            return self.wait(timeout).until(ecex.invisibility_of_element(self._present_element), 
+                self.__timeout_message('invisible'))
+        except ElementReferenceException:
             self._present_element = self.wait(timeout, StaleElementReferenceException).until(
                 ecex.invisibility_of_element_located(self.locator, self.index, present), 
                 self.__timeout_message('invisible', present))
+            return self._present_element
         except TimeoutException:
             if Timeout.reraise(reraise):
                 raise
             return False
-        return self._present_element
         
-    
     def wait_clickable(
         self,
         timeout: int | float | None = None,
@@ -463,28 +445,21 @@ class Element:
         - TimeoutException: Raised if "reraise" is True and 
             the element did not reach the expected status after the timeout.
         """
-        mark = self._mark
         try:
-            if isinstance(mark, tuple):
-                # mark is locator.
-                self._present_element = self._visible_element = self._clickable_element = self.wait(timeout, StaleElementReferenceException).until(
-                    ecex.element_located_to_be_clickable(mark, self.index), 
-                    self.__timeout_message('clickable'))
-            else:
-                # mark is WebElement.
-                self._present_element = self._visible_element = self._clickable_element = self.wait(timeout).until(
-                    ecex.element_to_be_clickable(mark), 
-                    self.__timeout_message('clickable'))
-        except StaleElementReferenceException:
-            # mark is WebElement but staled, retry by locator.
-            self._present_element = self._visible_element = self._clickable_element = self.wait(timeout, StaleElementReferenceException).until(
-                ecex.element_located_to_be_clickable(self.locator, self.index), 
+            self._visible_element = self._clickable_element = self.wait(timeout).until(
+                ecex.element_to_be_clickable(self._present_element), 
                 self.__timeout_message('clickable'))
+            return self._clickable_element
+        except ElementReferenceException:
+            self._present_element = self._visible_element = self._clickable_element = self.wait(
+                timeout, StaleElementReferenceException).until(
+                    ecex.element_located_to_be_clickable(self.locator, self.index), 
+                    self.__timeout_message('clickable'))
+            return self._clickable_element
         except TimeoutException:
             if Timeout.reraise(reraise):
                 raise
             return False
-        return self._clickable_element
     
     def wait_unclickable(
         self,
@@ -527,32 +502,18 @@ class Element:
         - TimeoutException: Raised if "reraise" is True and 
             the element did not reach the expected status after the timeout.
         """
-        mark = self._mark
         try:
-            if isinstance(mark, tuple):
-                # mark is locator.
-                self._present_element = self.wait(timeout, StaleElementReferenceException).until(
-                    ecex.element_located_to_be_unclickable(mark, self.index, present), 
-                    self.__timeout_message('unclickable', present))
-            else:
-                # mark is WebElement.
-                self._present_element = self.wait(timeout).until(
-                    ecex.element_to_be_unclickable(mark), 
-                    self.__timeout_message('unclickable', present))
-        except StaleElementReferenceException:
-            # mark is WebElement but staled.
-            if not present:
-                # allow the element is absent.
-                return True
-            # element should be present and retry by locator.
+            return self.wait(timeout).until(ecex.element_to_be_unclickable(self._present_element), 
+                self.__timeout_message('unclickable'))
+        except ElementReferenceException:
             self._present_element = self.wait(timeout, StaleElementReferenceException).until(
                 ecex.element_located_to_be_unclickable(self.locator, self.index, present), 
                 self.__timeout_message('unclickable', present))
+            return self._present_element
         except TimeoutException:
             if Timeout.reraise(reraise):
                 raise
             return False
-        return self._present_element
 
     def wait_selected(
         self,
@@ -579,29 +540,18 @@ class Element:
         - TimeoutException: Raised if "reraise" is True and 
             the element did not reach the expected status after the timeout.
         """
-        mark = self._mark
         try:
-            if isinstance(mark, tuple):
-                # mark is locator.
-                self._present_element = self.wait(timeout, StaleElementReferenceException).until(
-                    ecex.element_located_to_be_selected(mark, self.index), 
-                    self.__timeout_message('selected'))
-            else:
-                # mark is WebElement.
-                self._present_element = self.wait(timeout).until(
-                    ecex.element_to_be_selected(mark), 
-                    self.__timeout_message('selected'))
-        except StaleElementReferenceException:
-            # mark is WebElement but staled, retry by locator.
+            return self.wait(timeout).until(ecex.element_to_be_selected(self._present_element), 
+                self.__timeout_message('selected'))
+        except ElementReferenceException:
             self._present_element = self.wait(timeout, StaleElementReferenceException).until(
                 ecex.element_located_to_be_selected(self.locator, self.index), 
                 self.__timeout_message('selected'))
+            return self._present_element
         except TimeoutException:
             if Timeout.reraise(reraise):
                 raise
             return False
-        return self._present_element
-    
 
     def wait_unselected(
         self,
@@ -632,28 +582,18 @@ class Element:
         - TimeoutException: Raised if "reraise" is True and 
             the element did not reach the expected status after the timeout.
         """
-        mark = self._mark
         try:
-            if isinstance(mark, tuple):
-                # mark is locator.
-                self._present_element = self.wait(timeout, StaleElementReferenceException).until(
-                    ecex.element_located_to_be_unselected(mark, self.index), 
-                    self.__timeout_message('unselected'))
-            else:
-                # mark is WebElement.
-                self._present_element = self.wait(timeout).until(
-                    ecex.element_to_be_unselected(mark), 
-                    self.__timeout_message('unselected'))
-        except StaleElementReferenceException:
-            # mark is WebElement but staled, retry by locator.
+            return self.wait(timeout).until(ecex.element_to_be_unselected(self._present_element), 
+                self.__timeout_message('unselected'))
+        except ElementReferenceException:
             self._present_element = self.wait(timeout, StaleElementReferenceException).until(
                 ecex.element_located_to_be_unselected(self.locator, self.index), 
                 self.__timeout_message('unselected'))
+            return self._present_element
         except TimeoutException:
             if Timeout.reraise(reraise):
                 raise
             return False
-        return self._present_element
 
     def is_present(self, timeout: int | float | None = None) -> bool:
         """
@@ -674,8 +614,8 @@ class Element:
         """
         try:
             return self._present_element.is_displayed()
-        except ElementException:
-            return self.wait_present(reraise=True).is_displayed()
+        except ElementReferenceException:
+            return self.present_element.is_displayed()
 
     def is_enabled(self) -> bool:
         """
@@ -683,8 +623,8 @@ class Element:
         """
         try:
             return self._present_element.is_enabled()
-        except ElementException:
-            return self.wait_present(reraise=True).is_enabled()
+        except ElementReferenceException:
+            return self.present_element.is_enabled()
 
     def is_clickable(self) -> bool:
         """
@@ -692,8 +632,8 @@ class Element:
         """
         try:
             return self._present_element.is_displayed() and self._present_element.is_enabled()
-        except ElementException:
-            element = self.wait_present(reraise=True)
+        except ElementReferenceException:
+            element = self.present_element
             return element.is_displayed() and element.is_enabled()
 
     def is_selected(self) -> bool:
@@ -702,8 +642,8 @@ class Element:
         """
         try:
             return self._present_element.is_selected()
-        except ElementException:
-            return self.wait_present(reraise=True).is_selected()
+        except ElementReferenceException:
+            return self.present_element.is_selected()
 
     @property
     def text(self) -> str:
@@ -712,8 +652,8 @@ class Element:
         """
         try:
             return self._present_element.text
-        except ElementException:
-            return self.wait_present(reraise=True).text
+        except ElementReferenceException:
+            return self.present_element.text
 
     @property
     def visible_text(self) -> str:
@@ -722,8 +662,8 @@ class Element:
         """
         try:
             return self._visible_element.text
-        except ElementException:
-            return self.wait_visible(reraise=True).text
+        except ElementReferenceException:
+            return self.visible_element.text
 
     @property
     def rect(self) -> dict:
@@ -738,8 +678,8 @@ class Element:
         """
         try:
             rect = self._present_element.rect
-        except ElementException:
-            rect = self.wait_present(reraise=True).rect
+        except ElementReferenceException:
+            rect = self.present_element.rect
         return {'x': rect['x'], 'y': rect['y'], 'width': rect['width'], 'height': rect['height']}
 
     @property
@@ -755,8 +695,8 @@ class Element:
         """
         try:
             return self._present_element.location
-        except ElementException:
-            return self.wait_present(reraise=True).location
+        except ElementReferenceException:
+            return self.present_element.location
 
     @property
     def size(self) -> dict[str, int]:
@@ -771,8 +711,8 @@ class Element:
         """
         try:
             size = self._present_element.size
-        except ElementException:
-            size = self.wait_present(reraise=True).size
+        except ElementReferenceException:
+            size = self.present_element.size
         return {'width': size['width'], 'height': size['height']}
 
     @property
@@ -785,8 +725,8 @@ class Element:
         """
         try:
             rect = self._present_element.rect
-        except ElementException:
-            rect = self.wait_present(reraise=True).rect
+        except ElementReferenceException:
+            rect = self.present_element.rect
         left = int(rect['x'])
         right = int(rect['x'] + rect['width'])
         top = int(rect['y'])
@@ -803,8 +743,8 @@ class Element:
         """
         try:
             rect = self._present_element.rect
-        except ElementException:
-            rect = self.wait_present(reraise=True).rect
+        except ElementReferenceException:
+            rect = self.present_element.rect
         x = int(rect['x'] + rect['width'] / 2)
         y = int(rect['y'] + rect['height'] / 2)
         return {'x': x, 'y': y}
@@ -815,8 +755,8 @@ class Element:
         """
         try:
             self._clickable_element.click()
-        except ElementException:
-            self.wait_clickable(reraise=True).click()
+        except ElementReferenceException:
+            self.clickable_element.click()
         return self
 
     def tap(self, duration: int | None = None) -> Element:
@@ -834,19 +774,20 @@ class Element:
         self.driver.tap([center], duration)
         return self
 
-    def app_drag_and_drop(self, target: Element | AppiumWebElement) -> AppiumWebDriver:
+    def app_drag_and_drop(self, target: Element) -> AppiumWebDriver:
         """
         Appium API.
-        Drag the origin element to the destination element
+        Drag the origin element to the destination element.
 
         Args:
-            target: the element to drag to
+        - target: the element to drag to
         """
-        if isinstance(target, Element):
-            target = target.present_element
-        return self.driver.drag_and_drop(self.present_element, target)
+        try:
+            return self.driver.drag_and_drop(self._present_element, target._present_element)
+        except ElementReferenceException:
+            return self.driver.drag_and_drop(self.present_element, target.present_element)
 
-    def app_scroll(self, target: Element | AppiumWebElement, duration: int | None = None) -> AppiumWebDriver:
+    def app_scroll(self, target: Element, duration: int | None = None) -> AppiumWebDriver:
         """
         Appium API.
         Scrolls from one element to another
@@ -856,9 +797,10 @@ class Element:
             duration: defines speed of scroll action when moving to target.
                 Default is 600 ms for W3C spec.
         """
-        if isinstance(target, Element):
-            target = target.present_element
-        return self.driver.scroll(self.present_element, target, duration)
+        try:
+            return self.driver.scroll(self._present_element, target._present_element, duration)
+        except ElementReferenceException:
+            return self.driver.scroll(self.present_element, target.present_element, duration)
 
     def is_viewable(self, timeout: int | float | None = None) -> bool:
         """
@@ -1211,13 +1153,13 @@ class Element:
         try:
             try:
                 self._clickable_element.clear()
-            except ElementException:
-                self.wait_clickable(reraise=True).clear()
+            except ElementReferenceException:
+                self.clickable_element.clear()
         except TimeoutException:
             try:
                 self._present_element.clear()
-            except ElementException:
-                self.wait_present(reraise=True).clear()
+            except ElementReferenceException:
+                self.present_element.clear()
         return self
 
     def send_keys(self, *value) -> Element:
@@ -1236,13 +1178,13 @@ class Element:
         try:
             try:
                 self._clickable_element.send_keys(*value)
-            except ElementException:
-                self.wait_clickable(reraise=True).send_keys(*value)
+            except ElementReferenceException:
+                self.clickable_element.send_keys(*value)
         except TimeoutException:
             try:
                 self._present_element.send_keys(*value)
-            except ElementException:
-                self.wait_present(reraise=True).send_keys(*value)
+            except ElementReferenceException:
+                self.present_element.send_keys(*value)
         return self
 
     def get_attribute(self, name: Any | str) -> Any | str | dict | None:
@@ -1272,8 +1214,8 @@ class Element:
         """
         try:
             return self._present_element.get_attribute(name)
-        except ElementException:
-            return self.wait_present(reraise=True).get_attribute(name)
+        except ElementReferenceException:
+            return self.present_element.get_attribute(name)
 
     def get_property(self, name: Any) -> str | bool | WebElement | dict:
         """
@@ -1289,8 +1231,8 @@ class Element:
         """
         try:
             return self._present_element.get_property(name)
-        except ElementException:
-            return self.wait_present(reraise=True).get_property(name)
+        except ElementReferenceException:
+            return self.present_element.get_property(name)
 
     def submit(self) -> None:
         """
@@ -1300,13 +1242,13 @@ class Element:
         try:
             try:
                 self._clickable_element.submit()
-            except ElementException:
-                self.wait_clickable(reraise=True).submit()
+            except ElementReferenceException:
+                self.clickable_element.submit()
         except TimeoutException:
             try:
                 self._present_element.submit()
-            except ElementException:
-                self.wait_present(reraise=True).submit()
+            except ElementReferenceException:
+                self.present_element.submit()
 
     @property
     def tag_name(self) -> str:
@@ -1316,8 +1258,8 @@ class Element:
         """
         try:
             return self._present_element.tag_name
-        except ElementException:
-            return self.wait_present(reraise=True).tag_name
+        except ElementReferenceException:
+            return self.present_element.tag_name
 
     def value_of_css_property(self, property_name: Any) -> str:
         """
@@ -1326,8 +1268,8 @@ class Element:
         """
         try:
             return self._present_element.value_of_css_property(property_name)
-        except ElementException:
-            return self.wait_present(reraise=True).value_of_css_property(property_name)
+        except ElementReferenceException:
+            return self.present_element.value_of_css_property(property_name)
 
     def switch_to_frame(
         self,
@@ -1408,7 +1350,10 @@ class Element:
             ...  # other process
             my_page.perform()
         """
-        self._action.click(self.present_element)
+        try:
+            self._action.click(self._present_element)
+        except ElementReferenceException:
+            self._action.click(self.present_element)
         return self
 
     def click_and_hold(self) -> Element:
@@ -1429,7 +1374,10 @@ class Element:
             ...  # other process
             my_page.perform()
         """
-        self._action.click_and_hold(self.present_element)
+        try:
+            self._action.click_and_hold(self._present_element)
+        except ElementReferenceException:
+            self._action.click_and_hold(self.present_element)
         return self
 
     def context_click(self) -> Element:
@@ -1450,7 +1398,10 @@ class Element:
             ...  # other process
             my_page.perform()
         """
-        self._action.context_click(self.present_element)
+        try:
+            self._action.context_click(self._present_element)
+        except ElementReferenceException:
+            self._action.context_click(self.present_element)
         return self
 
     def double_click(self) -> Element:
@@ -1471,10 +1422,13 @@ class Element:
             ...  # other process
             my_page.perform()
         """
-        self._action.double_click(self.present_element)
-        return self
+        try:
+            self._action.double_click(self._present_element)
+        except ElementReferenceException:
+            self._action.double_click(self.present_element)
+            return self
 
-    def drag_and_drop(self, target: Element | SeleniumWebElement) -> Element:
+    def drag_and_drop(self, target: Element) -> Element:
         """
         Selenium ActionChains API.
         Holds down the left mouse button on the source element, 
@@ -1496,10 +1450,11 @@ class Element:
             ...  # other process
             my_page.perform()
         """
-        if isinstance(target, Element):
-            target = target.present_element
-        self._action.drag_and_drop(self.present_element, target)
-        return self
+        try:
+            self._action.drag_and_drop(self._present_element, target._present_element)
+        except ElementReferenceException:
+            self._action.drag_and_drop(self.present_element, target.present_element)
+            return self
 
     def drag_and_drop_by_offset(self, xoffset: int, yoffset: int) -> Element:
         """
@@ -1524,7 +1479,10 @@ class Element:
             ...  # other process
             my_page.perform()
         """
-        self._action.drag_and_drop_by_offset(self.present_element, xoffset, yoffset)
+        try:
+            self._action.drag_and_drop_by_offset(self._present_element, xoffset, yoffset)
+        except ElementReferenceException:
+            self._action.drag_and_drop_by_offset(self.present_element, xoffset, yoffset)
         return self
 
     def hotkey(self, *value: str):
@@ -1544,7 +1502,10 @@ class Element:
             my_page.my_element.hotkey(Keys.COMMAND, Keys.SHIFT, Keys.TAB).perform()
         """
         # key_down, first to focus target element.
-        self._action.key_down(value[0], self.present_element)
+        try:
+            self._action.key_down(value[0], self._present_element)
+        except ElementReferenceException:
+            self._action.key_down(value[0], self.present_element)
         for key in value[1:-1]:
             self._action.key_down(key)
         # send_keys
@@ -1572,7 +1533,10 @@ class Element:
             my_page.my_element.key_down(Key.CONTROL).action_send_keys('c').key_up(Key.CONTROL)
         """
         if focus:
-            self._action.key_down(value, self.present_element)
+            try:
+                self._action.key_down(value, self._present_element)
+            except ElementReferenceException:
+                self._action.key_down(value, self.present_element)
         else:
             self._action.key_down(value)
         return self
@@ -1597,7 +1561,10 @@ class Element:
             my_page.my_element.key_down(Key.CONTROL).action_send_keys('c').key_up(Key.CONTROL)
         """
         if focus:
-            self._action.key_up(value, self.present_element)
+            try:
+                self._action.key_up(value, self._present_element)
+            except ElementReferenceException:
+                self._action.key_up(value, self.present_element)
         else:
             self._action.key_up(value)
         return self
@@ -1645,7 +1612,10 @@ class Element:
             ...  # other process
             my_page.perform()
         """
-        self._action.send_keys_to_element(self.present_element, *keys_to_send)
+        try:
+            self._action.send_keys_to_element(self._present_element, *keys_to_send)
+        except ElementReferenceException:
+            self._action.send_keys_to_element(self.present_element, *keys_to_send)
         return self
 
     def move_to_element(self) -> Element:
@@ -1666,7 +1636,10 @@ class Element:
             ...  # other process
             my_page.perform()
         """
-        self._action.move_to_element(self.present_element)
+        try:
+            self._action.move_to_element(self._present_element)
+        except ElementReferenceException:
+            self._action.move_to_element(self.present_element)
         return self
 
     def move_to_element_with_offset(
@@ -1696,7 +1669,10 @@ class Element:
             ...  # other process
             my_page.perform()
         """
-        self._action.move_to_element_with_offset(self.present_element, xoffset, yoffset)
+        try:
+            self._action.move_to_element_with_offset(self._present_element, xoffset, yoffset)
+        except ElementReferenceException:
+            self._action.move_to_element_with_offset(self.present_element, xoffset, yoffset)
         return self
 
     def release(self) -> Element:
@@ -1717,7 +1693,10 @@ class Element:
             ...  # other process
             my_page.perform()
         """
-        self._action.release(self.present_element)
+        try:
+            self._action.release(self._present_element)
+        except ElementReferenceException:
+            self._action.release(self.present_element)
         return self
 
     def pause(self, seconds: int | float):
@@ -1747,7 +1726,10 @@ class Element:
             ...  # other process
             my_page.perform()
         """
-        self._action.scroll_to_element(self.present_element)
+        try:
+            self._action.scroll_to_element(self._present_element)
+        except ElementReferenceException:
+            self._action.scroll_to_element(self.present_element)
         return self
 
     def scroll_from_element(
@@ -1785,8 +1767,12 @@ class Element:
             ...  # other process
             my_page.perform()
         """
-        scroll_origin = ScrollOrigin.from_element(self.present_element, x_offset, y_offset)
-        self._action.scroll_from_origin(scroll_origin, delta_x, delta_y)
+        try:
+            scroll_origin = ScrollOrigin.from_element(self._present_element, x_offset, y_offset)
+            self._action.scroll_from_origin(scroll_origin, delta_x, delta_y)
+        except ElementReferenceException:
+            scroll_origin = ScrollOrigin.from_element(self.present_element, x_offset, y_offset)
+            self._action.scroll_from_origin(scroll_origin, delta_x, delta_y)
         return self
 
     @property
@@ -1798,8 +1784,8 @@ class Element:
         """
         try:
             self._select = Select(self._present_element)
-        except ElementException:
-            self._select = Select(self.wait_present(reraise=True))
+        except ElementReferenceException:
+            self._select = Select(self.present_element)
         return self._select
 
     @property
@@ -1810,7 +1796,7 @@ class Element:
         """
         try:
             self._select.options
-        except ElementException:
+        except ElementReferenceException:
             self._new_select.options
 
     @property
@@ -1821,7 +1807,7 @@ class Element:
         """
         try:
             self._select.all_selected_options
-        except ElementException:
+        except ElementReferenceException:
             self._new_select.all_selected_options
 
     @property
@@ -1833,7 +1819,7 @@ class Element:
         """
         try:
             self._select.first_selected_option
-        except ElementException:
+        except ElementReferenceException:
             self._new_select.first_selected_option
 
     def select_by_value(self, value: str) -> None:
@@ -1849,7 +1835,7 @@ class Element:
         """
         try:
             self._select.select_by_value(value)
-        except ElementException:
+        except ElementReferenceException:
             self._new_select.select_by_value(value)
 
     def select_by_index(self, index: int) -> None:
@@ -1865,7 +1851,7 @@ class Element:
         """
         try:
             self._select.select_by_index(index)
-        except ElementException:
+        except ElementReferenceException:
             self._new_select.select_by_index(index)
 
     def select_by_visible_text(self, text: str) -> None:
@@ -1882,7 +1868,7 @@ class Element:
         """
         try:
             self._select.select_by_visible_text(text)
-        except ElementException:
+        except ElementReferenceException:
             self._new_select.select_by_visible_text(text)
 
     def deselect_all(self) -> None:
@@ -1893,7 +1879,7 @@ class Element:
         """
         try:
             self._select.deselect_all()
-        except ElementException:
+        except ElementReferenceException:
             self._new_select.deselect_all()
 
     def deselect_by_value(self, value: str) -> None:
@@ -1908,7 +1894,7 @@ class Element:
         """
         try:
             self._select.deselect_by_value(value)
-        except ElementException:
+        except ElementReferenceException:
             self._new_select.deselect_by_value(value)
 
     def deselect_by_index(self, index: int) -> None:
@@ -1923,7 +1909,7 @@ class Element:
         """
         try:
             self._select.deselect_by_index(index)
-        except ElementException:
+        except ElementReferenceException:
             self._new_select.deselect_by_index(index)
 
     def deselect_by_visible_text(self, text: str) -> None:
@@ -1938,7 +1924,7 @@ class Element:
         """
         try:
             self._select.deselect_by_visible_text(text)
-        except ElementException:
+        except ElementReferenceException:
             self._new_select.deselect_by_visible_text(text)
 
     @property
@@ -1952,8 +1938,8 @@ class Element:
         """
         try:
             return self._present_element.location_in_view
-        except ElementException:
-            return self.wait_present(reraise=True).location_in_view
+        except ElementReferenceException:
+            return self.present_element.location_in_view
 
     def input(self, text: str = '') -> Element:
         """
@@ -1970,8 +1956,8 @@ class Element:
         """
         try:
             self._present_element.send_keys(text)
-        except ElementException:
-            self.wait_present(reraise=True).send_keys(text)
+        except ElementReferenceException:
+            self.present_element.send_keys(text)
         return self
 
     def enter(self) -> Element:
@@ -1985,8 +1971,8 @@ class Element:
         """
         try:
             self._present_element.send_keys(Keys.ENTER)
-        except ElementException:
-            self.wait_present(reraise=True).send_keys(Keys.ENTER)
+        except ElementReferenceException:
+            self.present_element.send_keys(Keys.ENTER)
         return self
 
     def select_all(self) -> Element:
@@ -2001,8 +1987,8 @@ class Element:
         first = Keys.COMMAND if platform.system().lower() == "darwin" else Keys.CONTROL
         try:
             self._present_element.send_keys(first, 'a')
-        except ElementException:
-            self.wait_present(reraise=True).send_keys(first, 'a')
+        except ElementReferenceException:
+            self.present_element.send_keys(first, 'a')
         return self
 
     def cut(self) -> Element:
@@ -2018,8 +2004,8 @@ class Element:
         first = Keys.COMMAND if platform.system().lower() == "darwin" else Keys.CONTROL
         try:
             self._present_element.send_keys(first, 'x')
-        except ElementException:
-            self.wait_present(reraise=True).send_keys(first, 'x')
+        except ElementReferenceException:
+            self.present_element.send_keys(first, 'x')
         return self
 
     def copy(self) -> Element:
@@ -2035,8 +2021,8 @@ class Element:
         first = Keys.COMMAND if platform.system().lower() == "darwin" else Keys.CONTROL
         try:
             self._present_element.send_keys(first, 'c')
-        except ElementException:
-            self.wait_present(reraise=True).send_keys(first, 'c')
+        except ElementReferenceException:
+            self.present_element.send_keys(first, 'c')
         return self
 
     def paste(self) -> Element:
@@ -2052,8 +2038,8 @@ class Element:
         first = Keys.COMMAND if platform.system().lower() == "darwin" else Keys.CONTROL
         try:
             self._present_element.send_keys(first, 'v')
-        except ElementException:
-            self.wait_present(reraise=True).send_keys(first, 'v')
+        except ElementReferenceException:
+            self.present_element.send_keys(first, 'v')
         return self
 
     def arrow_left(self, times: int = 1) -> Element:
@@ -2070,8 +2056,8 @@ class Element:
         """
         try:
             self._present_element.send_keys(Keys.ARROW_LEFT * times)
-        except ElementException:
-            self.wait_present(reraise=True).send_keys(Keys.ARROW_LEFT * times)
+        except ElementReferenceException:
+            self.present_element.send_keys(Keys.ARROW_LEFT * times)
         return self
 
     def arrow_right(self, times: int = 1) -> Element:
@@ -2088,8 +2074,8 @@ class Element:
         """
         try:
             self._present_element.send_keys(Keys.ARROW_RIGHT * times)
-        except ElementException:
-            self.wait_present(reraise=True).send_keys(Keys.ARROW_RIGHT * times)
+        except ElementReferenceException:
+            self.present_element.send_keys(Keys.ARROW_RIGHT * times)
         return self
 
     def arrow_up(self, times: int = 1) -> Element:
@@ -2106,8 +2092,8 @@ class Element:
         """
         try:
             self._present_element.send_keys(Keys.ARROW_UP * times)
-        except ElementException:
-            self.wait_present(reraise=True).send_keys(Keys.ARROW_UP * times)
+        except ElementReferenceException:
+            self.present_element.send_keys(Keys.ARROW_UP * times)
         return self
 
     def arrow_down(self, times: int = 1) -> Element:
@@ -2124,8 +2110,8 @@ class Element:
         """
         try:
             self._present_element.send_keys(Keys.ARROW_DOWN * times)
-        except ElementException:
-            self.wait_present(reraise=True).send_keys(Keys.ARROW_DOWN * times)
+        except ElementReferenceException:
+            self.present_element.send_keys(Keys.ARROW_DOWN * times)
         return self
 
     def backspace(self, times: int = 1) -> Element:
@@ -2142,8 +2128,8 @@ class Element:
         """
         try:
             self._present_element.send_keys(Keys.BACKSPACE * times)
-        except ElementException:
-            self.wait_present(reraise=True).send_keys(Keys.BACKSPACE * times)
+        except ElementReferenceException:
+            self.present_element.send_keys(Keys.BACKSPACE * times)
         return self
 
     def delete(self, times: int = 1) -> Element:
@@ -2160,8 +2146,8 @@ class Element:
         """
         try:
             self._present_element.send_keys(Keys.DELETE * times)
-        except ElementException:
-            self.wait_present(reraise=True).send_keys(Keys.DELETE * times)
+        except ElementReferenceException:
+            self.present_element.send_keys(Keys.DELETE * times)
         return self
 
     def tab(self, times: int = 1) -> Element:
@@ -2178,8 +2164,8 @@ class Element:
         """
         try:
             self._present_element.send_keys(Keys.TAB * times)
-        except ElementException:
-            self.wait_present(reraise=True).send_keys(Keys.TAB * times)
+        except ElementReferenceException:
+            self.present_element.send_keys(Keys.TAB * times)
         return self
 
     def space(self, times: int = 1) -> Element:
@@ -2196,8 +2182,8 @@ class Element:
         """
         try:
             self._present_element.send_keys(Keys.SPACE * times)
-        except ElementException:
-            self.wait_present(reraise=True).send_keys(Keys.SPACE * times)
+        except ElementReferenceException:
+            self.present_element.send_keys(Keys.SPACE * times)
         return self
 
     def swipe_into_view(
