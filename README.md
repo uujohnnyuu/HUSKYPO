@@ -34,9 +34,13 @@ class MyPage(Page):
     search_results = Elements(By.TAG_NAME, 'h3', remark='All search results')
     search_result1 = Element(By.XPATH, '//h3[1]', remark='First search result')
 
-    # Dynamic elements, suitable for special test scenarios where element locator info is decided at runtime during the test case.
-    # Typically, dynamic elements make up a very small proportion; if the test environment is robust and stable, it's advisable to mostly use static elements.
-    # Dynamic elements need to be written as instance methods of the Page class, and must be decorated with @dynamic to function properly.
+    # Dynamic elements, suitable for special test scenarios 
+    # where element locator info is decided at runtime during the test case.
+    # Typically, dynamic elements make up a very small proportion; 
+    # if the test environment is robust and stable, 
+    # it's advisable to mostly use static elements.
+    # Dynamic elements need to be written as instance methods of the Page class, 
+    # and must be decorated with @dynamic to function properly.
     @dynamic
     def search_result(self, order: int = 1):
         return Element(By.XPATH, f'//h3[{order}]', remark=f'Search result no.{order}')
@@ -47,17 +51,21 @@ class MyPage(Page):
 
     # If you want to record information about dynamic elements and reuse it, 
     # it is recommended to revert to the official standard data descriptor dynamic assignment method.
+
     # 1. You must first create an object of a data descriptor, such as static_element.
+
     # 2. Create a function corresponding to static_element and assign a value to static_element,
     # This assignment method utilizes the "__set__" method of the data descriptor. 
     # The parameters given is the same as the way of initializing the "Element".
-    # 3. When executing the testcase, first call the dynamic dynamic_element. 
+    
+    # 3. When executing the testcase, first call dynamic_element. 
     # If the subsequent elements no longer change, you can directly use static_element for operations.
 
     static_element = Element()
 
     def dynamic_element(self, par) -> Element:
-        self.static_element = (By.XPATH, f'//*[contains(text(), "{par}")]')  # __set__
+        # __set__ will get the tuple and assign it to Element to initialize static_element.
+        self.static_element = (By.XPATH, f'//*[contains(text(), "{par}")]')  
         return self.static_element
 ```
 
