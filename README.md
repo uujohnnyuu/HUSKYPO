@@ -44,6 +44,21 @@ class MyPage(Page):
     @dynamic
     def keyword_results(self, keyword: str):
         return Elements(By.XPATH, f'//*[contains(text(), "{keyword}")]')
+
+    # If you want to record information about dynamic elements and reuse it, 
+    # it is recommended to revert to the official standard data descriptor dynamic assignment method.
+    # 1. You must first create an object of a data descriptor, such as static_element.
+    # 2. Create a function corresponding to static_element and assign a value to static_element,
+    # This assignment method utilizes the "__set__" method of the data descriptor. 
+    # The parameters given is the same as the way of initializing the "Element".
+    # 3. When executing the testcase, first call the dynamic dynamic_element. 
+    # If the subsequent elements no longer change, you can directly use static_element for operations.
+
+    static_element = Element()
+
+    def dynamic_element(self, par) -> Element:
+        self.static_element = (By.XPATH, f'//*[contains(text(), "{par}")]')  # __set__
+        return self.static_element
 ```
 
 3. After constructing the Page object in my_page.py, you can begin writing test cases.

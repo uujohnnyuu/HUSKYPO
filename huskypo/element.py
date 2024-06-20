@@ -201,7 +201,7 @@ class Element:
         return WebDriverWait(self.driver, self._wait_timeout, ignored_exceptions=ignored_exceptions)
 
     @property
-    def wait_timeout(self):
+    def wait_timeout(self) -> int | float | None:
         """
         Get the final waiting timeout of the element.
         If no element action has been executed yet,
