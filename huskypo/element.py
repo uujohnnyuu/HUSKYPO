@@ -3,8 +3,11 @@
 # PyPI: https://pypi.org/project/huskypo/
 # GitHub: https://github.com/uujohnnyuu/huskyPO
 
-# TODO Keep tracking selenium 4.0 and appium 2.0 new methods.
-# TODO It still need to confirm whether "clear", "sned_keys", "submit" need to wait until clickable.
+# TODO 
+# 1. Keep tracking selenium 4.0 and appium 2.0 new methods.
+# 2. Keep tarcking the efficiency of reusing WebElement, ActionChains, and Select objects.
+# 3. It still need to confirm whether "clear", "sned_keys", "submit" need to wait until clickable.
+
 from __future__ import annotations
 
 import warnings
@@ -1774,30 +1777,38 @@ class Element:
             scroll_origin = ScrollOrigin.from_element(self.present_element, x_offset, y_offset)
             self._action.scroll_from_origin(scroll_origin, delta_x, delta_y)
         return self
-
-    @property
-    def _new_select(self) -> Select:
-        """
-        Internal use. Selenium Select API.
-        Get the select object of the element,
-        and calling self._select to re-use it.
-        """
-        try:
-            self._select = Select(self._present_element)
-        except ElementReferenceException:
-            self._select = Select(self.present_element)
-        return self._select
-
+    
     @property
     def options(self) -> list[SeleniumWebElement]:
         """
         Selenium Select API.
         Returns a list of all options belonging to this select tag.
         """
+        # All Select-related methods must be encapsulated using this structure 
+        # to ensure no unnecessary steps are taken.
+        # The reason is that if "self._select.method" raises a 
+        # StaleElementReferenceException or InvalidSessionIdException,
+        # we can directly rebuild with "self._select = Select(self.present_element)",
+        # without needing to check "self._select = Select(self._present_element)" again.
+        # Once part of the try-except block is encapsulated into a function, 
+        # there will inevitably be redundant checks for "self._select = Select(self._present_element)".
+
         try:
-            self._select.options
+            try:
+                # The main process.
+                return self._select.options
+            except AttributeError:
+                # Handle the first AttributeError: 
+                # If there is no available select attribute, create it using the "_present_element" first.
+                self._select = Select(self._present_element)
         except ElementReferenceException:
-            self._new_select.options
+            # Handle ElementReferenceException by creating a new select object.
+            # This exception can be triggered in two scenarios:
+            # 1. The main process triggers a stale or invalid session exception.
+            # 2. During the first AttributeError handling, if there is no "_present_element" attribute, 
+            #       or it triggers a stale or invalid session exception when initializing.
+            self._select = Select(self.present_element)
+        return self._select.options
 
     @property
     def all_selected_options(self) -> list[SeleniumWebElement]:
@@ -1806,9 +1817,13 @@ class Element:
         Returns a list of all selected options belonging to this select tag.
         """
         try:
-            self._select.all_selected_options
+            try:
+                return self._select.all_selected_options
+            except AttributeError:
+                self._select = Select(self._present_element)
         except ElementReferenceException:
-            self._new_select.all_selected_options
+            self._select = Select(self.present_element)
+        return self._select.all_selected_options
 
     @property
     def first_selected_option(self) -> SeleniumWebElement:
@@ -1818,9 +1833,13 @@ class Element:
         or the currently selected option in a normal select.
         """
         try:
-            self._select.first_selected_option
+            try:
+                return self._select.first_selected_option
+            except AttributeError:
+                self._select = Select(self._present_element)
         except ElementReferenceException:
-            self._new_select.first_selected_option
+            self._select = Select(self.present_element)
+        return self._select.first_selected_option
 
     def select_by_value(self, value: str) -> None:
         """
@@ -1834,9 +1853,13 @@ class Element:
         - value: The value to match against
         """
         try:
-            self._select.select_by_value(value)
+            try:
+                return self._select.select_by_value(value)
+            except AttributeError:
+                self._select = Select(self._present_element)
         except ElementReferenceException:
-            self._new_select.select_by_value(value)
+            self._select = Select(self.present_element)
+        return self._select.select_by_value(value)
 
     def select_by_index(self, index: int) -> None:
         """
@@ -1850,9 +1873,13 @@ class Element:
             throws NoSuchElementException If there is no option with specified index in SELECT
         """
         try:
-            self._select.select_by_index(index)
+            try:
+                return self._select.select_by_index(index)
+            except AttributeError:
+                self._select = Select(self._present_element)
         except ElementReferenceException:
-            self._new_select.select_by_index(index)
+            self._select = Select(self.present_element)
+        return self._select.select_by_index(index)
 
     def select_by_visible_text(self, text: str) -> None:
         """
@@ -1867,9 +1894,13 @@ class Element:
             throws NoSuchElementException If there is no option with specified text in SELECT
         """
         try:
-            self._select.select_by_visible_text(text)
+            try:
+                return self._select.select_by_visible_text(text)
+            except AttributeError:
+                self._select = Select(self._present_element)
         except ElementReferenceException:
-            self._new_select.select_by_visible_text(text)
+            self._select = Select(self.present_element)
+        return self._select.select_by_visible_text(text)
 
     def deselect_all(self) -> None:
         """
@@ -1878,9 +1909,13 @@ class Element:
         This is only valid when the SELECT supports multiple selections.
         """
         try:
-            self._select.deselect_all()
+            try:
+                return self._select.deselect_all()
+            except AttributeError:
+                self._select = Select(self._present_element)
         except ElementReferenceException:
-            self._new_select.deselect_all()
+            self._select = Select(self.present_element)
+        return self._select.deselect_all()
 
     def deselect_by_value(self, value: str) -> None:
         """
@@ -1893,9 +1928,13 @@ class Element:
         - value: The value to match against
         """
         try:
-            self._select.deselect_by_value(value)
+            try:
+                return self._select.deselect_by_value(value)
+            except AttributeError:
+                self._select = Select(self._present_element)
         except ElementReferenceException:
-            self._new_select.deselect_by_value(value)
+            self._select = Select(self.present_element)
+        return self._select.deselect_by_value(value)
 
     def deselect_by_index(self, index: int) -> None:
         """
@@ -1908,9 +1947,14 @@ class Element:
         - index: The option at this index will be deselected
         """
         try:
-            self._select.deselect_by_index(index)
+            try:
+                return self._select.deselect_by_index(index)
+            except AttributeError:
+                self._select = Select(self._present_element)
         except ElementReferenceException:
-            self._new_select.deselect_by_index(index)
+            self._select = Select(self.present_element)
+        return self._select.deselect_by_index(index)
+        
 
     def deselect_by_visible_text(self, text: str) -> None:
         """
@@ -1923,9 +1967,14 @@ class Element:
         - text: The visible text to match against
         """
         try:
-            self._select.deselect_by_visible_text(text)
+            try:
+                return self._select.deselect_by_visible_text(text)
+            except AttributeError:
+                self._select = Select(self._present_element)
         except ElementReferenceException:
-            self._new_select.deselect_by_visible_text(text)
+            self._select = Select(self.present_element)
+        return self._select.deselect_by_visible_text(text)
+    
 
     @property
     def location_in_view(self) -> dict[str, int]:
