@@ -150,10 +150,11 @@ class Element:
         """
         Return locator (by, value)
         """
-        if self.by is None or self.value is None:
-            raise ValueError("""'by' and 'value' cannot be None when performing element operations.
+        if self.by and self.value:
+            return (self.by, self.value)
+        raise ValueError("""'by' and 'value' cannot be None when performing element operations.
                              Please ensure both are provided with valid values.""")
-        return (self.by, self.value)
+        
 
     @property
     def initial_timeout(self):
@@ -221,7 +222,7 @@ class Element:
         if not present: status + ' or absent'
         """
         if not present:
-            status + ' or absent'
+            status += ' or absent'
         return f'Waiting for element "{self.remark}" to become "{status}" timed out after {self._wait_timeout} seconds.'
 
     def find(

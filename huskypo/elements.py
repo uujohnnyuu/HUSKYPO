@@ -107,10 +107,10 @@ class Elements:
         """
         Return locator (by, value)
         """
-        if self.by is None or self.value is None:
-            raise ValueError("""'by' and 'value' cannot be None when performing element operations.
+        if self.by and self.value:
+            return (self.by, self.value)
+        raise ValueError("""'by' and 'value' cannot be None when performing elements operations.
                              Please ensure both are provided with valid values.""")
-        return (self.by, self.value)
 
     @property
     def initial_timeout(self):
