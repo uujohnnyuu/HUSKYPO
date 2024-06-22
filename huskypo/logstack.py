@@ -163,11 +163,12 @@ def get_stack_infos(
     finally:
         del frames
 
+
 def _logging(message: str = 'NULL'):
-        """
-        To print or record inner log.
-        """
-        if Log.PRINT:
-            print(message)
-        if Log.RECORD:
-            info(message)
+    """
+    To print or record inner log.
+    """
+    if Log.PRINT:
+        print(message)
+    if Log.RECORD:
+        info(message)

@@ -10,6 +10,7 @@ class Log:
     PRINT = False
     RECORD = False
 
+
 class Timeout:
     DEFAULT = 30
     RERAISE = True

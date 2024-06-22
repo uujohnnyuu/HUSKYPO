@@ -5,14 +5,14 @@
 
 # All you need to know about this expected conditions extension (ECEX):
 
-# 1. ECEX extends all methods related to element states, 
+# 1. ECEX extends all methods related to element states,
 # including present, visible, clickable, selected, and their opposites.
 
 # 2. You can perform explicit waits using find_elements(*locator)[index]
 # when you set index in each method.
 
-# 3. ECEX separates the methods for locators and WebElements 
-# because these two approaches should handle exceptions differently, 
+# 3. ECEX separates the methods for locators and WebElements
+# because these two approaches should handle exceptions differently,
 # allowing for more comprehensive exception handling.
 
 from __future__ import annotations
@@ -41,7 +41,7 @@ def _find_element_by(
         return driver.find_elements(*locator)[index]
     except IndexError:
         raise NoSuchElementException
-    
+
 
 def _find_elements_by(
     driver: WebDriver,
@@ -209,7 +209,7 @@ def visibility_of_element(
     - False: The element is invisible.
 
     Exception (should be caught in until): None
-    
+
     Exception (should be caught in external):
     - StaleElementReferenceException: retry by locator.
     """
@@ -233,7 +233,7 @@ def visibility_of_any_elements_located(
     Return:
     - list[WebElement]: At least one element is visible.
     - [] (empty list): All elements are absent or invisible.
-    
+
     Exception (should be caught in until):
     - NoSuchElementException: when find_elements is [].
     - StaleElementReferenceException: when at least one element staled.
@@ -330,7 +330,7 @@ def invisibility_of_element(
     - False: The element is visible.
 
     Exception (should be caught in until): None
-    
+
     Exception (should be caught in external):
     - StaleElementReferenceException: 
         - The element should be present: retry by locator.
@@ -388,7 +388,7 @@ def element_to_be_clickable(
     - False: The element is unclickable.
 
     Exception (should be caught in until): None
-    
+
     Exception (should be caught in external):
     - StaleElementReferenceException: retry by locator
     """
@@ -406,7 +406,7 @@ def element_located_to_be_unclickable(
 ) -> Callable[[WebDriver], WebElement | bool]:
     """
     Whether the element is unclickable or absent.
-    
+
     Args:
     - locator: (by, value)
     - index: 
@@ -429,12 +429,12 @@ def element_located_to_be_unclickable(
     def _predicate(driver: WebDriver):
         try:
             element = _find_element_by(driver, locator, index)
-            return element if not(element.is_displayed() and element.is_enabled()) else False
+            return element if not (element.is_displayed() and element.is_enabled()) else False
         except (NoSuchElementException, StaleElementReferenceException):
             if present:
                 raise
             return True
-    
+
     return _predicate
 
 
@@ -452,7 +452,7 @@ def element_to_be_unclickable(
     - False: The element is clickable.
 
     Exception (should be caught in until): None
-    
+
     Exception (should be caught in external):
     - StaleElementReferenceException: 
         - The element should be present: retry by locator.
@@ -510,7 +510,7 @@ def element_to_be_selected(
     - False: The element is unselected.
 
     Exception (should be caught in until): None
-    
+
     Exception (should be caught in external):
     - StaleElementReferenceException: retry by locator.
     """
@@ -537,7 +537,7 @@ def element_located_to_be_unselected(
     Return:
     - WebElement: The element is unselected.
     - False: The element is selected.
-    
+
     Exception (should be caught in until):
     - NoSuchElementException (default)
     - StaleElementReferenceException
@@ -564,7 +564,7 @@ def element_to_be_unselected(
     - False: The element is selected.
 
     Exception (should be caught in until): None
-    
+
     Exception (should be caught in external):
     - StaleElementReferenceException: retry by locator.
     """

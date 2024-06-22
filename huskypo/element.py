@@ -3,7 +3,7 @@
 # PyPI: https://pypi.org/project/huskypo/
 # GitHub: https://github.com/uujohnnyuu/huskyPO
 
-# TODO 
+# TODO
 # 1. Keep tracking selenium 4.0 and appium 2.0 new methods.
 # 2. Keep tarcking the efficiency of reusing WebElement, ActionChains, and Select objects.
 # 3. It still need to confirm whether "clear", "sned_keys", "submit" need to wait until clickable.
@@ -46,12 +46,12 @@ Coordinate = IntCoordinate | FloatCoordinate
 class Element:
 
     def __init__(
-        self,
-        by: str | None = None,
-        value: str | None = None,
-        index: int | None = None,
-        timeout: int | float | None = None,
-        remark: str | None = None):
+            self,
+            by: str | None = None,
+            value: str | None = None,
+            index: int | None = None,
+            timeout: int | float | None = None,
+            remark: str | None = None):
         """
         Initial Element attributes.
 
@@ -154,7 +154,6 @@ class Element:
             return (self.by, self.value)
         raise ValueError("""'by' and 'value' cannot be None when performing element operations.
                              Please ensure both are provided with valid values.""")
-        
 
     @property
     def initial_timeout(self):
@@ -186,7 +185,7 @@ class Element:
         return self.driver.find_element(*self.locator)
 
     def wait(
-        self, 
+        self,
         timeout: int | float | None = None,
         ignored_exceptions: WaitExcTypes | None = None
     ) -> WebDriverWait:
@@ -215,7 +214,7 @@ class Element:
             return self._wait_timeout
         except AttributeError:
             return None
-        
+
     def __timeout_message(self, status: str, present: bool = True):
         """
         Waiting for element "{self.remark}" to become "{status}" timed out after {self._wait_timeout} seconds.
@@ -252,7 +251,7 @@ class Element:
         if the element is abesent within the timeout period.
         """
         return self.wait_present(reraise=True)
-    
+
     @property
     def visible_element(self) -> WebElement:
         """
@@ -307,7 +306,7 @@ class Element:
             if Timeout.reraise(reraise):
                 raise
             return False
-        
+
     def wait_absent(
         self,
         timeout: int | float | None = None,
@@ -341,7 +340,7 @@ class Element:
             if Timeout.reraise(reraise):
                 raise
             return False
-        
+
     def wait_visible(
         self,
         timeout: int | float | None = None,
@@ -369,19 +368,18 @@ class Element:
         """
         try:
             self._visible_element = self.wait(timeout).until(
-                ecex.visibility_of_element(self._present_element), 
+                ecex.visibility_of_element(self._present_element),
                 self.__timeout_message('visible'))
             return self._visible_element
         except ElementReferenceException:
             self._present_element = self._visible_element = self.wait(timeout, StaleElementReferenceException).until(
-                ecex.visibility_of_element_located(self.locator, self.index), 
+                ecex.visibility_of_element_located(self.locator, self.index),
                 self.__timeout_message('visible'))
             return self._visible_element
         except TimeoutException:
             if Timeout.reraise(reraise):
                 raise
             return False
-    
 
     def wait_invisible(
         self,
@@ -412,18 +410,18 @@ class Element:
             the element did not reach the expected status after the timeout.
         """
         try:
-            return self.wait(timeout).until(ecex.invisibility_of_element(self._present_element), 
-                self.__timeout_message('invisible'))
+            return self.wait(timeout).until(ecex.invisibility_of_element(self._present_element),
+                                            self.__timeout_message('invisible'))
         except ElementReferenceException:
             self._present_element = self.wait(timeout, StaleElementReferenceException).until(
-                ecex.invisibility_of_element_located(self.locator, self.index, present), 
+                ecex.invisibility_of_element_located(self.locator, self.index, present),
                 self.__timeout_message('invisible', present))
             return self._present_element
         except TimeoutException:
             if Timeout.reraise(reraise):
                 raise
             return False
-        
+
     def wait_clickable(
         self,
         timeout: int | float | None = None,
@@ -451,20 +449,20 @@ class Element:
         """
         try:
             self._visible_element = self._clickable_element = self.wait(timeout).until(
-                ecex.element_to_be_clickable(self._present_element), 
+                ecex.element_to_be_clickable(self._present_element),
                 self.__timeout_message('clickable'))
             return self._clickable_element
         except ElementReferenceException:
             self._present_element = self._visible_element = self._clickable_element = self.wait(
                 timeout, StaleElementReferenceException).until(
-                    ecex.element_located_to_be_clickable(self.locator, self.index), 
+                    ecex.element_located_to_be_clickable(self.locator, self.index),
                     self.__timeout_message('clickable'))
             return self._clickable_element
         except TimeoutException:
             if Timeout.reraise(reraise):
                 raise
             return False
-    
+
     def wait_unclickable(
         self,
         timeout: int | float | None = None,
@@ -507,11 +505,11 @@ class Element:
             the element did not reach the expected status after the timeout.
         """
         try:
-            return self.wait(timeout).until(ecex.element_to_be_unclickable(self._present_element), 
-                self.__timeout_message('unclickable'))
+            return self.wait(timeout).until(ecex.element_to_be_unclickable(self._present_element),
+                                            self.__timeout_message('unclickable'))
         except ElementReferenceException:
             self._present_element = self.wait(timeout, StaleElementReferenceException).until(
-                ecex.element_located_to_be_unclickable(self.locator, self.index, present), 
+                ecex.element_located_to_be_unclickable(self.locator, self.index, present),
                 self.__timeout_message('unclickable', present))
             return self._present_element
         except TimeoutException:
@@ -545,11 +543,11 @@ class Element:
             the element did not reach the expected status after the timeout.
         """
         try:
-            return self.wait(timeout).until(ecex.element_to_be_selected(self._present_element), 
-                self.__timeout_message('selected'))
+            return self.wait(timeout).until(ecex.element_to_be_selected(self._present_element),
+                                            self.__timeout_message('selected'))
         except ElementReferenceException:
             self._present_element = self.wait(timeout, StaleElementReferenceException).until(
-                ecex.element_located_to_be_selected(self.locator, self.index), 
+                ecex.element_located_to_be_selected(self.locator, self.index),
                 self.__timeout_message('selected'))
             return self._present_element
         except TimeoutException:
@@ -587,11 +585,11 @@ class Element:
             the element did not reach the expected status after the timeout.
         """
         try:
-            return self.wait(timeout).until(ecex.element_to_be_unselected(self._present_element), 
-                self.__timeout_message('unselected'))
+            return self.wait(timeout).until(ecex.element_to_be_unselected(self._present_element),
+                                            self.__timeout_message('unselected'))
         except ElementReferenceException:
             self._present_element = self.wait(timeout, StaleElementReferenceException).until(
-                ecex.element_located_to_be_unselected(self.locator, self.index), 
+                ecex.element_located_to_be_unselected(self.locator, self.index),
                 self.__timeout_message('unselected'))
             return self._present_element
         except TimeoutException:
@@ -1078,13 +1076,13 @@ class Element:
         return True
 
     def __start_adjusting_by(
-        self,
-        offset: tuple[int, int, int, int],
-        area: tuple[int, int, int, int],
-        max_adjust: int,
-        min_distance: int,
-        duration: int):
-        
+            self,
+            offset: tuple[int, int, int, int],
+            area: tuple[int, int, int, int],
+            max_adjust: int,
+            min_distance: int,
+            duration: int):
+
         def get_final_delta(delta):
             return int(math.copysign(min_distance, delta)) if abs(delta) < min_distance else delta
 
@@ -1778,20 +1776,20 @@ class Element:
             scroll_origin = ScrollOrigin.from_element(self.present_element, x_offset, y_offset)
             self._action.scroll_from_origin(scroll_origin, delta_x, delta_y)
         return self
-    
+
     @property
     def options(self) -> list[SeleniumWebElement]:
         """
         Selenium Select API.
         Returns a list of all options belonging to this select tag.
         """
-        # All Select-related methods must be encapsulated using this structure 
+        # All Select-related methods must be encapsulated using this structure
         # to ensure no unnecessary steps are taken.
-        # The reason is that if "self._select.method" raises a 
+        # The reason is that if "self._select.method" raises a
         # StaleElementReferenceException or InvalidSessionIdException,
         # we can directly rebuild with "self._select = Select(self.present_element)",
         # without needing to check "self._select = Select(self._present_element)" again.
-        # Once part of the try-except block is encapsulated into a function, 
+        # Once part of the try-except block is encapsulated into a function,
         # there will inevitably be redundant checks for "self._select = Select(self._present_element)".
 
         try:
@@ -1799,14 +1797,14 @@ class Element:
                 # The main process.
                 return self._select.options
             except AttributeError:
-                # Handle the first AttributeError: 
+                # Handle the first AttributeError:
                 # If there is no available select attribute, create it using the "_present_element" first.
                 self._select = Select(self._present_element)
         except ElementReferenceException:
             # Handle ElementReferenceException by creating a new select object.
             # This exception can be triggered in two scenarios:
             # 1. The main process triggers a stale or invalid session exception.
-            # 2. During the first AttributeError handling, if there is no "_present_element" attribute, 
+            # 2. During the first AttributeError handling, if there is no "_present_element" attribute,
             #       or it triggers a stale or invalid session exception when initializing.
             self._select = Select(self.present_element)
         return self._select.options
@@ -1955,7 +1953,6 @@ class Element:
         except ElementReferenceException:
             self._select = Select(self.present_element)
         return self._select.deselect_by_index(index)
-        
 
     def deselect_by_visible_text(self, text: str) -> None:
         """
@@ -1975,7 +1972,6 @@ class Element:
         except ElementReferenceException:
             self._select = Select(self.present_element)
         return self._select.deselect_by_visible_text(text)
-    
 
     @property
     def location_in_view(self) -> dict[str, int]:
@@ -2491,7 +2487,7 @@ class Element:
         """
         warnings.warn('Please use "wait_absent" instead.', DeprecationWarning, 2)
         return self.wait_absent(timeout, reraise)
-    
+
     def wait_not_visible(
         self,
         timeout: int | float | None = None,
@@ -2503,7 +2499,7 @@ class Element:
         """
         warnings.warn('Please use "wait_invisible" instead.', DeprecationWarning, 2)
         return self.wait_invisible(timeout, present, reraise)
-    
+
     def wait_not_clickable(
         self,
         timeout: int | float | None = None,

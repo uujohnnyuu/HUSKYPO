@@ -31,11 +31,11 @@ from .types import WebDriver, WebElement
 class Elements:
 
     def __init__(
-        self,
-        by: str | None = None,
-        value: str | None = None,
-        timeout: int | float | None = None,
-        remark: str | None = None):
+            self,
+            by: str | None = None,
+            value: str | None = None,
+            timeout: int | float | None = None,
+            remark: str | None = None):
         """
         Initial Elements attributes.
 
@@ -141,7 +141,7 @@ class Elements:
         return self.driver.find_elements(*self.locator)
 
     def wait(
-        self, 
+        self,
         timeout: int | float | None = None,
         ignored_exceptions: WaitExcTypes | None = None
     ) -> WebDriverWait:
@@ -170,7 +170,7 @@ class Elements:
             return self._wait_timeout
         except AttributeError:
             return None
-        
+
     def __timeout_message(self, status: str):
         """
         Waiting for elements "{self.remark}" to become "{status}" timed out after {self._wait_timeout} seconds.
@@ -208,7 +208,7 @@ class Elements:
                 # We reraise TimeoutException to indicate that elements are not present after timeout.
                 raise TimeoutException(self.__timeout_message('all present'))
         return elements
-    
+
     @property
     def present_elements(self) -> list[WebElement]:
         """
@@ -218,7 +218,7 @@ class Elements:
         if all elements are abesent within the timeout period.
         """
         return self.wait_all_present(reraise=True)
-    
+
     @property
     def any_visible_elements(self) -> list[WebElement]:
         """
@@ -228,7 +228,7 @@ class Elements:
         if all elements are invisible or absent within the timeout period.
         """
         return self.wait_any_visible(reraise=True)
-    
+
     @property
     def all_visible_elements(self) -> list[WebElement]:
         """
@@ -238,7 +238,7 @@ class Elements:
         if at least one element is invisible or absent within the timeout period.
         """
         return self.wait_all_visible(reraise=True)
-    
+
     def wait_all_present(
         self,
         timeout: int | float | None = None,
@@ -274,7 +274,7 @@ class Elements:
             if Timeout.reraise(reraise):
                 raise
             return False
-        
+
     def wait_all_absent(
         self,
         timeout: int | float | None = None,
@@ -342,7 +342,7 @@ class Elements:
             if Timeout.reraise(reraise):
                 raise
             return False
-        
+
     def wait_all_visible(
         self,
         timeout: int | float | None = None,
@@ -513,7 +513,7 @@ class Elements:
         Gets locations relative to the view of all elements.
         """
         return [element.location_in_view for element in self.present_elements]
-    
+
     def wait_all_not_present(
         self,
         timeout: int | float | None = None,
