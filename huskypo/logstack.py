@@ -3,6 +3,14 @@
 # PyPI: https://pypi.org/project/huskypo/
 # GitHub: https://github.com/uujohnnyuu/huskyPO
 
+# If you want to reference this logstack method to construct your own model or extend it, 
+# you must understand the following points; otherwise, unexpected errors may occur.
+
+# 1. We must ensure that the stack level of "get_stack_info" and "logging" are consistent 
+#       in order to use the level found by get_stack_info for logging.
+# 2. This is why we do not encapsulate the calculation of target_level 
+#       into a function in each logging function.
+
 from __future__ import annotations
 
 import inspect
@@ -25,12 +33,8 @@ def debug(
     """
     Calling logging.debug method, and finding stacklevel starts with specific function name.
     """
-    logging.debug(
-        message, 
-        stack_info=stack_info, 
-        stacklevel=__target_level(starts_with, stack_adjust, stack_level), 
-        extra=extra
-    )
+    target_level = get_stack_level(starts_with, stack_adjust+1) if stack_level is None else stack_level+1
+    logging.debug(message, stack_info=stack_info, stacklevel=target_level, extra=extra)
 
 
 def info(
@@ -44,12 +48,8 @@ def info(
     """
     Calling logging.info method, and finding stacklevel starts with specific function name.
     """
-    logging.info(
-        message, 
-        stack_info=stack_info, 
-        stacklevel=__target_level(starts_with, stack_adjust, stack_level), 
-        extra=extra
-    )
+    target_level = get_stack_level(starts_with, stack_adjust+1) if stack_level is None else stack_level+1
+    logging.info(message, stack_info=stack_info, stacklevel=target_level, extra=extra)
 
 
 def warning(
@@ -63,12 +63,8 @@ def warning(
     """
     Calling logging.warning method, and finding stacklevel starts with specific function name.
     """
-    logging.warning(
-        message, 
-        stack_info=stack_info, 
-        stacklevel=__target_level(starts_with, stack_adjust, stack_level), 
-        extra=extra
-    )
+    target_level = get_stack_level(starts_with, stack_adjust+1) if stack_level is None else stack_level+1
+    logging.warning(message, stack_info=stack_info, stacklevel=target_level, extra=extra)
 
 
 def error(
@@ -82,12 +78,8 @@ def error(
     """
     Calling logging.error method, and finding stacklevel starts with specific function name.
     """
-    logging.error(
-        message, 
-        stack_info=stack_info, 
-        stacklevel=__target_level(starts_with, stack_adjust, stack_level), 
-        extra=extra
-    )
+    target_level = get_stack_level(starts_with, stack_adjust+1) if stack_level is None else stack_level+1
+    logging.error(message, stack_info=stack_info, stacklevel=target_level, extra=extra)
 
 
 def exception(
@@ -101,19 +93,8 @@ def exception(
     """
     Calling logging.exception method, and finding stacklevel starts with specific function name.
     """
-    logging.exception(
-        message, 
-        stack_info=stack_info, 
-        stacklevel=__target_level(starts_with, stack_adjust, stack_level), 
-        extra=extra
-    )
-
-
-def __target_level(starts_with: str = 'test', stack_adjust: int = 0, stack_level: int | None = None):
-    """
-    stack_agjust + 2
-    """
-    return get_stack_level(starts_with, stack_adjust+2) if stack_level is None else stack_level+1
+    target_level = get_stack_level(starts_with, stack_adjust+1) if stack_level is None else stack_level+1
+    logging.exception(message, stack_info=stack_info, stacklevel=target_level, extra=extra)
 
 
 def get_stack_level(starts_with: str = 'test', stack_adjust: int = 0) -> int:
