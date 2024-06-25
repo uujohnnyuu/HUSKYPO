@@ -15,98 +15,105 @@ from .config import Log
 
 
 def debug(
-        message: object,
-        starts_with: str = 'test',
-        stack_adjust: int = 0,
-        stack_info: bool = False,
-        stack_level: int | None = None,
-        extra: Mapping[str, object] | None = None
+    message: object,
+    starts_with: str = 'test',
+    stack_adjust: int = 0,
+    stack_info: bool = False,
+    stack_level: int | None = None,
+    extra: Mapping[str, object] | None = None
 ) -> None:
     """
     Calling logging.debug method, and finding stacklevel starts with specific function name.
     """
-    stack_adjust += 1
-    if stack_level is None:
-        stack_level = get_stack_level(starts_with, stack_adjust)
-    else:
-        stack_level += 1
-    logging.debug(message, stack_info=stack_info, stacklevel=stack_level, extra=extra)
+    logging.debug(
+        message, 
+        stack_info=stack_info, 
+        stacklevel=__target_level(starts_with, stack_adjust, stack_level), 
+        extra=extra
+    )
 
 
 def info(
-        message: str,
-        starts_with: str = 'test',
-        stack_adjust: int = 0,
-        stack_info: bool = False,
-        stack_level: int | None = None,
-        extra: Mapping[str, object] | None = None
+    message: str,
+    starts_with: str = 'test',
+    stack_adjust: int = 0,
+    stack_info: bool = False,
+    stack_level: int | None = None,
+    extra: Mapping[str, object] | None = None
 ) -> None:
     """
     Calling logging.info method, and finding stacklevel starts with specific function name.
     """
-    stack_adjust += 1
-    if stack_level is None:
-        stack_level = get_stack_level(starts_with, stack_adjust)
-    else:
-        stack_level += 1
-    logging.info(message, stack_info=stack_info, stacklevel=stack_level, extra=extra)
+    logging.info(
+        message, 
+        stack_info=stack_info, 
+        stacklevel=__target_level(starts_with, stack_adjust, stack_level), 
+        extra=extra
+    )
 
 
 def warning(
-        message: str,
-        starts_with: str = 'test',
-        stack_adjust: int = 0,
-        stack_info: bool = False,
-        stack_level: int | None = None,
-        extra: Mapping[str, object] | None = None
+    message: str,
+    starts_with: str = 'test',
+    stack_adjust: int = 0,
+    stack_info: bool = False,
+    stack_level: int | None = None,
+    extra: Mapping[str, object] | None = None
 ) -> None:
     """
     Calling logging.warning method, and finding stacklevel starts with specific function name.
     """
-    stack_adjust += 1
-    if stack_level is None:
-        stack_level = get_stack_level(starts_with, stack_adjust)
-    else:
-        stack_level += 1
-    logging.warning(message, stack_info=stack_info, stacklevel=stack_level, extra=extra)
+    logging.warning(
+        message, 
+        stack_info=stack_info, 
+        stacklevel=__target_level(starts_with, stack_adjust, stack_level), 
+        extra=extra
+    )
 
 
 def error(
-        message: str,
-        starts_with: str = 'test',
-        stack_adjust: int = 0,
-        stack_info: bool = False,
-        stack_level: int | None = None,
-        extra: Mapping[str, object] | None = None
+    message: str,
+    starts_with: str = 'test',
+    stack_adjust: int = 0,
+    stack_info: bool = False,
+    stack_level: int | None = None,
+    extra: Mapping[str, object] | None = None
 ) -> None:
     """
     Calling logging.error method, and finding stacklevel starts with specific function name.
     """
-    stack_adjust += 1
-    if stack_level is None:
-        stack_level = get_stack_level(starts_with, stack_adjust)
-    else:
-        stack_level += 1
-    logging.error(message, stack_info=stack_info, stacklevel=stack_level, extra=extra)
+    logging.error(
+        message, 
+        stack_info=stack_info, 
+        stacklevel=__target_level(starts_with, stack_adjust, stack_level), 
+        extra=extra
+    )
 
 
 def exception(
-        message: str,
-        starts_with: str = 'test',
-        stack_adjust: int = 0,
-        stack_info: bool = False,
-        stack_level: int | None = None,
-        extra: Mapping[str, object] | None = None
+    message: str,
+    starts_with: str = 'test',
+    stack_adjust: int = 0,
+    stack_info: bool = False,
+    stack_level: int | None = None,
+    extra: Mapping[str, object] | None = None
 ) -> None:
     """
     Calling logging.exception method, and finding stacklevel starts with specific function name.
     """
-    stack_adjust += 1
-    if stack_level is None:
-        stack_level = get_stack_level(starts_with, stack_adjust)
-    else:
-        stack_level += 1
-    logging.exception(message, stack_info=stack_info, stacklevel=stack_level, extra=extra)
+    logging.exception(
+        message, 
+        stack_info=stack_info, 
+        stacklevel=__target_level(starts_with, stack_adjust, stack_level), 
+        extra=extra
+    )
+
+
+def __target_level(starts_with: str = 'test', stack_adjust: int = 0, stack_level: int | None = None):
+    """
+    stack_agjust + 2
+    """
+    return get_stack_level(starts_with, stack_adjust+2) if stack_level is None else stack_level+1
 
 
 def get_stack_level(starts_with: str = 'test', stack_adjust: int = 0) -> int:
@@ -130,9 +137,9 @@ def get_stack_level(starts_with: str = 'test', stack_adjust: int = 0) -> int:
 
 
 def get_stack_infos(
-        starts_with: str = 'test',
-        stack_adjust: int = 0,
-        to_dict: bool = False
+    starts_with: str = 'test',
+    stack_adjust: int = 0,
+    to_dict: bool = False
 ) -> str | dict[str, str]:
     """
     Finding the filename, lineno and funcname by funcname starts with `starts_with` string.
@@ -164,7 +171,7 @@ def get_stack_infos(
         del frames
 
 
-def _logging(message: str = 'NULL'):
+def _logging(message: str = 'NULL') -> None:
     """
     To print or record inner log.
     """

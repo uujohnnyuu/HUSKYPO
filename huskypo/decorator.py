@@ -3,10 +3,12 @@
 # PyPI: https://pypi.org/project/huskypo/
 # GitHub: https://github.com/uujohnnyuu/huskyPO
 
+from __future__ import annotations
+
 from . import Element, Elements
 
 
-def dynamic(func):
+def dynamic(func) -> Element | Elements:
 
     def wrapper(self, *args, **kwargs):
         target = func(self, *args, **kwargs)

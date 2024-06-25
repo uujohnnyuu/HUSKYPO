@@ -16,7 +16,7 @@ class Timeout:
     RERAISE = True
 
     @classmethod
-    def reraise(cls, switch: bool | None = None):
+    def reraise(cls, switch: bool | None = None) -> bool:
         return cls.RERAISE if switch is None else switch
 
 

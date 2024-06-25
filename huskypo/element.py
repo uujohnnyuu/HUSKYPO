@@ -46,12 +46,13 @@ Coordinate = IntCoordinate | FloatCoordinate
 class Element:
 
     def __init__(
-            self,
-            by: str | None = None,
-            value: str | None = None,
-            index: int | None = None,
-            timeout: int | float | None = None,
-            remark: str | None = None):
+        self,
+        by: str | None = None,
+        value: str | None = None,
+        index: int | None = None,
+        timeout: int | float | None = None,
+        remark: str | None = None
+    ) -> None:
         """
         Initial Element attributes.
 
@@ -113,7 +114,7 @@ class Element:
         if remark is None:
             self.remark = f'{self.value}' if self.index is None else f'({self.value})[{self.index}]'
 
-    def __get__(self, instance: Page, owner):
+    def __get__(self, instance: Page, owner) -> Element:
         """
         Internal use.
         Dynamically obtain the instance of Page and
@@ -122,7 +123,7 @@ class Element:
         self._page = instance
         return self
 
-    def __set__(self, instance: Page, value):
+    def __set__(self, instance: Page, value) -> None:
         """
         Internal use.
         Setting element attribute values at runtime,
@@ -215,7 +216,7 @@ class Element:
         except AttributeError:
             return None
 
-    def __timeout_message(self, status: str, present: bool = True):
+    def __timeout_message(self, status: str, present: bool = True) -> str:
         """
         Waiting for element "{self.remark}" to become "{status}" timed out after {self._wait_timeout} seconds.
         if not present: status + ' or absent'
@@ -682,7 +683,10 @@ class Element:
             rect = self._present_element.rect
         except ElementReferenceException:
             rect = self.present_element.rect
-        return {'x': rect['x'], 'y': rect['y'], 'width': rect['width'], 'height': rect['height']}
+        return {
+            'x': rect['x'], 'y': rect['y'], 
+            'width': rect['width'], 'height': rect['height']
+        }
 
     @property
     def location(self) -> dict[str, int]:
@@ -729,11 +733,12 @@ class Element:
             rect = self._present_element.rect
         except ElementReferenceException:
             rect = self.present_element.rect
-        left = int(rect['x'])
-        right = int(rect['x'] + rect['width'])
-        top = int(rect['y'])
-        bottom = int(rect['y'] + rect['height'])
-        return {'left': left, 'right': right, 'top': top, 'bottom': bottom}
+        return {
+            'left': int(rect['x']), 
+            'right': int(rect['x'] + rect['width']), 
+            'top': int(rect['y']), 
+            'bottom': int(rect['y'] + rect['height'])
+        }
 
     @property
     def center(self) -> dict[str, int]:
@@ -747,9 +752,10 @@ class Element:
             rect = self._present_element.rect
         except ElementReferenceException:
             rect = self.present_element.rect
-        x = int(rect['x'] + rect['width'] / 2)
-        y = int(rect['y'] + rect['height'] / 2)
-        return {'x': x, 'y': y}
+        return {
+            'x': int(rect['x'] + rect['width'] / 2), 
+            'y': int(rect['y'] + rect['height'] / 2)
+        }
 
     def click(self) -> Element:
         """
@@ -1024,10 +1030,11 @@ class Element:
         logstack._logging(f'🟢 area: {area}')
         return area
 
-    def __get_offset(self,
-                     offset: Coordinate,
-                     area: tuple[int, int, int, int]
-                     ) -> tuple[int, int, int, int]:
+    def __get_offset(
+        self,
+        offset: Coordinate,
+        area: tuple[int, int, int, int]
+    ) -> tuple[int, int, int, int]:
 
         start_x, start_y, end_x, end_y = self.__get_coordinate(offset, 'offset')
 
@@ -1043,45 +1050,50 @@ class Element:
         return offset
 
     def __start_swiping_by(
-            self,
-            offset: tuple[int, int, int, int],
-            duration: int,
-            timeout: int | float,
-            max_swipe: int):
+        self,
+        offset: tuple[int, int, int, int],
+        duration: int,
+        timeout: int | float,
+        max_swipe: int
+    ) -> int | Literal[False]:
         logstack._logging(f'🟢 Start swiping to element {self.remark}.')
         count = 0
         while not self.is_viewable(timeout):
             if count == max_swipe:
                 logstack._logging(
                     f'🟡 Stop swiping to element {self.remark} as the maximum swipe count of {max_swipe} has been reached.')
+                return False
             self.driver.swipe(*offset, duration)
             count += 1
         logstack._logging(f'✅ End swiping as the element {self.remark} is now viewable.')
-        return True
+        return count
 
     def __start_flicking_by(
-            self,
-            offset: tuple[int, int, int, int],
-            timeout: int | float,
-            max_swipe: int):
+        self,
+        offset: tuple[int, int, int, int],
+        timeout: int | float,
+        max_swipe: int
+    ) -> int | Literal[False]:
         logstack._logging(f'🟢 Start flicking to element {self.remark}.')
         count = 0
         while not self.is_viewable(timeout):
             if count == max_swipe:
                 logstack._logging(
                     f'🟡 Stop flicking to element {self.remark} as the maximum flick count of {max_swipe} has been reached.')
+                return False
             self.driver.flick(*offset)
             count += 1
         logstack._logging(f'✅ End flicking as the element {self.remark} is now viewable.')
-        return True
+        return count
 
     def __start_adjusting_by(
-            self,
-            offset: tuple[int, int, int, int],
-            area: tuple[int, int, int, int],
-            max_adjust: int,
-            min_distance: int,
-            duration: int):
+        self,
+        offset: tuple[int, int, int, int],
+        area: tuple[int, int, int, int],
+        max_adjust: int,
+        min_distance: int,
+        duration: int
+    ) -> int | Literal[False]:
 
         def get_final_delta(delta):
             return int(math.copysign(min_distance, delta)) if abs(delta) < min_distance else delta
@@ -1132,13 +1144,13 @@ class Element:
                 end_y = start_y + delta_y
             else:
                 logstack._logging(f'✅ End adjusting as the element {self.remark} is in area.')
-                return True
+                return i
 
             # max
             if i == max_adjust + 1:
                 logstack._logging(
                     f'🟡 End adjusting to the element {self.remark} as the maximum adjust count of {max_adjust} has been reached.')
-                return True
+                return False
 
             self.driver.swipe(start_x, start_y, end_x, end_y, duration)
 
@@ -1487,7 +1499,7 @@ class Element:
             self._action.drag_and_drop_by_offset(self.present_element, xoffset, yoffset)
         return self
 
-    def hotkey(self, *value: str):
+    def hotkey(self, *value: str) -> Element:
         """
         Selenium ActionChains API.
         Sends hotkey to target element.
@@ -1517,7 +1529,7 @@ class Element:
             self._action.key_up(key)
         return self
 
-    def key_down(self, value: str, focus: bool = True):
+    def key_down(self, value: str, focus: bool = True) -> Element:
         """
         Selenium ActionChains API.
         Sends a key press only, without releasing it. 
@@ -1543,7 +1555,7 @@ class Element:
             self._action.key_down(value)
         return self
 
-    def key_up(self, value: str, focus: bool = False):
+    def key_up(self, value: str, focus: bool = False) -> Element:
         """
         Selenium ActionChains API.
         Releases a modifier key.
@@ -1571,7 +1583,7 @@ class Element:
             self._action.key_up(value)
         return self
 
-    def action_send_keys(self, *keys_to_send: str):
+    def action_send_keys(self, *keys_to_send: str) -> Element:
         """
         Selenium ActionChains API.
         Sends keys to current focused element.
@@ -1701,7 +1713,7 @@ class Element:
             self._action.release(self.present_element)
         return self
 
-    def pause(self, seconds: int | float):
+    def pause(self, seconds: int | float) -> Element:
         """
         Selenium ActionChains API.
         Pause all inputs for the specified duration in seconds.
@@ -1740,7 +1752,7 @@ class Element:
         y_offset: int = 0,
         delta_x: int = 0,
         delta_y: int = 0
-    ):
+    ) -> Element:
         """
         Selenium ActionChains API.
         Set the origin to the center of the element with an offset,
@@ -2327,9 +2339,10 @@ class Element:
         return self
 
     def __get_border(
-            self,
-            direction: str,
-            border: dict[str, int] | tuple[int, int, int, int]):
+        self,
+        direction: str,
+        border: dict[str, int] | tuple[int, int, int, int]
+    ) -> tuple[int, int, int, int]:
         """
         Usage::
 
@@ -2353,15 +2366,16 @@ class Element:
         return border
 
     def __get_range(
-            self,
-            direction: str,
-            left: int,
-            right: int,
-            top: int,
-            bottom: int,
-            start: int,
-            end: int,
-            fix: bool | int = False):
+        self,
+        direction: str,
+        left: int,
+        right: int,
+        top: int,
+        bottom: int,
+        start: int,
+        end: int,
+        fix: bool | int = False
+    ) -> tuple[int, int, int, int]:
         """
         Usage::
 
@@ -2407,14 +2421,15 @@ class Element:
         return coordinate
 
     def __start_swiping(
-            self,
-            sx: int,
-            sy: int,
-            ex: int,
-            ey: int,
-            duration: int,
-            timeout: int | float,
-            max_swipe: int):
+        self,
+        sx: int,
+        sy: int,
+        ex: int,
+        ey: int,
+        duration: int,
+        timeout: int | float,
+        max_swipe: int
+    ) -> int | Literal[False]:
         """
         Return viewable or not.
         """
@@ -2422,26 +2437,28 @@ class Element:
         count = 0
         while not self.is_viewable(timeout):
             if count == max_swipe:
-                raise ValueError(
-                    f'Stop swiping to element {self.remark} as the maximum swipe count of {max_swipe} has been reached.')
+                logstack._logging(
+                    f'🟡 Stop swiping to element {self.remark} as the maximum swipe count of {max_swipe} has been reached.')
+                return False
             self.driver.swipe(sx, sy, ex, ey, duration)
             count += 1
         logstack._logging(f'✅ End swiping as the element {self.remark} is now viewable.')
-        return True
+        return count
 
     def __start_adjusting(
-            self,
-            left: int,
-            right: int,
-            top: int,
-            bottom: int,
-            sx: int,
-            sy: int,
-            ex: int,
-            ey: int,
-            max_adjust: int,
-            min_distance: int,
-            duration: int):
+        self,
+        left: int,
+        right: int,
+        top: int,
+        bottom: int,
+        sx: int,
+        sy: int,
+        ex: int,
+        ey: int,
+        max_adjust: int,
+        min_distance: int,
+        duration: int
+    ) -> int | Literal[False]:
         """
         Start adjusting.
         """
@@ -2470,11 +2487,11 @@ class Element:
                 ey = sy - int(adjust_distance)
             else:
                 logstack._logging(f'✅ End adjusting as the element {self.remark} border is in view border.')
-                return True
+                return i
             if i == max_adjust + 1:
                 logstack._logging(
                     f'🟡 End adjusting to the element {self.remark} as the maximum adjust count of {max_adjust} has been reached.')
-                return True
+                return False
             self.driver.swipe(sx, sy, ex, ey, duration)
 
     def wait_not_present(
@@ -2493,7 +2510,7 @@ class Element:
         timeout: int | float | None = None,
         present: bool = True,
         reraise: bool | None = None
-    ) -> bool:
+    ) -> WebElement | bool:
         """
         Please use `wait_invisible` instead.
         """
@@ -2505,7 +2522,7 @@ class Element:
         timeout: int | float | None = None,
         present: bool = True,
         reraise: bool | None = None
-    ) -> bool:
+    ) -> WebElement | bool:
         """
         Please use `wait_unclickable` instead.
         """
@@ -2516,7 +2533,7 @@ class Element:
         self,
         timeout: int | float | None = None,
         reraise: bool | None = None
-    ) -> bool:
+    ) -> WebElement | Literal[False]:
         """
         Please use `wait_unselected` instead.
         """

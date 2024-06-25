@@ -157,9 +157,7 @@ def absence_of_all_elements_located(
     """
 
     def _predicate(driver: WebDriver):
-        if driver.find_elements(*locator) == []:
-            return True
-        return False
+        return not driver.find_elements(*locator)
 
     return _predicate
 
@@ -587,8 +585,7 @@ def webview_is_present(
         contexts = driver.contexts
         if any('WEBVIEW' in context for context in contexts):
             if switch:
-                context = contexts[index]
-                driver.switch_to.context(context)
+                driver.switch_to.context(contexts[index])
             return contexts
         return False
 

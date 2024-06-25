@@ -57,7 +57,7 @@ class MyPage(Page):
     # 2. Create a function corresponding to static_element and assign a value to static_element,
     # This assignment method utilizes the "__set__" method of the data descriptor. 
     # The parameters given is the same as the way of initializing the "Element".
-    
+
     # 3. When executing the testcase, first call dynamic_element. 
     # If the subsequent elements no longer change, you can directly use static_element for operations.
 
@@ -65,6 +65,10 @@ class MyPage(Page):
 
     def dynamic_element(self, par) -> Element:
         # __set__ will get the tuple and assign it to Element to initialize static_element.
+        # The logic of tuple is exactly the same as the method of placing parameters in an Element, 
+        # such as (by, value, index, timeout, remark).
+        # It also includes other configuration methods mentioned in the Element documentation, 
+        # such as (by, value, remark), and so on.
         self.static_element = (By.XPATH, f'//*[contains(text(), "{par}")]')  
         return self.static_element
 ```

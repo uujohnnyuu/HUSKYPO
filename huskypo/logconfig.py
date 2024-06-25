@@ -9,7 +9,7 @@ import os
 import logging
 
 
-def basic(file: str = './log.log'):
+def basic(file: str = './log.log') -> None:
     abspath = os.path.abspath(file)
     dirname = os.path.dirname(abspath)
     os.makedirs(dirname, exist_ok=True)

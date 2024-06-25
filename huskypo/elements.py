@@ -31,11 +31,12 @@ from .types import WebDriver, WebElement
 class Elements:
 
     def __init__(
-            self,
-            by: str | None = None,
-            value: str | None = None,
-            timeout: int | float | None = None,
-            remark: str | None = None):
+        self,
+        by: str | None = None,
+        value: str | None = None,
+        timeout: int | float | None = None,
+        remark: str | None = None
+    ) -> None:
         """
         Initial Elements attributes.
 
@@ -81,7 +82,7 @@ class Elements:
         if remark is None:
             self.remark = self.value
 
-    def __get__(self, instance: Page, owner):
+    def __get__(self, instance: Page, owner) -> Elements:
         """
         Internal use.
         Dynamically obtain the instance of Page and
@@ -90,7 +91,7 @@ class Elements:
         self._page = instance
         return self
 
-    def __set__(self, instance: Page, value):
+    def __set__(self, instance: Page, value) -> None:
         """
         Internal use.
         Setting element attribute values at runtime,
@@ -100,6 +101,9 @@ class Elements:
 
     @property
     def driver(self) -> WebDriver:
+        """
+        Get driver from Page.
+        """
         return self._page._driver
 
     @property
@@ -171,7 +175,7 @@ class Elements:
         except AttributeError:
             return None
 
-    def __timeout_message(self, status: str):
+    def __timeout_message(self, status: str) -> str:
         """
         Waiting for elements "{self.remark}" to become "{status}" timed out after {self._wait_timeout} seconds.
         """
@@ -391,7 +395,18 @@ class Elements:
         """
         return True if self.wait_all_present(timeout, False) else False
 
-    def are_all_visible(self):
+    def are_any_visible(self) -> bool:
+        """
+        Selenium and Appium API.
+        Whether at least one element is visible.
+
+        Returns:
+        - True: At least one element is visible.
+        - False: All the elements are not visible.
+        """
+        return True if [element for element in self.present_elements if element.is_displayed()] else False
+    
+    def are_all_visible(self) -> bool:
         """
         Selenium and Appium API.
         Whether all the elements are visible.
@@ -405,19 +420,8 @@ class Elements:
                 return False
         return True
 
-    def are_any_visible(self):
-        """
-        Selenium and Appium API.
-        Whether at least one element is visible.
-
-        Returns:
-        - True: At least one element is visible.
-        - False: All the elements are not visible.
-        """
-        return True if [element for element in self.present_elements if element.is_displayed()] else False
-
     @property
-    def quantity(self):
+    def quantity(self) -> int:
         """
         Selenium and Appium API.
         Get the quantity of elements.
@@ -458,9 +462,11 @@ class Elements:
         Selenium and Appium API.
         Gets locations relative to the view and size of all elements.\n
         """
-        return [{'x': rect['x'], 'y': rect['y'], 'width': rect['width'], 'height': rect['height']}
-                for element in self.present_elements
-                for rect in [element.rect]]
+        return [
+            {'x': rect['x'], 'y': rect['y'], 'width': rect['width'], 'height': rect['height']}
+            for element in self.present_elements
+            for rect in [element.rect]
+        ]
 
     @property
     def locations(self) -> list[dict[str, int]]:
@@ -477,9 +483,11 @@ class Elements:
         Gets sizes of all elements.
         Note that it will rearrange size to {'width': width, 'height': height}
         """
-        return [{'width': size['width'], 'height': size['height']}
-                for element in self.present_elements
-                for size in [element.size]]
+        return [
+            {'width': size['width'], 'height': size['height']}
+            for element in self.present_elements
+            for size in [element.size]
+        ]
 
     @property
     def centers(self) -> list[dict[str, int]]:
@@ -487,10 +495,11 @@ class Elements:
         Selenium and Appium API.
         Gets center locations relative to the view of all elements.
         """
-        return [{'x': int(rect['x'] + rect['width'] / 2),
-                'y': int(rect['y'] + rect['height'] / 2)}
-                for element in self.present_elements
-                for rect in [element.rect]]
+        return [
+            {'x': int(rect['x'] + rect['width'] / 2), 'y': int(rect['y'] + rect['height'] / 2)}
+            for element in self.present_elements
+            for rect in [element.rect]
+        ]
 
     def get_attributes(self, name: str) -> list[str | dict | None]:
         """

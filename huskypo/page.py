@@ -40,7 +40,7 @@ Coordinate: TypeAlias = IntCoordinate | FloatCoordinate
 
 class Page:
 
-    def __init__(self, driver: WebDriver):
+    def __init__(self, driver: WebDriver) -> None:
         if not isinstance(driver, WebDriverTuple):
             raise TypeError(f'The driver type should be "WebDriver", not {type(driver).__name__}.')
         self._driver = driver
@@ -62,7 +62,7 @@ class Page:
         """
         return self._action
 
-    def wait(self, timeout: int | float | None = None):
+    def wait(self, timeout: int | float | None = None) -> WebDriverWait:
         """
         Selenium and Appium API.
         Packing WebDriverWait(driver, timeout) to accept only the timeout parameter.
@@ -74,7 +74,7 @@ class Page:
         return WebDriverWait(self.driver, self._wait_timeout)
 
     @property
-    def wait_timeout(self):
+    def wait_timeout(self) -> int | float | None:
         """
         Get the final waiting timeout of the page function 
         which executed with explicit wait.
