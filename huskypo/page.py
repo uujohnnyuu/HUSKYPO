@@ -1277,8 +1277,7 @@ class Page:
         appium API.
         Switch to flutter app.
         """
-        current_context = self.driver.current_context
-        if current_context != "FLUTTER":
+        if self.driver.current_context != "FLUTTER":
             return self.driver.switch_to.context('FLUTTER')
 
     def accept_alert(self) -> None:
