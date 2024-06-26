@@ -76,7 +76,7 @@ class Page:
     @property
     def wait_timeout(self) -> int | float | None:
         """
-        Get the final waiting timeout of the page function 
+        Get the final waiting timeout of the page function
         which executed with explicit wait.
         If no relevant function has been executed yet,
         it will return None.
@@ -356,7 +356,7 @@ class Page:
         """
         Gets the x, y coordinates of the window as well as height and width of the current window.
 
-        Return is rearranged, for example: 
+        Return is rearranged, for example:
         {'x': 0, 'y': 0, 'width': 500, 'height': 250}
 
         Note that the value type is the same as official.
@@ -581,7 +581,7 @@ class Page:
     def key_down(self, value: str) -> Page:
         """
         Selenium ActionChains API.
-        Sends a key press only to a focused element, without releasing it. 
+        Sends a key press only to a focused element, without releasing it.
         Should only be used with modifier keys (Control, Alt and Shift).
 
         Args:
@@ -658,8 +658,8 @@ class Page:
     ) -> Page:
         """
         Selenium ActionChains API.
-        Scrolls by provided amount based on a provided origin. 
-        The scroll origin is the upper left of the viewport plus any offsets. 
+        Scrolls by provided amount based on a provided origin.
+        The scroll origin is the upper left of the viewport plus any offsets.
 
         Args:
         - x_offset: from origin viewport, a negative value offset left.
@@ -748,7 +748,7 @@ class Page:
             - float: The ratio of the current window size, which should be between 0.0 and 1.0.
                 - dict: {'x': float, 'y': float, 'width': float, 'height': float}
                 - tuple: (float, float, float, float) corresponding to the keys in the dict.
-        - duration: Defines the swipe speed as the time taken to swipe from point A to point B, in milliseconds. 
+        - duration: Defines the swipe speed as the time taken to swipe from point A to point B, in milliseconds.
             The default is set to 250 by ActionBuilder.
         - times: The number of times to perform the swipe.
 
@@ -944,7 +944,7 @@ class Page:
         Draw lines by dots in given order.
 
         Args:
-        - dots: A list of coordinates for the target dots, 
+        - dots: A list of coordinates for the target dots,
             e.g., [{'x': 100, 'y': 100}, {'x': 200, 'y': 200}, {'x': 300, 'y': 100}, ...].
         - duration: The time taken to draw between two points.
         """

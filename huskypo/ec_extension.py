@@ -67,7 +67,7 @@ def presence_of_element_located(
 
     Args:
     - locator: (by, value)
-    - index: 
+    - index:
         - None: driver.find_element(*locator)
         - int: driver.find_elements(*locator)[index]
 
@@ -90,7 +90,7 @@ def presence_of_all_elements_located(
     """
     Extended `presence_of_all_elements_located`.
     Whether there are `at least one (any)` elements can be found by the locator.
-    Note that `all` here means `at least one (any)` for the logic of `find_elements` 
+    Note that `all` here means `at least one (any)` for the logic of `find_elements`
     is to find `at least one matched elements`.
 
     Args:
@@ -118,7 +118,7 @@ def absence_of_element_located(
 
     Args:
     - locator: (by, value)
-    - index: 
+    - index:
         - None: driver.find_element(*locator)
         - int: driver.find_elements(*locator)[index]
 
@@ -172,7 +172,7 @@ def visibility_of_element_located(
 
     Args:
     - locator: (by, value)
-    - index: 
+    - index:
         - None: driver.find_element(*locator)
         - int: driver.find_elements(*locator)[index]
 
@@ -284,7 +284,7 @@ def invisibility_of_element_located(
 
     Args:
     - locator: (by, value)
-    - index: 
+    - index:
         - None: driver.find_element(*locator)
         - int: driver.find_elements(*locator)[index]
     - present: Whether element should be present or not.
@@ -330,7 +330,7 @@ def invisibility_of_element(
     Exception (should be caught in until): None
 
     Exception (should be caught in external):
-    - StaleElementReferenceException: 
+    - StaleElementReferenceException:
         - The element should be present: retry by locator.
         - The element can be absent: return True.
     """
@@ -351,7 +351,7 @@ def element_located_to_be_clickable(
 
     Args:
     - locator: (by, value)
-    - index: 
+    - index:
         - None: driver.find_element(*locator)
         - int: driver.find_elements(*locator)[index]
 
@@ -407,7 +407,7 @@ def element_located_to_be_unclickable(
 
     Args:
     - locator: (by, value)
-    - index: 
+    - index:
         - None: driver.find_element(*locator)
         - int: driver.find_elements(*locator)[index]
     - present: Whether element should be present or not.
@@ -452,7 +452,7 @@ def element_to_be_unclickable(
     Exception (should be caught in until): None
 
     Exception (should be caught in external):
-    - StaleElementReferenceException: 
+    - StaleElementReferenceException:
         - The element should be present: retry by locator.
         - The element can be absent: return True.
     """
@@ -473,7 +473,7 @@ def element_located_to_be_selected(
 
     Args:
     - locator: (by, value)
-    - index: 
+    - index:
         - None: driver.find_element(*locator)
         - int: driver.find_elements(*locator)[index]
 
@@ -528,7 +528,7 @@ def element_located_to_be_unselected(
 
     Args:
     - locator: (by, value)
-    - index: 
+    - index:
         - None: driver.find_element(*locator)
         - int: driver.find_elements(*locator)[index]
 

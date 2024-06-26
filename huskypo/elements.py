@@ -136,10 +136,10 @@ class Elements:
 
     def find_elements(self) -> list[WebElement]:
         """
-        Using the traditional find_elements method 
+        Using the traditional find_elements method
         to locate elements without any waiting behavior.
         It is recommended for use in situations where no waiting is required.
-        Note that if there are no any element found, 
+        Note that if there are no any element found,
         it will return empty list `[]`.
         """
         return self.driver.find_elements(*self.locator)
@@ -151,13 +151,13 @@ class Elements:
     ) -> WebDriverWait:
         """
         Get an object of WebDriverWait.
-        The ignored exceptions include NoSuchElementException and StaleElementReferenceException 
+        The ignored exceptions include NoSuchElementException and StaleElementReferenceException
         to capture their stacktrace when a TimeoutException occurs.
 
         Args:
-        - timeout: The maximum time in seconds to wait for the expected condition. 
+        - timeout: The maximum time in seconds to wait for the expected condition.
             By default, it initializes with the element timeout.
-        - ignored_exceptions: iterable structure of exception classes ignored during calls. 
+        - ignored_exceptions: iterable structure of exception classes ignored during calls.
             By default, it contains NoSuchElementException only.
         """
         self._wait_timeout = self.initial_timeout if timeout is None else timeout
@@ -218,7 +218,7 @@ class Elements:
         """
         Obtaining all present webelements simply.
         The same as element.wait_all_present(reraise=True).
-        Note that a TimeoutException will be raised 
+        Note that a TimeoutException will be raised
         if all elements are abesent within the timeout period.
         """
         return self.wait_all_present(reraise=True)
@@ -228,7 +228,7 @@ class Elements:
         """
         Obtaining any visible webelements simply.
         The same as element.wait_any_visible(reraise=True).
-        Note that a TimeoutException will be raised 
+        Note that a TimeoutException will be raised
         if all elements are invisible or absent within the timeout period.
         """
         return self.wait_any_visible(reraise=True)
@@ -238,7 +238,7 @@ class Elements:
         """
         Obtaining all visible webelements simply.
         The same as element.wait_all_visible(reraise=True).
-        Note that a TimeoutException will be raised 
+        Note that a TimeoutException will be raised
         if at least one element is invisible or absent within the timeout period.
         """
         return self.wait_all_visible(reraise=True)
@@ -250,24 +250,24 @@ class Elements:
     ) -> list[WebElement] | Literal[False]:
         """
         Waiting for `any elements to become present`.
-        Note that `all` here means `at least one (any)` for 
+        Note that `all` here means `at least one (any)` for
         the logic of find_elements is to find at least one matched elements.
 
         Args:
-        - timeout: The maximum time (in seconds) to wait for the elements to reach the expected state. 
+        - timeout: The maximum time (in seconds) to wait for the elements to reach the expected state.
             Defaults (None) to the elements' timeout value.
         - reraise: When the elements state is not as expected, the behavior can be set in the following ways:
             - bool: True indicates to reraise a TimeoutException; False means to return False.
-            - None: Follow the config.Timeout.RERAISE setting, which is a boolean. 
+            - None: Follow the config.Timeout.RERAISE setting, which is a boolean.
                 Its logic is the same as the boolean, and the default is True.
 
         Returns:
         - list[WebElement] (Expected): The elements reached the expected status before the timeout.
-        - False (Unexpected): The elements did not reach the expected status after the timeout 
+        - False (Unexpected): The elements did not reach the expected status after the timeout
             if TimeoutException is not reraised.
 
         Exception:
-        - TimeoutException: Raised if "reraise" is True and 
+        - TimeoutException: Raised if "reraise" is True and
             the elements did not reach the expected status after the timeout.
         """
         try:
@@ -288,20 +288,20 @@ class Elements:
         Waiting for `all elements to become absent`.
 
         Args:
-        - timeout: The maximum time (in seconds) to wait for the elements to reach the expected state. 
+        - timeout: The maximum time (in seconds) to wait for the elements to reach the expected state.
             Defaults (None) to the elements' timeout value.
         - reraise: When the elements state is not as expected, the behavior can be set in the following ways:
             - bool: True indicates to reraise a TimeoutException; False means to return False.
-            - None: Follow the config.Timeout.RERAISE setting, which is a boolean. 
+            - None: Follow the config.Timeout.RERAISE setting, which is a boolean.
                 Its logic is the same as the boolean, and the default is True.
 
         Returns:
         - True (Expected): The elements reached the expected status before the timeout.
-        - False (Unexpected): The elements did not reach the expected status after the timeout 
+        - False (Unexpected): The elements did not reach the expected status after the timeout
             if TimeoutException is not reraised.
 
         Exception:
-        - TimeoutException: Raised if "reraise" is True and 
+        - TimeoutException: Raised if "reraise" is True and
             the elements did not reach the expected status after the timeout.
         """
         try:
@@ -322,20 +322,20 @@ class Elements:
         Waiting for `any elements to become visible`.
 
         Args:
-        - timeout: The maximum time (in seconds) to wait for the elements to reach the expected state. 
+        - timeout: The maximum time (in seconds) to wait for the elements to reach the expected state.
             Defaults (None) to the elements' timeout value.
         - reraise: When the elements state is not as expected, the behavior can be set in the following ways:
             - bool: True indicates to reraise a TimeoutException; False means to return False.
-            - None: Follow the config.Timeout.RERAISE setting, which is a boolean. 
+            - None: Follow the config.Timeout.RERAISE setting, which is a boolean.
                 Its logic is the same as the boolean, and the default is True.
 
         Returns:
         - list[WebElement] (Expected): The elements reached the expected status before the timeout.
-        - False (Unexpected): The elements did not reach the expected status after the timeout 
+        - False (Unexpected): The elements did not reach the expected status after the timeout
             if TimeoutException is not reraised.
 
         Exception:
-        - TimeoutException: Raised if "reraise" is True and 
+        - TimeoutException: Raised if "reraise" is True and
             the elements did not reach the expected status after the timeout.
         """
         try:
@@ -356,20 +356,20 @@ class Elements:
         Waiting for `all elements to become visible`.
 
         Args:
-        - timeout: The maximum time (in seconds) to wait for the elements to reach the expected state. 
+        - timeout: The maximum time (in seconds) to wait for the elements to reach the expected state.
             Defaults (None) to the elements' timeout value.
         - reraise: When the elements state is not as expected, the behavior can be set in the following ways:
             - bool: True indicates to reraise a TimeoutException; False means to return False.
-            - None: Follow the config.Timeout.RERAISE setting, which is a boolean. 
+            - None: Follow the config.Timeout.RERAISE setting, which is a boolean.
                 Its logic is the same as the boolean, and the default is True.
 
         Returns:
         - list[WebElement] (Expected): The elements reached the expected status before the timeout.
-        - False (Unexpected): The elements did not reach the expected status after the timeout 
+        - False (Unexpected): The elements did not reach the expected status after the timeout
             if TimeoutException is not reraised.
 
         Exception:
-        - TimeoutException: Raised if "reraise" is True and 
+        - TimeoutException: Raised if "reraise" is True and
             the elements did not reach the expected status after the timeout.
         """
         try:
@@ -405,7 +405,7 @@ class Elements:
         - False: All the elements are not visible.
         """
         return True if [element for element in self.present_elements if element.is_displayed()] else False
-    
+
     def are_all_visible(self) -> bool:
         """
         Selenium and Appium API.

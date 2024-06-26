@@ -178,7 +178,7 @@ class Element:
 
     def find_element(self) -> WebElement:
         """
-        Using the traditional find_element method 
+        Using the traditional find_element method
         to locate element without any waiting behavior.
         It is recommended for use in situations where no waiting is required,
         such as the Android UiScrollable locator method.
@@ -192,13 +192,13 @@ class Element:
     ) -> WebDriverWait:
         """
         Get an object of WebDriverWait.
-        The ignored exceptions include NoSuchElementException and StaleElementReferenceException 
+        The ignored exceptions include NoSuchElementException and StaleElementReferenceException
         to capture their stacktrace when a TimeoutException occurs.
 
         Args:
-        - timeout: The maximum time in seconds to wait for the expected condition. 
+        - timeout: The maximum time in seconds to wait for the expected condition.
             By default, it initializes with the element timeout.
-        - ignored_exceptions: iterable structure of exception classes ignored during calls. 
+        - ignored_exceptions: iterable structure of exception classes ignored during calls.
             By default, it contains NoSuchElementException only.
         """
         self._wait_timeout = self.initial_timeout if timeout is None else timeout
@@ -248,7 +248,7 @@ class Element:
         """
         Obtaining a present webelement simply.
         The same as element.wait_present(reraise=True).
-        Note that a TimeoutException will be raised 
+        Note that a TimeoutException will be raised
         if the element is abesent within the timeout period.
         """
         return self.wait_present(reraise=True)
@@ -258,7 +258,7 @@ class Element:
         """
         Obtaining a visible webelement simply.
         The same as element.wait_visible(reraise=True).
-        Note that a TimeoutException will be raised 
+        Note that a TimeoutException will be raised
         if the element is invisible or abesent within the timeout period.
         """
         return self.wait_visible(reraise=True)
@@ -268,7 +268,7 @@ class Element:
         """
         Obtaining a clickable webelement simply.
         The same as element.wait_clickable(reraise=True).
-        Note that a TimeoutException will be raised 
+        Note that a TimeoutException will be raised
         if the element is unclickable or abesent within the timeout period.
         """
         return self.wait_clickable(reraise=True)
@@ -282,20 +282,20 @@ class Element:
         Waiting for the element to become `present`.
 
         Args:
-        - timeout: The maximum time (in seconds) to wait for the element to reach the expected state. 
+        - timeout: The maximum time (in seconds) to wait for the element to reach the expected state.
             Defaults (None) to the element's timeout value.
         - reraise: When the element state is not as expected, the behavior can be set in the following ways:
             - bool: True indicates to reraise a TimeoutException; False means to return False.
-            - None: Follow the config.Timeout.RERAISE setting, which is a boolean. 
+            - None: Follow the config.Timeout.RERAISE setting, which is a boolean.
                 Its logic is the same as the boolean, and the default is True.
 
         Returns:
         - WebElement (Expected): The element reached the expected status before the timeout.
-        - False (Unexpected): The element did not reach the expected status after the timeout 
+        - False (Unexpected): The element did not reach the expected status after the timeout
             if TimeoutException is not reraised.
 
         Exception:
-        - TimeoutException: Raised if "reraise" is True and 
+        - TimeoutException: Raised if "reraise" is True and
             the element did not reach the expected status after the timeout.
         """
         try:
@@ -317,20 +317,20 @@ class Element:
         Waiting for the element to become `absent`.
 
         Args:
-        - timeout: The maximum time (in seconds) to wait for the element to reach the expected state. 
+        - timeout: The maximum time (in seconds) to wait for the element to reach the expected state.
             Defaults (None) to the element's timeout value.
         - reraise: When the element state is not as expected, the behavior can be set in the following ways:
             - bool: True indicates to reraise a TimeoutException; False means to return False.
-            - None: Follow the config.Timeout.RERAISE setting, which is a boolean. 
+            - None: Follow the config.Timeout.RERAISE setting, which is a boolean.
                 Its logic is the same as the boolean, and the default is True.
 
         Returns:
         - True (Expected): The element reached the expected status before the timeout.
-        - False (Unexpected): The element did not reach the expected status after the timeout 
+        - False (Unexpected): The element did not reach the expected status after the timeout
             if TimeoutException is not reraised.
 
         Exception:
-        - TimeoutException: Raised if "reraise" is True and 
+        - TimeoutException: Raised if "reraise" is True and
             the element did not reach the expected status after the timeout.
         """
         try:
@@ -351,20 +351,20 @@ class Element:
         Waiting for the element to become `visible`.
 
         Args:
-        - timeout: The maximum time (in seconds) to wait for the element to reach the expected state. 
+        - timeout: The maximum time (in seconds) to wait for the element to reach the expected state.
             Defaults (None) to the element's timeout value.
         - reraise: When the element state is not as expected, the behavior can be set in the following ways:
             - bool: True indicates to reraise a TimeoutException; False means to return False.
-            - None: Follow the config.Timeout.RERAISE setting, which is a boolean. 
+            - None: Follow the config.Timeout.RERAISE setting, which is a boolean.
                 Its logic is the same as the boolean, and the default is True.
 
         Returns:
         - WebElement (Expected): The element reached the expected status before the timeout.
-        - False (Unexpected): The element did not reach the expected status after the timeout 
+        - False (Unexpected): The element did not reach the expected status after the timeout
             if TimeoutException is not reraised.
 
         Exception:
-        - TimeoutException: Raised if "reraise" is True and 
+        - TimeoutException: Raised if "reraise" is True and
             the element did not reach the expected status after the timeout.
         """
         try:
@@ -392,22 +392,22 @@ class Element:
         Waiting for the element to become `invisible`.
 
         Args:
-        - timeout: The maximum time (in seconds) to wait for the element to reach the expected state. 
+        - timeout: The maximum time (in seconds) to wait for the element to reach the expected state.
             Defaults (None) to the element's timeout value.
         - reraise: When the element state is not as expected, the behavior can be set in the following ways:
             - bool: True indicates to reraise a TimeoutException; False means to return False.
-            - None: Follow the config.Timeout.RERAISE setting, which is a boolean. 
+            - None: Follow the config.Timeout.RERAISE setting, which is a boolean.
                 Its logic is the same as the boolean, and the default is True.
 
         Returns:
         - WebElement (Expected): The element reached the expected status before the timeout.
-        - True (Expected): The element is absent before the timeout, and "present" is False, 
+        - True (Expected): The element is absent before the timeout, and "present" is False,
             indicating that the absence of the element is allowed.
-        - False (Unexpected): The element did not reach the expected status after the timeout 
+        - False (Unexpected): The element did not reach the expected status after the timeout
             if TimeoutException is not reraised.
 
         Exception:
-        - TimeoutException: Raised if "reraise" is True and 
+        - TimeoutException: Raised if "reraise" is True and
             the element did not reach the expected status after the timeout.
         """
         try:
@@ -432,20 +432,20 @@ class Element:
         Waiting for the element to become `clickable`.
 
         Args:
-        - timeout: The maximum time (in seconds) to wait for the element to reach the expected state. 
+        - timeout: The maximum time (in seconds) to wait for the element to reach the expected state.
             Defaults (None) to the element's timeout value.
         - reraise: When the element state is not as expected, the behavior can be set in the following ways:
             - bool: True indicates to reraise a TimeoutException; False means to return False.
-            - None: Follow the config.Timeout.RERAISE setting, which is a boolean. 
+            - None: Follow the config.Timeout.RERAISE setting, which is a boolean.
                 Its logic is the same as the boolean, and the default is True.
 
         Returns:
         - WebElement (Expected): The element reached the expected status before the timeout.
-        - False (Unexpected): The element did not reach the expected status after the timeout 
+        - False (Unexpected): The element did not reach the expected status after the timeout
             if TimeoutException is not reraised.
 
         Exception:
-        - TimeoutException: Raised if "reraise" is True and 
+        - TimeoutException: Raised if "reraise" is True and
             the element did not reach the expected status after the timeout.
         """
         try:
@@ -484,25 +484,25 @@ class Element:
             my_page.my_element.wait_unclickable(present=False)
 
         Args:
-        - timeout: The maximum time (in seconds) to wait for the element to reach the expected state. 
+        - timeout: The maximum time (in seconds) to wait for the element to reach the expected state.
             Defaults (None) to the element's timeout value.
         - present:
             - True (Default): The element should be present and reach the expected status.
             - False: The element can be absent.
         - reraise: When the element state is not as expected, the behavior can be set in the following ways:
             - bool: True indicates to reraise a TimeoutException; False means to return False.
-            - None: Follow the config.Timeout.RERAISE setting, which is a boolean. 
+            - None: Follow the config.Timeout.RERAISE setting, which is a boolean.
                 Its logic is the same as the boolean, and the default is True.
 
         Returns:
         - WebElement (Expected): The element reached the expected status before the timeout.
-        - True (Expected): The element is absent before the timeout, and "present" is False, 
+        - True (Expected): The element is absent before the timeout, and "present" is False,
             indicating that the absence of the element is allowed.
-        - False (Unexpected): The element did not reach the expected status after the timeout 
+        - False (Unexpected): The element did not reach the expected status after the timeout
             if TimeoutException is not reraised.
 
         Exception:
-        - TimeoutException: Raised if "reraise" is True and 
+        - TimeoutException: Raised if "reraise" is True and
             the element did not reach the expected status after the timeout.
         """
         try:
@@ -527,20 +527,20 @@ class Element:
         Waiting for the element to become `selected`.
 
         Args:
-        - timeout: The maximum time (in seconds) to wait for the element to reach the expected state. 
+        - timeout: The maximum time (in seconds) to wait for the element to reach the expected state.
             Defaults (None) to the element's timeout value.
         - reraise: When the element state is not as expected, the behavior can be set in the following ways:
             - bool: True indicates to reraise a TimeoutException; False means to return False.
-            - None: Follow the config.Timeout.RERAISE setting, which is a boolean. 
+            - None: Follow the config.Timeout.RERAISE setting, which is a boolean.
                 Its logic is the same as the boolean, and the default is True.
 
         Returns:
         - WebElement (Expected): The element reached the expected status before the timeout.
-        - False (Unexpected): The element did not reach the expected status after the timeout 
+        - False (Unexpected): The element did not reach the expected status after the timeout
             if TimeoutException is not reraised.
 
         Exception:
-        - TimeoutException: Raised if "reraise" is True and 
+        - TimeoutException: Raised if "reraise" is True and
             the element did not reach the expected status after the timeout.
         """
         try:
@@ -564,25 +564,25 @@ class Element:
         """
         Waiting for the element to become `unselected`.
 
-        Note that the behavior of unselected is different from invisible and unclickable. 
-        The selection state highly depends on the user's action, so the element must be present. 
+        Note that the behavior of unselected is different from invisible and unclickable.
+        The selection state highly depends on the user's action, so the element must be present.
         Therefore, absent is not considered one of the expected results.
 
         Args:
-        - timeout: The maximum time (in seconds) to wait for the element to reach the expected state. 
+        - timeout: The maximum time (in seconds) to wait for the element to reach the expected state.
             Defaults (None) to the element's timeout value.
         - reraise: When the element state is not as expected, the behavior can be set in the following ways:
             - bool: True indicates to reraise a TimeoutException; False means to return False.
-            - None: Follow the config.Timeout.RERAISE setting, which is a boolean. 
+            - None: Follow the config.Timeout.RERAISE setting, which is a boolean.
                 Its logic is the same as the boolean, and the default is True.
 
         Returns:
         - WebElement (Expected): The element reached the expected status before the timeout.
-        - False (Unexpected): The element did not reach the expected status after the timeout 
+        - False (Unexpected): The element did not reach the expected status after the timeout
             if TimeoutException is not reraised.
 
         Exception:
-        - TimeoutException: Raised if "reraise" is True and 
+        - TimeoutException: Raised if "reraise" is True and
             the element did not reach the expected status after the timeout.
         """
         try:
@@ -676,7 +676,7 @@ class Element:
         Return is rearranged, for example:
         {'x': 10, 'y': 15, 'width': 100, 'height': 200}
 
-        Note that the official rect may have decimals; 
+        Note that the official rect may have decimals;
         We remain consistent with the official standards.
         """
         try:
@@ -684,7 +684,7 @@ class Element:
         except ElementReferenceException:
             rect = self.present_element.rect
         return {
-            'x': rect['x'], 'y': rect['y'], 
+            'x': rect['x'], 'y': rect['y'],
             'width': rect['width'], 'height': rect['height']
         }
 
@@ -693,7 +693,7 @@ class Element:
         """
         The location of the element when it is present in the renderable canvas.
 
-        Return is the same as official: 
+        Return is the same as official:
         {'x': int, 'y': int}
 
         Note that the official location has been rounded,
@@ -712,7 +712,7 @@ class Element:
         Return is rearranged, for example:
         - {'width': 200, 'height': 100}
 
-        Note that the official size may have decimals; 
+        Note that the official size may have decimals;
         We remain consistent with the official standards.
         """
         try:
@@ -726,7 +726,7 @@ class Element:
         """
         The border of the element when it is present.
 
-        Return is rounded down: 
+        Return is rounded down:
         - {'left': int, 'right': int, 'top': int, 'bottom': int}
         """
         try:
@@ -734,9 +734,9 @@ class Element:
         except ElementReferenceException:
             rect = self.present_element.rect
         return {
-            'left': int(rect['x']), 
-            'right': int(rect['x'] + rect['width']), 
-            'top': int(rect['y']), 
+            'left': int(rect['x']),
+            'right': int(rect['x'] + rect['width']),
+            'top': int(rect['y']),
             'bottom': int(rect['y'] + rect['height'])
         }
 
@@ -745,7 +745,7 @@ class Element:
         """
         The center location of the element when it is present.
 
-        Return is rounded down: 
+        Return is rounded down:
         - {'x': int, 'y': int}
         """
         try:
@@ -753,7 +753,7 @@ class Element:
         except ElementReferenceException:
             rect = self.present_element.rect
         return {
-            'x': int(rect['x'] + rect['width'] / 2), 
+            'x': int(rect['x'] + rect['width'] / 2),
             'y': int(rect['y'] + rect['height'] / 2)
         }
 
@@ -834,7 +834,7 @@ class Element:
     ) -> Element:
         """
         Appium API.
-        For native iOS and Android apps, 
+        For native iOS and Android apps,
         this function swipes the screen until the element becomes visible
         within the specified area.
 
@@ -875,9 +875,9 @@ class Element:
 
             # Swipe with customize absolute offset.
             # Note that the area parameter will affect the adjusting process.
-            # We recommend not setting the area in this case, 
+            # We recommend not setting the area in this case,
             # unless you have a specific testing scenario.
-            # (ex. Swiping range is not within the area, 
+            # (ex. Swiping range is not within the area,
             # and the target element should be inside the area after swiping.)
             my_page.target_element.swipe_by((250, 300, 400, 700))
 
@@ -916,7 +916,7 @@ class Element:
     ) -> Element:
         """
         Appium API.
-        For native iOS and Android apps, 
+        For native iOS and Android apps,
         this function flicks the screen until the element becomes visible
         within the specified area.
 
@@ -958,9 +958,9 @@ class Element:
 
             # Flick with customize absolute offset.
             # Note that the area parameter will affect the adjusting process.
-            # We recommend not setting the area in this case, 
+            # We recommend not setting the area in this case,
             # unless you have a specific testing scenario.
-            # (ex. flicking range is not within the area, 
+            # (ex. flicking range is not within the area,
             # and the target element should be inside the area after flicking.)
             my_page.target_element.flick_by((250, 300, 400, 700))
 
@@ -1445,7 +1445,7 @@ class Element:
     def drag_and_drop(self, target: Element) -> Element:
         """
         Selenium ActionChains API.
-        Holds down the left mouse button on the source element, 
+        Holds down the left mouse button on the source element,
         then moves to the target element and releases the mouse button.
 
         Args:
@@ -1532,9 +1532,9 @@ class Element:
     def key_down(self, value: str, focus: bool = True) -> Element:
         """
         Selenium ActionChains API.
-        Sends a key press only, without releasing it. 
+        Sends a key press only, without releasing it.
         Should only be used with modifier keys (Control, Alt and Shift).
-        If you want to perform a hotkey process, 
+        If you want to perform a hotkey process,
         it is recommended to use hotkey() instead.
 
         Args:
@@ -1560,13 +1560,13 @@ class Element:
         Selenium ActionChains API.
         Releases a modifier key.
         Should only be used with modifier keys (Control, Alt and Shift).
-        If you want to perform a hotkey process, 
+        If you want to perform a hotkey process,
         it is recommended to use hotkey() instead.
 
         Args:
         - value: The modifier key to send. Values are defined in Keys class.
-        - focus: Whether to focus on the element or not. 
-            The default is NOT to focus on the current element 
+        - focus: Whether to focus on the element or not.
+            The default is NOT to focus on the current element
             as this is generally not the first action.
 
         Usage::
@@ -1757,7 +1757,7 @@ class Element:
         Selenium ActionChains API.
         Set the origin to the center of the element with an offset,
         and perform the swipe with the specified delta.
-        If the element is not in the viewport, 
+        If the element is not in the viewport,
         the bottom of the element will first be scrolled to the bottom of the viewport.
 
         Args:
@@ -1765,7 +1765,7 @@ class Element:
         - y_offset: from origin element center, a negative value offset up.
         - delta_x: Distance along X axis to scroll using the wheel. A negative value scrolls left.
         - delta_y: Distance along Y axis to scroll using the wheel. A negative value scrolls up.
-        - perform: Default is True to perform the stored action immediately; 
+        - perform: Default is True to perform the stored action immediately;
             otherwise, store the action to be performed later.
 
         Usage::
@@ -1931,7 +1931,7 @@ class Element:
     def deselect_by_value(self, value: str) -> None:
         """
         Selenium Select API.
-        Deselect all options that have a value matching the argument. 
+        Deselect all options that have a value matching the argument.
         That is, when given "foo" this would deselect an option like:
         <option value="foo">Bar</option>
 
@@ -1950,8 +1950,8 @@ class Element:
     def deselect_by_index(self, index: int) -> None:
         """
         Selenium Select API.
-        Deselect the option at the given index. 
-        This is done by examining the "index" attribute of an element, 
+        Deselect the option at the given index.
+        This is done by examining the "index" attribute of an element,
         and not merely by counting.
 
         Args:
@@ -1969,7 +1969,7 @@ class Element:
     def deselect_by_visible_text(self, text: str) -> None:
         """
         Selenium Select API.
-        Deselect all options that display text matching the argument. 
+        Deselect all options that display text matching the argument.
         That is, when given "Bar" this would deselect an option like:
         <option value="foo">Bar</option>
 
@@ -1991,7 +1991,7 @@ class Element:
         Appium API.
         Retrieve the location (coordination) of the element relative to the view when it is present.
 
-        Return is the same as official: 
+        Return is the same as official:
         {'x': int, 'y': int}
         """
         try:
