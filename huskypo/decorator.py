@@ -8,7 +8,7 @@ from __future__ import annotations
 from . import Element, Elements
 
 
-def dynamic(func) -> Element | Elements:
+def dynamic(func):
 
     def wrapper(self, *args, **kwargs):
         target = func(self, *args, **kwargs)
