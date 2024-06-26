@@ -5,15 +5,18 @@
 
 from __future__ import annotations
 
+from functools import wraps
+
 from . import Element, Elements
 
 
 def dynamic(func):
 
+    @wraps(func)
     def wrapper(self, *args, **kwargs):
         target = func(self, *args, **kwargs)
         if isinstance(target, (Element, Elements)):
             return target.__get__(self, None)
-        raise TypeError("The decorated function must return an Element or Elements instance.")
+        raise TypeError(f'The decorated function "{func.__name__}" must return an Element or Elements instance.')
 
     return wrapper
