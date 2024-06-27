@@ -162,7 +162,8 @@ class Element:
         """
         if self.by and self.value:
             return (self.by, self.value)
-        raise ValueError('"by" and "value" cannot be None when performing element operations. Please ensure both are provided with valid values.')
+        raise ValueError(
+            '"by" and "value" cannot be None when performing element operations. Please ensure both are provided with valid values.')
 
     @property
     def initial_timeout(self):
