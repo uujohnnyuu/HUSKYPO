@@ -45,7 +45,7 @@ def _find_element_by(
 
 def _find_elements_by(
     driver: WebDriver,
-    locator: tuple[str, str],
+    locator: tuple[str, str]
 ) -> list[WebElement]:
     """
     Return driver.find_elements(*locator).
@@ -164,7 +164,7 @@ def absence_of_all_elements_located(
 
 def visibility_of_element_located(
     locator: tuple[str, str],
-    index: int | None,
+    index: int | None
 ) -> Callable[[WebDriver], WebElement | Literal[False]]:
     """
     Extended `visibility_of_element_located`.

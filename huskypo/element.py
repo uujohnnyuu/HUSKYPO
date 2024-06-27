@@ -411,8 +411,9 @@ class Element:
             the element did not reach the expected status after the timeout.
         """
         try:
-            return self.wait(timeout).until(ecex.invisibility_of_element(self._present_element),
-                                            self.__timeout_message('invisible'))
+            return self.wait(timeout).until(
+                ecex.invisibility_of_element(self._present_element),
+                self.__timeout_message('invisible'))
         except ElementReferenceException:
             self._present_element = self.wait(timeout, StaleElementReferenceException).until(
                 ecex.invisibility_of_element_located(self.locator, self.index, present),
@@ -506,8 +507,9 @@ class Element:
             the element did not reach the expected status after the timeout.
         """
         try:
-            return self.wait(timeout).until(ecex.element_to_be_unclickable(self._present_element),
-                                            self.__timeout_message('unclickable'))
+            return self.wait(timeout).until(
+                ecex.element_to_be_unclickable(self._present_element),
+                self.__timeout_message('unclickable'))
         except ElementReferenceException:
             self._present_element = self.wait(timeout, StaleElementReferenceException).until(
                 ecex.element_located_to_be_unclickable(self.locator, self.index, present),
@@ -544,8 +546,9 @@ class Element:
             the element did not reach the expected status after the timeout.
         """
         try:
-            return self.wait(timeout).until(ecex.element_to_be_selected(self._present_element),
-                                            self.__timeout_message('selected'))
+            return self.wait(timeout).until(
+                ecex.element_to_be_selected(self._present_element),
+                self.__timeout_message('selected'))
         except ElementReferenceException:
             self._present_element = self.wait(timeout, StaleElementReferenceException).until(
                 ecex.element_located_to_be_selected(self.locator, self.index),
@@ -586,8 +589,9 @@ class Element:
             the element did not reach the expected status after the timeout.
         """
         try:
-            return self.wait(timeout).until(ecex.element_to_be_unselected(self._present_element),
-                                            self.__timeout_message('unselected'))
+            return self.wait(timeout).until(
+                ecex.element_to_be_unselected(self._present_element),
+                self.__timeout_message('unselected'))
         except ElementReferenceException:
             self._present_element = self.wait(timeout, StaleElementReferenceException).until(
                 ecex.element_located_to_be_unselected(self.locator, self.index),
