@@ -14,7 +14,7 @@
 from __future__ import annotations
 
 import warnings
-from typing import Literal
+from typing import Type, TypeVar, Literal
 
 from selenium.common.exceptions import TimeoutException, StaleElementReferenceException
 from selenium.webdriver.support.ui import WebDriverWait
@@ -26,6 +26,9 @@ from .config import Timeout
 from .by import ByAttribute
 from .page import Page
 from .types import WebDriver, WebElement
+
+
+T = TypeVar('T', bound=Page)
 
 
 class Elements:
@@ -82,7 +85,7 @@ class Elements:
         if remark is None:
             self.remark = self.value
 
-    def __get__(self, instance: Page, owner) -> Elements:
+    def __get__(self, instance: T, owner: Type[T]) -> Elements:
         """
         Internal use.
         Dynamically obtain the instance of Page and
@@ -91,13 +94,20 @@ class Elements:
         self._page = instance
         return self
 
-    def __set__(self, instance: Page, value) -> None:
+    def __set__(self, instance: T, value: tuple) -> None:
         """
         Internal use.
         Setting element attribute values at runtime,
         typically used for configuring dynamic elements.
         """
         self.__init__(*value)
+
+    @property
+    def page(self) -> T:
+        """
+        Get page instance from elements.
+        """
+        return self._page
 
     @property
     def driver(self) -> WebDriver:
@@ -113,8 +123,7 @@ class Elements:
         """
         if self.by and self.value:
             return (self.by, self.value)
-        raise ValueError("""'by' and 'value' cannot be None when performing elements operations.
-                             Please ensure both are provided with valid values.""")
+        raise ValueError('"by" and "value" cannot be None when performing elements operations. Please ensure both are provided with valid values.')
 
     @property
     def initial_timeout(self):

@@ -13,7 +13,7 @@ from __future__ import annotations
 import warnings
 import math
 import platform
-from typing import Any, Literal
+from typing import Type, TypeVar, Any, Literal
 
 from selenium.common.exceptions import TimeoutException, StaleElementReferenceException, InvalidSessionIdException
 from selenium.webdriver.common.action_chains import ActionChains
@@ -34,6 +34,8 @@ from .types import WebDriver, WebElement
 
 # TODO deprecate
 from .by import SwipeAction as SA
+
+T = TypeVar('T', bound=Page)
 
 ElementReferenceException = (AttributeError, StaleElementReferenceException, InvalidSessionIdException)
 
@@ -114,7 +116,7 @@ class Element:
         if remark is None:
             self.remark = f'{self.value}' if self.index is None else f'({self.value})[{self.index}]'
 
-    def __get__(self, instance: Page, owner) -> Element:
+    def __get__(self, instance: T, owner: Type[T]) -> Element:
         """
         Internal use.
         Dynamically obtain the instance of Page and
@@ -123,13 +125,20 @@ class Element:
         self._page = instance
         return self
 
-    def __set__(self, instance: Page, value) -> None:
+    def __set__(self, instance: T, value: tuple) -> None:
         """
         Internal use.
         Setting element attribute values at runtime,
         typically used for configuring dynamic elements.
         """
         self.__init__(*value)
+
+    @property
+    def page(self) -> T:
+        """
+        Get page instance from element.
+        """
+        return self._page
 
     @property
     def driver(self) -> WebDriver:
@@ -153,8 +162,7 @@ class Element:
         """
         if self.by and self.value:
             return (self.by, self.value)
-        raise ValueError("""'by' and 'value' cannot be None when performing element operations.
-                             Please ensure both are provided with valid values.""")
+        raise ValueError('"by" and "value" cannot be None when performing element operations. Please ensure both are provided with valid values.')
 
     @property
     def initial_timeout(self):
