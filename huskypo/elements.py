@@ -28,7 +28,7 @@ from .page import Page
 from .types import WebDriver, WebElement
 
 
-T = TypeVar('T', bound=Page)
+P = TypeVar('P', bound=Page)
 
 
 class Elements:
@@ -85,7 +85,7 @@ class Elements:
         if remark is None:
             self.remark = self.value
 
-    def __get__(self, instance: T, owner: Type[T]) -> Elements:
+    def __get__(self, instance: P, owner: Type[P]) -> Elements:
         """
         Internal use.
         Dynamically obtain the instance of Page and
@@ -94,20 +94,13 @@ class Elements:
         self._page = instance
         return self
 
-    def __set__(self, instance: T, value: tuple) -> None:
+    def __set__(self, instance: P, value: tuple) -> None:
         """
         Internal use.
         Setting element attribute values at runtime,
         typically used for configuring dynamic elements.
         """
         self.__init__(*value)
-
-    @property
-    def page(self) -> T:
-        """
-        Get page instance from elements.
-        """
-        return self._page
 
     @property
     def driver(self) -> WebDriver:
