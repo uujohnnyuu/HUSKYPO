@@ -82,21 +82,6 @@ def error(
     logging.error(message, stack_info=stack_info, stacklevel=target_level, extra=extra)
 
 
-def critical(
-    message: str,
-    starts_with: str = 'test',
-    stack_adjust: int = 0,
-    stack_info: bool = False,
-    stack_level: int | None = None,
-    extra: Mapping[str, object] | None = None
-) -> None:
-    """
-    Calling logging.error method, and finding stacklevel starts with specific function name.
-    """
-    target_level = get_stack_level(starts_with, stack_adjust + 1) if stack_level is None else stack_level + 1
-    logging.critical(message, stack_info=stack_info, stacklevel=target_level, extra=extra)
-
-
 def exception(
     message: str,
     starts_with: str = 'test',
@@ -110,6 +95,21 @@ def exception(
     """
     target_level = get_stack_level(starts_with, stack_adjust + 1) if stack_level is None else stack_level + 1
     logging.exception(message, stack_info=stack_info, stacklevel=target_level, extra=extra)
+
+
+def critical(
+    message: str,
+    starts_with: str = 'test',
+    stack_adjust: int = 0,
+    stack_info: bool = False,
+    stack_level: int | None = None,
+    extra: Mapping[str, object] | None = None
+) -> None:
+    """
+    Calling logging.error method, and finding stacklevel starts with specific function name.
+    """
+    target_level = get_stack_level(starts_with, stack_adjust + 1) if stack_level is None else stack_level + 1
+    logging.critical(message, stack_info=stack_info, stacklevel=target_level, extra=extra)
 
 
 def get_stack_level(starts_with: str = 'test', stack_adjust: int = 0) -> int:
