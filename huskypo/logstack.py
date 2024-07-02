@@ -19,7 +19,7 @@ import os
 
 from typing import Mapping
 
-from .config import Log
+from .config import InnerLog
 
 
 def debug(
@@ -80,6 +80,21 @@ def error(
     """
     target_level = get_stack_level(starts_with, stack_adjust + 1) if stack_level is None else stack_level + 1
     logging.error(message, stack_info=stack_info, stacklevel=target_level, extra=extra)
+
+
+def critical(
+    message: str,
+    starts_with: str = 'test',
+    stack_adjust: int = 0,
+    stack_info: bool = False,
+    stack_level: int | None = None,
+    extra: Mapping[str, object] | None = None
+) -> None:
+    """
+    Calling logging.error method, and finding stacklevel starts with specific function name.
+    """
+    target_level = get_stack_level(starts_with, stack_adjust + 1) if stack_level is None else stack_level + 1
+    logging.critical(message, stack_info=stack_info, stacklevel=target_level, extra=extra)
 
 
 def exception(
@@ -154,9 +169,7 @@ def get_stack_infos(
 
 def _logging(message: str = 'NULL') -> None:
     """
-    To print or record inner log.
+    Internal use. To record debug level log.
     """
-    if Log.PRINT:
-        print(message)
-    if Log.RECORD:
-        info(message)
+    if InnerLog.RECORD:
+        debug(message)

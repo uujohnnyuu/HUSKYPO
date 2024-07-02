@@ -6,9 +6,8 @@
 from __future__ import annotations
 
 
-class Log:
-    PRINT = False
-    RECORD = False
+class InnerLog:
+    RECORD = False  # debug level
 
 
 class Timeout:
